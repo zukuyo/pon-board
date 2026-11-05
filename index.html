@@ -12,7 +12,8 @@
     --bg: #f5f5f7; --card: #ffffff; --ink: #1d1d1f; --sub: #6e6e73; --line: #e5e5ea;
     --feed: #0a84ff; --milk: #5e5ce6; --pee: #ffb340; --poop: #a2845e; --sleep: #30b0c7;
     --warn: #ff9f0a; --alert: #ff453a; --ok: #34c759; --btn: #ffffff; --btnInk: #1d1d1f;
-    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 18px rgba(0,0,0,.06);
+    --clk: clamp(40px, 10.5vh, 92px);
   }
   body.night {
     --bg: #0b0605; --card: #170d0b; --ink: #ffb4a0; --sub: #a0665a; --line: #2a1814;
@@ -24,72 +25,86 @@
   html, body { margin: 0; background: var(--bg); color: var(--ink); min-height: 100vh; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", sans-serif;
-    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     transition: background .6s, color .6s; -webkit-user-select: none; user-select: none;
   }
-  .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 14px; }
-  .card { background: var(--card); border-radius: 22px; padding: 18px 20px; box-shadow: var(--shadow); transition: background .6s; }
-  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-  .clock { font-size: clamp(56px, 11vw, 112px); font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; }
-  .date { color: var(--sub); font-size: 17px; text-align: right; line-height: 1.5; }
-  .label { color: var(--sub); font-size: 15px; font-weight: 500; }
-  .hero { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: end; }
-  .since { font-size: clamp(64px, 14vw, 140px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: .95; }
-  .since small { font-size: .32em; font-weight: 600; letter-spacing: 0; margin: 0 6px 0 4px; color: var(--sub); }
+  .wrap { display: grid; gap: 10px; grid-template-columns: 1fr; }
+  .colL, .colR { display: flex; flex-direction: column; gap: 10px; min-height: 0; min-width: 0; }
+  .card { background: var(--card); border-radius: 18px; padding: 12px 16px; box-shadow: var(--shadow); transition: background .6s; }
+  .label { color: var(--sub); font-size: 14px; font-weight: 500; }
+
+  /* 時計：前の授乳の枠に少し乗せる */
+  .top { position: relative; z-index: 2; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 0 6px; margin-bottom: calc(var(--clk) * -0.42); pointer-events: none; }
+  .top .clock { pointer-events: auto; }
+  .clock { font-size: var(--clk); font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .date { color: var(--sub); font-size: 15px; text-align: right; line-height: 1.35; padding-bottom: calc(var(--clk) * 0.5); }
+
+  .hero { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; align-items: end; padding-top: calc(var(--clk) * 0.42 + 8px); }
+  .since { font-size: clamp(52px, 16vh, 140px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: .95; }
+  .since small { font-size: .3em; font-weight: 600; letter-spacing: 0; margin: 0 6px 0 4px; color: var(--sub); }
   .hero.warn .since { color: var(--warn); }
   .hero.alert .since { color: var(--alert); }
-  .meta { font-size: 18px; line-height: 1.6; text-align: right; }
+  .meta { font-size: 17px; line-height: 1.5; text-align: right; }
   .meta b { font-weight: 600; }
   .live { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--feed); }
   .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; animation: pulse 1.6s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .35; transform: scale(.8);} }
-  .tl { position: relative; }
-  .lanes { display: grid; grid-template-columns: 52px 1fr; row-gap: 10px; align-items: center; margin-top: 10px; }
-  .lane-name { font-size: 13px; color: var(--sub); }
-  .lane { position: relative; height: 26px; background: var(--bg); border-radius: 8px; overflow: hidden; }
-  .seg { position: absolute; top: 3px; bottom: 3px; border-radius: 6px; min-width: 6px; }
-  .pt { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; }
-  .ticks { position: relative; height: 18px; margin-left: 52px; margin-top: 6px; }
+
+  .tl { position: relative; padding-bottom: 8px; }
+  .lanes { display: grid; grid-template-columns: 48px 1fr; row-gap: 6px; align-items: center; margin-top: 6px; }
+  .lane-name { font-size: 12px; color: var(--sub); }
+  .lane { position: relative; height: 20px; background: var(--bg); border-radius: 7px; overflow: hidden; }
+  .seg { position: absolute; top: 3px; bottom: 3px; border-radius: 5px; min-width: 6px; }
+  .pt { position: absolute; top: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; }
+  .ticks { position: relative; height: 16px; margin-left: 48px; margin-top: 4px; }
   .tick { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--sub); font-variant-numeric: tabular-nums; }
-  .grid-lines { position: absolute; left: 52px; right: 0; top: 0; bottom: 24px; pointer-events: none; }
+  .grid-lines { position: absolute; left: calc(16px + 48px); right: 16px; top: 36px; bottom: 26px; pointer-events: none; }
   .gl { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
   .nowline { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--alert); right: 0; }
-  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 10px 12px; }
   .stat { text-align: center; }
-  .stat .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .stat .k { font-size: 12px; color: var(--sub); margin-top: 2px; }
-  .btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .stat .v { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .k { font-size: 11px; color: var(--sub); margin-top: 2px; }
+
+  .btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   button {
-    font: inherit; border: 0; border-radius: 18px; background: var(--btn); color: var(--btnInk); box-shadow: var(--shadow);
-    min-height: 74px; font-size: 19px; font-weight: 600; padding: 8px; transition: transform .12s, opacity .2s; cursor: pointer;
-    border: 1px solid var(--line);
+    font: inherit; border: 1px solid var(--line); border-radius: 16px; background: var(--btn); color: var(--btnInk); box-shadow: var(--shadow);
+    min-height: clamp(56px, 10.5vh, 86px); font-size: 17px; font-weight: 600; padding: 6px; transition: transform .12s, opacity .2s; cursor: pointer; line-height: 1.25;
   }
   button:active { transform: scale(.96); opacity: .8; }
-  button .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: 2px; }
-  button.sub { min-height: 52px; font-size: 16px; font-weight: 500; }
+  button .sw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  button.sub { min-height: 40px; font-size: 15px; font-weight: 500; }
   button.on { outline: 3px solid var(--feed); }
-  .agoRow { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
-  .agoRow button { min-height: 44px; flex: 1; font-size: 15px; border-radius: 14px; }
-  .list { list-style: none; margin: 0; padding: 0; }
-  .list li { display: flex; align-items: center; justify-content: space-between; padding: 11px 2px; border-bottom: 1px solid var(--line); font-size: 17px; }
+  .agoRow { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+  .agoRow button { min-height: 40px; flex: 1; font-size: 14px; border-radius: 12px; }
+  .agoRow .label { white-space: nowrap; font-size: 13px; }
+  .list { list-style: none; margin: 4px 0 0; padding: 0; }
+  .list li { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px; border-bottom: 1px solid var(--line); font-size: 16px; }
   .list li:last-child { border-bottom: 0; }
-  .list .t { font-variant-numeric: tabular-nums; color: var(--sub); width: 64px; display: inline-block; }
-  .list .x { color: var(--sub); font-size: 14px; background: none; box-shadow: none; border: 1px solid var(--line); min-height: 34px; padding: 4px 12px; border-radius: 10px; font-weight: 500; }
-  .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 140%); background: rgba(29,29,31,.92); color: #fff; padding: 14px 22px; border-radius: 16px; font-size: 18px; transition: transform .35s cubic-bezier(.2,.9,.3,1.2); z-index: 10; max-width: 90vw; text-align: center; }
+  .list .t { font-variant-numeric: tabular-nums; color: var(--sub); width: 58px; display: inline-block; }
+  .list .x { color: var(--sub); font-size: 13px; background: none; box-shadow: none; min-height: 30px; padding: 2px 10px; border-radius: 9px; font-weight: 500; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 140%); background: rgba(29,29,31,.92); color: #fff; padding: 12px 20px; border-radius: 14px; font-size: 17px; transition: transform .35s cubic-bezier(.2,.9,.3,1.2); z-index: 10; max-width: 90vw; text-align: center; }
   body.night .toast { background: rgba(60,20,15,.95); color: #ffb4a0; }
   .toast.show { transform: translate(-50%, 0); }
   .sheet { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: flex-end; justify-content: center; z-index: 9; }
   .sheet.show { display: flex; }
-  .sheet .panel { background: var(--card); width: 100%; max-width: 640px; border-radius: 24px 24px 0 0; padding: 20px 16px max(20px, env(safe-area-inset-bottom)); }
-  .mlgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
-  .mlgrid button { min-height: 60px; }
-  .row2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; }
+  .sheet .panel { background: var(--card); width: 100%; max-width: 640px; border-radius: 24px 24px 0 0; padding: 18px 16px max(18px, env(safe-area-inset-bottom)); }
+  .mlgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 10px 0; }
+  .mlgrid button { min-height: 56px; }
   .err { color: var(--alert); font-size: 13px; }
-  @media (max-width: 960px) {
-    .row2 { grid-template-columns: 1fr; }
+
+  /* 壁掛け（横向き）：スクロールなしで全部収める */
+  @media (orientation: landscape) and (min-width: 800px) {
+    html, body { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+    .wrap { height: 100%; grid-template-columns: 1.12fr 1fr; }
+    .colL .hero { flex: 1 1 auto; }
+    .colL .tl { flex: 1 1 0; min-height: 0; }
+    .colR .controls { flex: none; }
+    .colR .recentcard { flex: 1 1 0; min-height: 0; overflow: hidden; }
   }
   @media (max-width: 700px) {
-    .stats { grid-template-columns: repeat(3, 1fr); row-gap: 14px; }
+    .stats { grid-template-columns: repeat(3, 1fr); row-gap: 10px; }
     .btns { grid-template-columns: repeat(2, 1fr); }
     .hero { grid-template-columns: 1fr; }
     .meta { text-align: left; }
@@ -98,30 +113,32 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="top">
-    <div class="clock" id="clock" title="タップで夜モード切り替え">--:--</div>
-    <div class="date"><div id="date"></div><div id="age"></div></div>
-  </div>
-
-  <div class="card hero" id="hero">
-    <div>
-      <div class="label">前の授乳から</div>
-      <div class="since" id="since">--</div>
+  <div class="colL">
+    <div class="top">
+      <div class="clock" id="clock" title="タップで夜モード切り替え">--:--</div>
+      <div class="date"><div id="date"></div><div id="age"></div></div>
     </div>
-    <div class="meta" id="meta"></div>
+
+    <div class="card hero" id="hero">
+      <div>
+        <div class="label">前の授乳から</div>
+        <div class="since" id="since">--</div>
+      </div>
+      <div class="meta" id="meta"></div>
+    </div>
+
+    <div class="card tl">
+      <div class="label">今日の流れ（直近24時間）</div>
+      <div class="grid-lines" id="gl"></div>
+      <div class="lanes" id="lanes"></div>
+      <div class="ticks" id="ticks"></div>
+    </div>
+
+    <div class="card stats" id="stats"></div>
   </div>
 
-  <div class="card tl">
-    <div class="label">今日の流れ（直近24時間）</div>
-    <div class="grid-lines" id="gl"></div>
-    <div class="lanes" id="lanes"></div>
-    <div class="ticks" id="ticks"></div>
-  </div>
-
-  <div class="card stats" id="stats"></div>
-
-  <div class="row2">
-    <div class="card">
+  <div class="colR">
+    <div class="card controls">
       <div class="btns">
         <button data-a="add" data-t="breast" data-side="L"><span class="sw" style="background:var(--feed)"></span>母乳 左</button>
         <button data-a="add" data-t="breast" data-side="R"><span class="sw" style="background:var(--feed)"></span>母乳 右</button>
@@ -130,7 +147,7 @@
         <button data-a="add" data-t="pee"><span class="sw" style="background:var(--pee)"></span>おしっこ</button>
         <button data-a="add" data-t="poop"><span class="sw" style="background:var(--poop)"></span>うんち</button>
         <button id="sleepBtn" data-a="add" data-t="sleep"><span class="sw" style="background:var(--sleep)"></span>寝た</button>
-        <button data-a="undo" class="">取り消し</button>
+        <button data-a="undo">取り消し</button>
       </div>
       <div class="agoRow">
         <span class="label">時刻：</span>
@@ -140,7 +157,7 @@
         <button class="sub" data-ago="60">1時間前</button>
       </div>
     </div>
-    <div class="card">
+    <div class="card recentcard">
       <div class="label">さいきんの記録</div>
       <ul class="list" id="recent"></ul>
       <div class="err" id="err"></div>
@@ -280,7 +297,7 @@ function renderStats() {
 }
 
 function renderRecent() {
-  document.getElementById('recent').innerHTML = S.recent.slice(0, 7).map(function (e) {
+  document.getElementById('recent').innerHTML = S.recent.slice(0, 6).map(function (e) {
     var txt = e.label + (e.side ? ' ' + e.side : '') + (e.amt !== '' && e.amt != null ? ' ' + e.amt + (e.unit || '') : '') + (e.min ? ' ' + e.min + '分' : '');
     return '<li><span><span class="t">' + hm(e.t) + '</span>' + txt + '</span><button class="x" data-del="' + e.id + '">消す</button></li>';
   }).join('');
