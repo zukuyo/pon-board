@@ -50,10 +50,10 @@
   .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; animation: pulse 1.6s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .35; transform: scale(.8);} }
 
-  .tl { position: relative; padding-bottom: 8px; }
-  .lanes { display: grid; grid-template-columns: 48px 1fr; row-gap: clamp(6px, 1.4vh, 14px); align-items: center; margin-top: 6px; }
+  .tl { position: relative; padding-bottom: 8px; display: flex; flex-direction: column; }
+  .lanes { flex: 1 1 auto; grid-template-rows: repeat(3, minmax(20px, 1fr)); display: grid; grid-template-columns: 48px 1fr; row-gap: clamp(6px, 1.4vh, 14px); align-items: center; margin-top: 6px; }
   .lane-name { font-size: 12px; color: var(--sub); }
-  .lane { position: relative; height: clamp(20px, 4.4vh, 34px); background: var(--bg); border-radius: 7px; overflow: hidden; }
+  .lane { position: relative; height: 100%; min-height: 20px; max-height: 64px; align-self: center; background: var(--bg); border-radius: 7px; overflow: hidden; }
   .seg { position: absolute; top: 3px; bottom: 3px; border-radius: 5px; min-width: 6px; }
   .pt { position: absolute; top: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; }
   .ticks { position: relative; height: 16px; margin-left: 48px; margin-top: 4px; }
@@ -101,7 +101,8 @@
     .colL .hero { flex: none; }
     .colL .tl { flex: 1 1 0; min-height: 0; }
     .colR .controls { flex: none; }
-    .colR .recentcard { flex: 1 1 0; min-height: 0; overflow: hidden; }
+    .colR .recentcard { flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .colR .recentcard .list { flex: 1 1 0; min-height: 0; overflow: hidden; }
   }
   @media (max-width: 700px) {
     .stats { grid-template-columns: repeat(3, 1fr); row-gap: 10px; }
@@ -297,10 +298,12 @@ function renderStats() {
 }
 
 function renderRecent() {
-  document.getElementById('recent').innerHTML = S.recent.slice(0, 6).map(function (e) {
+  document.getElementById('recent').innerHTML = S.recent.slice(0, 10).map(function (e) {
     var txt = e.label + (e.side ? ' ' + e.side : '') + (e.amt !== '' && e.amt != null ? ' ' + e.amt + (e.unit || '') : '') + (e.min ? ' ' + e.min + '分' : '');
     return '<li><span><span class="t">' + hm(e.t) + '</span>' + txt + '</span><button class="x" data-del="' + e.id + '">消す</button></li>';
   }).join('');
+  var ul = document.getElementById('recent');
+  while (ul.lastChild && ul.scrollHeight > ul.clientHeight + 1) ul.removeChild(ul.lastChild);
 }
 
 function render() {
