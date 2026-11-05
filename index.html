@@ -232,7 +232,7 @@ function renderHero() {
     lines.push('<span class="live"><span class="dot"></span>授乳中 ' + (S.feedingNow.side || '') + ' ' + Math.floor((now - S.feedingNow.t) / 60000) + '分</span>');
   }
   var lf = S.lastFeed;
-  var what = lf.type === 'milk' ? 'ミルク ' + lf.amt + 'ml' : '母乳' + (S.lastSides.length ? ' ' + S.lastSides.join('→') : '');
+  var what = lf.type === 'milk' ? 'ミルク ' + lf.amt + 'ml' : lf.type === 'pump' ? '搾乳 ' + lf.amt + 'ml' : '母乳' + (S.lastSides.length ? ' ' + S.lastSides.join('→') : '');
   lines.push('<b>' + hm(base) + '</b> ' + what);
   if (S.lastSides.length) {
     var last = S.lastSides[S.lastSides.length - 1];
@@ -283,7 +283,7 @@ function renderStats() {
   var d = S.today, now = Date.now();
   var items = [
     [d.feeds + '回', '授乳（今日）'],
-    [d.milkMl + 'ml', 'ミルク'],
+    [(d.milkMl + d.pumpMl) + 'ml', 'ミルク・搾乳'],
     [d.pee + '回', 'おしっこ'],
     [d.poop + '回', 'うんち'],
     [S.lastPee ? dur(now - S.lastPee.t) : '--', '前のおしっこから'],
