@@ -51,13 +51,13 @@
   @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .35; transform: scale(.8);} }
 
   .tl { position: relative; padding-bottom: 8px; }
-  .lanes { display: grid; grid-template-columns: 48px 1fr; row-gap: 6px; align-items: center; margin-top: 6px; }
+  .lanes { display: grid; grid-template-columns: 48px 1fr; row-gap: clamp(6px, 1.4vh, 14px); align-items: center; margin-top: 6px; }
   .lane-name { font-size: 12px; color: var(--sub); }
-  .lane { position: relative; height: 20px; background: var(--bg); border-radius: 7px; overflow: hidden; }
+  .lane { position: relative; height: clamp(20px, 4.4vh, 34px); background: var(--bg); border-radius: 7px; overflow: hidden; }
   .seg { position: absolute; top: 3px; bottom: 3px; border-radius: 5px; min-width: 6px; }
   .pt { position: absolute; top: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; }
   .ticks { position: relative; height: 16px; margin-left: 48px; margin-top: 4px; }
-  .tick { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--sub); font-variant-numeric: tabular-nums; }
+  .tick { position: absolute; transform: translateX(-50%); white-space: nowrap; font-size: 11px; color: var(--sub); font-variant-numeric: tabular-nums; }
   .grid-lines { position: absolute; left: calc(16px + 48px); right: 16px; top: 36px; bottom: 26px; pointer-events: none; }
   .gl { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
   .nowline { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--alert); right: 0; }
@@ -84,9 +84,9 @@
   .list li:last-child { border-bottom: 0; }
   .list .t { font-variant-numeric: tabular-nums; color: var(--sub); width: 58px; display: inline-block; }
   .list .x { color: var(--sub); font-size: 13px; background: none; box-shadow: none; min-height: 30px; padding: 2px 10px; border-radius: 9px; font-weight: 500; }
-  .toast { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 140%); background: rgba(29,29,31,.92); color: #fff; padding: 12px 20px; border-radius: 14px; font-size: 17px; transition: transform .35s cubic-bezier(.2,.9,.3,1.2); z-index: 10; max-width: 90vw; text-align: center; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 220%); opacity: 0; pointer-events: none; background: rgba(29,29,31,.92); color: #fff; padding: 12px 20px; border-radius: 14px; font-size: 17px; transition: transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .25s; z-index: 10; max-width: 90vw; text-align: center; }
   body.night .toast { background: rgba(60,20,15,.95); color: #ffb4a0; }
-  .toast.show { transform: translate(-50%, 0); }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
   .sheet { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: flex-end; justify-content: center; z-index: 9; }
   .sheet.show { display: flex; }
   .sheet .panel { background: var(--card); width: 100%; max-width: 640px; border-radius: 24px 24px 0 0; padding: 18px 16px max(18px, env(safe-area-inset-bottom)); }
@@ -98,7 +98,7 @@
   @media (orientation: landscape) and (min-width: 800px) {
     html, body { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
     .wrap { height: 100%; grid-template-columns: 1.12fr 1fr; }
-    .colL .hero { flex: 1 1 auto; }
+    .colL .hero { flex: none; }
     .colL .tl { flex: 1 1 0; min-height: 0; }
     .colR .controls { flex: none; }
     .colR .recentcard { flex: 1 1 0; min-height: 0; overflow: hidden; }
@@ -269,7 +269,7 @@ function renderTimeline() {
   var first = new Date(start); first.setMinutes(0, 0, 0); var t = first.getTime() + 3600000;
   for (; t < end; t += 3600000) {
     var h = new Date(t).getHours();
-    if (h % 3 === 0) {
+    if (h % 3 === 0 && x(t) < 95) {
       th += '<div class="tick" style="left:' + x(t) + '%">' + h + '時</div>';
       gh += '<div class="gl" style="left:' + x(t) + '%"></div>';
     }
