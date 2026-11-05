@@ -70,20 +70,20 @@
   .btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   button {
     font: inherit; border: 1px solid var(--line); border-radius: 16px; background: var(--btn); color: var(--btnInk); box-shadow: var(--shadow);
-    min-height: clamp(56px, 10.5vh, 86px); font-size: 17px; font-weight: 600; padding: 6px; transition: transform .12s, opacity .2s; cursor: pointer; line-height: 1.25;
+    min-height: clamp(56px, 10.5vh, 86px); font-size: 17px; font-weight: 600; padding: 8px 10px; transition: transform .12s, opacity .2s; cursor: pointer; line-height: 1.25;
   }
   button:active { transform: scale(.96); opacity: .8; }
   button .sw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
   button.sub { min-height: 40px; font-size: 15px; font-weight: 500; }
   button.on { outline: 3px solid var(--feed); }
   .agoRow { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
-  .agoRow button { min-height: 40px; flex: 1; font-size: 14px; border-radius: 12px; }
+  .agoRow button { min-height: 40px; flex: 1; font-size: 14px; border-radius: 12px; padding: 6px 8px; }
   .agoRow .label { white-space: nowrap; font-size: 13px; }
   .list { list-style: none; margin: 4px 0 0; padding: 0; }
   .list li { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px; border-bottom: 1px solid var(--line); font-size: 16px; }
   .list li:last-child { border-bottom: 0; }
   .list .t { font-variant-numeric: tabular-nums; color: var(--sub); width: 58px; display: inline-block; }
-  .list .x { color: var(--sub); font-size: 13px; background: none; box-shadow: none; min-height: 30px; padding: 2px 10px; border-radius: 9px; font-weight: 500; }
+  .list .x { color: var(--sub); font-size: 13px; background: none; box-shadow: none; min-height: 32px; padding: 4px 12px; border-radius: 9px; font-weight: 500; }
   .toast { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 220%); opacity: 0; pointer-events: none; background: rgba(29,29,31,.92); color: #fff; padding: 12px 20px; border-radius: 14px; font-size: 17px; transition: transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .25s; z-index: 10; max-width: 90vw; text-align: center; }
   body.night .toast { background: rgba(60,20,15,.95); color: #ffb4a0; }
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
