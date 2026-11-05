@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PONログ</title>
+<style>
+  :root {
+    --bg: #f5f5f7; --card: #ffffff; --ink: #1d1d1f; --sub: #6e6e73; --line: #e5e5ea;
+    --feed: #0a84ff; --milk: #5e5ce6; --pee: #ffb340; --poop: #a2845e; --sleep: #30b0c7;
+    --warn: #ff9f0a; --alert: #ff453a; --ok: #34c759; --btn: #ffffff; --btnInk: #1d1d1f;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+  }
+  body.night {
+    --bg: #0b0605; --card: #170d0b; --ink: #ffb4a0; --sub: #a0665a; --line: #2a1814;
+    --feed: #ff7a5c; --milk: #e0705a; --pee: #d9a050; --poop: #a0705a; --sleep: #c07060;
+    --warn: #ffa050; --alert: #ff5040; --ok: #c08060; --btn: #1d100d; --btnInk: #ffb4a0;
+    --shadow: none;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); min-height: 100vh; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", sans-serif;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    transition: background .6s, color .6s; -webkit-user-select: none; user-select: none;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 14px; }
+  .card { background: var(--card); border-radius: 22px; padding: 18px 20px; box-shadow: var(--shadow); transition: background .6s; }
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .clock { font-size: clamp(56px, 11vw, 112px); font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .date { color: var(--sub); font-size: 17px; text-align: right; line-height: 1.5; }
+  .label { color: var(--sub); font-size: 15px; font-weight: 500; }
+  .hero { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: end; }
+  .since { font-size: clamp(64px, 14vw, 140px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: .95; }
+  .since small { font-size: .32em; font-weight: 600; letter-spacing: 0; margin: 0 6px 0 4px; color: var(--sub); }
+  .hero.warn .since { color: var(--warn); }
+  .hero.alert .since { color: var(--alert); }
+  .meta { font-size: 18px; line-height: 1.6; text-align: right; }
+  .meta b { font-weight: 600; }
+  .live { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--feed); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .35; transform: scale(.8);} }
+  .tl { position: relative; }
+  .lanes { display: grid; grid-template-columns: 52px 1fr; row-gap: 10px; align-items: center; margin-top: 10px; }
+  .lane-name { font-size: 13px; color: var(--sub); }
+  .lane { position: relative; height: 26px; background: var(--bg); border-radius: 8px; overflow: hidden; }
+  .seg { position: absolute; top: 3px; bottom: 3px; border-radius: 6px; min-width: 6px; }
+  .pt { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; }
+  .ticks { position: relative; height: 18px; margin-left: 52px; margin-top: 6px; }
+  .tick { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--sub); font-variant-numeric: tabular-nums; }
+  .grid-lines { position: absolute; left: 52px; right: 0; top: 0; bottom: 24px; pointer-events: none; }
+  .gl { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+  .nowline { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--alert); right: 0; }
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .stat { text-align: center; }
+  .stat .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat .k { font-size: 12px; color: var(--sub); margin-top: 2px; }
+  .btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  button {
+    font: inherit; border: 0; border-radius: 18px; background: var(--btn); color: var(--btnInk); box-shadow: var(--shadow);
+    min-height: 74px; font-size: 19px; font-weight: 600; padding: 8px; transition: transform .12s, opacity .2s; cursor: pointer;
+    border: 1px solid var(--line);
+  }
+  button:active { transform: scale(.96); opacity: .8; }
+  button .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: 2px; }
+  button.sub { min-height: 52px; font-size: 16px; font-weight: 500; }
+  button.on { outline: 3px solid var(--feed); }
+  .agoRow { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+  .agoRow button { min-height: 44px; flex: 1; font-size: 15px; border-radius: 14px; }
+  .list { list-style: none; margin: 0; padding: 0; }
+  .list li { display: flex; align-items: center; justify-content: space-between; padding: 11px 2px; border-bottom: 1px solid var(--line); font-size: 17px; }
+  .list li:last-child { border-bottom: 0; }
+  .list .t { font-variant-numeric: tabular-nums; color: var(--sub); width: 64px; display: inline-block; }
+  .list .x { color: var(--sub); font-size: 14px; background: none; box-shadow: none; border: 1px solid var(--line); min-height: 34px; padding: 4px 12px; border-radius: 10px; font-weight: 500; }
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 140%); background: rgba(29,29,31,.92); color: #fff; padding: 14px 22px; border-radius: 16px; font-size: 18px; transition: transform .35s cubic-bezier(.2,.9,.3,1.2); z-index: 10; max-width: 90vw; text-align: center; }
+  body.night .toast { background: rgba(60,20,15,.95); color: #ffb4a0; }
+  .toast.show { transform: translate(-50%, 0); }
+  .sheet { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: flex-end; justify-content: center; z-index: 9; }
+  .sheet.show { display: flex; }
+  .sheet .panel { background: var(--card); width: 100%; max-width: 640px; border-radius: 24px 24px 0 0; padding: 20px 16px max(20px, env(safe-area-inset-bottom)); }
+  .mlgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
+  .mlgrid button { min-height: 60px; }
+  .row2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; }
+  .err { color: var(--alert); font-size: 13px; }
+  @media (max-width: 960px) {
+    .row2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .stats { grid-template-columns: repeat(3, 1fr); row-gap: 14px; }
+    .btns { grid-template-columns: repeat(2, 1fr); }
+    .hero { grid-template-columns: 1fr; }
+    .meta { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="clock" id="clock" title="タップで夜モード切り替え">--:--</div>
+    <div class="date"><div id="date"></div><div id="age"></div></div>
+  </div>
+
+  <div class="card hero" id="hero">
+    <div>
+      <div class="label">前の授乳から</div>
+      <div class="since" id="since">--</div>
+    </div>
+    <div class="meta" id="meta"></div>
+  </div>
+
+  <div class="card tl">
+    <div class="label">今日の流れ（直近24時間）</div>
+    <div class="grid-lines" id="gl"></div>
+    <div class="lanes" id="lanes"></div>
+    <div class="ticks" id="ticks"></div>
+  </div>
+
+  <div class="card stats" id="stats"></div>
+
+  <div class="row2">
+    <div class="card">
+      <div class="btns">
+        <button data-a="add" data-t="breast" data-side="L"><span class="sw" style="background:var(--feed)"></span>母乳 左</button>
+        <button data-a="add" data-t="breast" data-side="R"><span class="sw" style="background:var(--feed)"></span>母乳 右</button>
+        <button data-a="end" data-t="breast">おっぱい<br>終わり</button>
+        <button data-open="milk"><span class="sw" style="background:var(--milk)"></span>ミルク</button>
+        <button data-a="add" data-t="pee"><span class="sw" style="background:var(--pee)"></span>おしっこ</button>
+        <button data-a="add" data-t="poop"><span class="sw" style="background:var(--poop)"></span>うんち</button>
+        <button id="sleepBtn" data-a="add" data-t="sleep"><span class="sw" style="background:var(--sleep)"></span>寝た</button>
+        <button data-a="undo" class="">取り消し</button>
+      </div>
+      <div class="agoRow">
+        <span class="label">時刻：</span>
+        <button class="sub on" data-ago="0">いま</button>
+        <button class="sub" data-ago="10">10分前</button>
+        <button class="sub" data-ago="30">30分前</button>
+        <button class="sub" data-ago="60">1時間前</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">さいきんの記録</div>
+      <ul class="list" id="recent"></ul>
+      <div class="err" id="err"></div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="milkSheet">
+  <div class="panel">
+    <div class="label" id="milkTitle">ミルクの量（ml）</div>
+    <div class="mlgrid" id="mlgrid"></div>
+    <button class="sub" style="width:100%" data-close>やめる</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// GASから配るときは埋め込み、別の場所に置くときはURLの#以降（#key=..&exec=..）から読む
+var HASH = {}; location.hash.replace(/^#/, '').split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) HASH[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); });
+var KEY = HASH.key || '';
+var EXEC = HASH.exec || '';
+var S = null, ago = 0, nightOverride = null;
+var COLORS = { breast: 'var(--feed)', milk: 'var(--milk)', pump: 'var(--milk)', pee: 'var(--pee)', poop: 'var(--poop)', both: 'var(--poop)', sleep: 'var(--sleep)' };
+
+function call(params, cb) {
+  params.key = KEY; params.dev = params.dev || '壁の画面'; params.t_ = Date.now();
+  var q = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+  fetch(EXEC + '?' + q, { redirect: 'follow' }).then(function (r) { return r.json(); }).then(cb).catch(function (e) {
+    if (window.google && google.script && google.script.run) {
+      google.script.run.withSuccessHandler(cb).withFailureHandler(showErr).api(params);
+    } else showErr(e);
+  });
+}
+function showErr(e) { document.getElementById('err').textContent = '通信できませんでした（' + (e && e.message || e) + '）'; }
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function hm(t) { var d = new Date(t); return d.getHours() + ':' + pad(d.getMinutes()); }
+function dur(ms) { var m = Math.max(0, Math.floor(ms / 60000)); return Math.floor(m / 60) + ':' + pad(m % 60); }
+function durJa(ms) { var m = Math.max(0, Math.floor(ms / 60000)); var h = Math.floor(m / 60); return (h ? h + '時間' : '') + (m % 60) + '分'; }
+
+function isNight() {
+  if (nightOverride !== null) return nightOverride;
+  var h = new Date().getHours(); return h >= 20 || h < 7;
+}
+
+function tick() {
+  var now = new Date();
+  document.getElementById('clock').textContent = now.getHours() + ':' + pad(now.getMinutes());
+  var wd = '日月火水木金土'.charAt(now.getDay());
+  document.getElementById('date').textContent = (now.getMonth() + 1) + '月' + now.getDate() + '日（' + wd + '）';
+  if (S && S.child) document.getElementById('age').textContent = S.child.name + ' 生後' + Math.floor((startOfDay(now) - startOfDay(new Date(S.child.birth))) / 86400000) + '日';
+  document.body.classList.toggle('night', isNight());
+  if (S) renderHero();
+}
+function startOfDay(d) { var x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); }
+
+function renderHero() {
+  var now = Date.now(), hero = document.getElementById('hero');
+  var since = document.getElementById('since'), meta = document.getElementById('meta');
+  hero.classList.remove('warn', 'alert');
+  if (!S.lastFeed) { since.innerHTML = '--'; meta.innerHTML = 'まだ記録がありません'; return; }
+  var base = S.feedSessionStart || S.lastFeed.t;
+  var ms = now - base;
+  var mAll = Math.max(0, Math.floor(ms / 60000));
+  since.innerHTML = mAll >= 60
+    ? Math.floor(mAll / 60) + '<small>時間</small>' + pad(mAll % 60) + '<small>分</small>'
+    : mAll + '<small>分</small>';
+  var lim = S.notifyMin * 60000;
+  if (!S.feedingNow) { if (ms >= lim + 30 * 60000) hero.classList.add('alert'); else if (ms >= lim) hero.classList.add('warn'); }
+  var lines = [];
+  if (S.feedingNow) {
+    lines.push('<span class="live"><span class="dot"></span>授乳中 ' + (S.feedingNow.side || '') + ' ' + Math.floor((now - S.feedingNow.t) / 60000) + '分</span>');
+  }
+  var lf = S.lastFeed;
+  var what = lf.type === 'milk' ? 'ミルク ' + lf.amt + 'ml' : '母乳' + (S.lastSides.length ? ' ' + S.lastSides.join('→') : '');
+  lines.push('<b>' + hm(base) + '</b> ' + what);
+  if (S.lastSides.length) {
+    var last = S.lastSides[S.lastSides.length - 1];
+    lines.push('前回の最後：<b>' + last + '</b>');
+  }
+  meta.innerHTML = lines.join('<br>');
+}
+
+function renderTimeline() {
+  var lanes = document.getElementById('lanes'), ticks = document.getElementById('ticks'), gl = document.getElementById('gl');
+  var end = S.now, start = end - 24 * 3600000, span = end - start;
+  var x = function (t) { return Math.max(0, Math.min(100, (t - start) / span * 100)); };
+  var defs = [
+    { name: '授乳', types: ['breast', 'milk'] },
+    { name: 'おむつ', types: ['pee', 'poop', 'both'] },
+    { name: '睡眠', types: ['sleep'] }
+  ];
+  var html = '';
+  defs.forEach(function (d) {
+    var inner = '';
+    S.timeline.forEach(function (e) {
+      if (d.types.indexOf(e.type) < 0) return;
+      var c = COLORS[e.type];
+      if (e.type === 'breast' || e.type === 'sleep') {
+        var eEnd = e.end || (S.sleepingNow && S.sleepingNow.id === e.id ? S.now : (S.feedingNow && S.feedingNow.id === e.id ? S.now : e.t + 5 * 60000));
+        inner += '<div class="seg" style="left:' + x(e.t) + '%;width:' + Math.max(0.6, x(eEnd) - x(e.t)) + '%;background:' + c + '"></div>';
+      } else {
+        inner += '<div class="pt" style="left:' + x(e.t) + '%;background:' + c + '"></div>';
+      }
+    });
+    html += '<div class="lane-name">' + d.name + '</div><div class="lane">' + inner + '</div>';
+  });
+  lanes.innerHTML = html;
+  var th = '', gh = '';
+  var first = new Date(start); first.setMinutes(0, 0, 0); var t = first.getTime() + 3600000;
+  for (; t < end; t += 3600000) {
+    var h = new Date(t).getHours();
+    if (h % 3 === 0) {
+      th += '<div class="tick" style="left:' + x(t) + '%">' + h + '時</div>';
+      gh += '<div class="gl" style="left:' + x(t) + '%"></div>';
+    }
+  }
+  ticks.innerHTML = th;
+  gl.innerHTML = gh + '<div class="nowline"></div>';
+}
+
+function renderStats() {
+  var d = S.today, now = Date.now();
+  var items = [
+    [d.feeds + '回', '授乳（今日）'],
+    [d.milkMl + 'ml', 'ミルク'],
+    [d.pee + '回', 'おしっこ'],
+    [d.poop + '回', 'うんち'],
+    [S.lastPee ? dur(now - S.lastPee.t) : '--', '前のおしっこから'],
+    [Math.floor(d.sleepMin / 60) + ':' + pad(d.sleepMin % 60), '睡眠（今日）']
+  ];
+  document.getElementById('stats').innerHTML = items.map(function (i) {
+    return '<div class="stat"><div class="v">' + i[0] + '</div><div class="k">' + i[1] + '</div></div>';
+  }).join('');
+  var sb = document.getElementById('sleepBtn');
+  if (S.sleepingNow) { sb.dataset.a = 'end'; sb.innerHTML = '<span class="sw" style="background:var(--sleep)"></span>起きた'; }
+  else { sb.dataset.a = 'add'; sb.innerHTML = '<span class="sw" style="background:var(--sleep)"></span>寝た'; }
+}
+
+function renderRecent() {
+  document.getElementById('recent').innerHTML = S.recent.slice(0, 7).map(function (e) {
+    var txt = e.label + (e.side ? ' ' + e.side : '') + (e.amt !== '' && e.amt != null ? ' ' + e.amt + (e.unit || '') : '') + (e.min ? ' ' + e.min + '分' : '');
+    return '<li><span><span class="t">' + hm(e.t) + '</span>' + txt + '</span><button class="x" data-del="' + e.id + '">消す</button></li>';
+  }).join('');
+}
+
+function render() {
+  document.getElementById('err').textContent = '';
+  renderHero(); renderTimeline(); renderStats(); renderRecent();
+}
+
+function refresh() { call({ a: 'state' }, function (r) { if (r && r.ok) { S = r; render(); } }); }
+
+function beep() {
+  try {
+    var ac = new (window.AudioContext || window.webkitAudioContext)();
+    [880, 1320].forEach(function (f, i) {
+      var o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = f; o.connect(g); g.connect(ac.destination);
+      var t0 = ac.currentTime + i * 0.12;
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.15, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.25);
+      o.start(t0); o.stop(t0 + 0.3);
+    });
+  } catch (e) {}
+}
+var toastTimer;
+function toast(msg) {
+  var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.classList.remove('show'); }, 2600);
+}
+
+function act(params) {
+  if (ago > 0) params.ago = ago;
+  params.withState = 1;
+  toast('記録中…');
+  call(params, function (r) {
+    if (r && r.ok) beep();
+    toast(r ? r.speech : '失敗しました');
+    if (r && r.state) { S = r.state; render(); } else refresh();
+    setAgo(0);
+  });
+}
+function setAgo(v) {
+  ago = v;
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ago]'), function (b) { b.classList.toggle('on', Number(b.dataset.ago) === v); });
+}
+
+// ミルクの量
+var mlHtml = '';
+for (var ml = 20; ml <= 200; ml += 20) mlHtml += '<button data-ml="' + ml + '">' + ml + '</button>';
+document.getElementById('mlgrid').innerHTML = mlHtml;
+
+document.addEventListener('click', function (ev) {
+  var b = ev.target.closest('button, #clock'); if (!b) return;
+  if (b.id === 'clock') { nightOverride = !isNight(); tick(); return; }
+  if (b.dataset.ago !== undefined) { setAgo(Number(b.dataset.ago)); return; }
+  if (b.dataset.open === 'milk') { document.getElementById('milkSheet').classList.add('show'); return; }
+  if (b.dataset.close !== undefined) { document.getElementById('milkSheet').classList.remove('show'); return; }
+  if (b.dataset.ml) { document.getElementById('milkSheet').classList.remove('show'); act({ a: 'add', t: 'milk', amt: b.dataset.ml }); return; }
+  if (b.dataset.del) { if (confirm('この記録を消しますか？')) act({ a: 'del', id: b.dataset.del }); return; }
+  if (b.dataset.a) {
+    var p = { a: b.dataset.a };
+    if (b.dataset.t) p.t = b.dataset.t;
+    if (b.dataset.side) p.side = b.dataset.side;
+    if (p.a === 'undo' && !confirm('直前の記録を取り消しますか？')) return;
+    act(p);
+  }
+});
+document.getElementById('clock').addEventListener('click', function () {});
+
+tick(); refresh();
+setInterval(tick, 1000);
+setInterval(refresh, 30000);
+document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+</script>
+</body>
+</html>
