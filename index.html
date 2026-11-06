@@ -369,7 +369,7 @@ function dialSvg(half) {
     var major = i % 3 === 0, tp = pt(87, i * 30 - 90);
     o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 14 : 10.5) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
   }
-  o += '<text x="100" y="105" text-anchor="middle" style="fill:var(--sub)" font-size="13" font-weight="600">' + (half ? '午後' : '午前') + '</text>';
+  o += '<text x="100" y="131" text-anchor="middle" style="fill:var(--sub)" font-size="13" font-weight="600">' + (half ? '午後' : '午前') + '</text>';
   S.timeline.forEach(function (e) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
