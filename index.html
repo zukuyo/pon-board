@@ -56,6 +56,8 @@
   .hero { position: relative; display: grid; grid-template-columns: 1.05fr 1fr; gap: 6px 18px; padding-top: calc(var(--clk) * 0.4 + 10px); padding-bottom: 12px; }
   .blk .label { margin-bottom: 2px; }
   .since { font-size: clamp(46px, 14.5vh, 128px); font-weight: 700; letter-spacing: -0.045em; font-variant-numeric: tabular-nums; line-height: .98; }
+  .since { white-space: nowrap; }
+  .since.long { font-size: clamp(38px, 11.5vh, 100px); }
   .since small { font-size: .3em; font-weight: 600; letter-spacing: 0; margin: 0 5px 0 3px; color: var(--sub); }
   .nextT { font-size: clamp(40px, 12vh, 108px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
   .nextSub { font-size: 16px; font-weight: 600; color: var(--sub); margin-top: 4px; }
@@ -302,6 +304,7 @@ function renderHero() {
   $('ivVal').textContent = ivTxt(S.notifyMin);
   if (!S.lastFeed) { $('since').innerHTML = '--'; $('nextT').textContent = '--:--'; $('nextSub').textContent = ''; $('meta').textContent = 'まだ記録がありません'; return; }
   var base = S.feedSessionStart || S.lastFeed.t, mAll = Math.max(0, Math.floor((now - base) / 60000));
+  $('since').classList.toggle('long', mAll >= 60);
   $('since').innerHTML = mAll >= 60 ? Math.floor(mAll / 60) + '<small>時間</small>' + pad(mAll % 60) + '<small>分</small>' : mAll + '<small>分</small>';
   var next = base + S.notifyMin * 60000, rem = next - now;
   $('nextT').textContent = hm(next);
