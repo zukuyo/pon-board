@@ -105,7 +105,7 @@
   .chip { flex: 1; min-height: 38px; border-radius: 12px; background: var(--chip); font-size: 14px; font-weight: 600; color: var(--sub); padding: 6px 8px; }
   .chip.on { background: var(--ink); color: var(--card); }
   .recentcard { display: flex; flex-direction: column; min-height: 0; }
-  .list { list-style: none; margin: 4px 0 0; padding: 0; flex: 1 1 0; min-height: 0; overflow: hidden; }
+  .list { list-style: none; margin: 4px 0 0; padding: 0; }
   .list li { display: flex; align-items: stretch; border-bottom: 1px solid var(--line); }
   .list li:last-child { border-bottom: 0; }
   .list .t { width: 64px; text-align: left; font-variant-numeric: tabular-nums; color: var(--sub); font-size: 15.5px; font-weight: 600; padding: 9px 0; }
@@ -170,6 +170,7 @@
     .colL .tl { flex: 1 1 0; }
     .colR .controls { flex: none; }
     .colR .recentcard { flex: 1 1 0; overflow: hidden; }
+    .colR .recentcard .list { flex: 1 1 0; min-height: 0; overflow: hidden; }
     .sheet { align-items: center; }
     .panel { border-radius: 26px; max-width: 520px; }
   }
@@ -178,7 +179,6 @@
     .btns { grid-template-columns: repeat(2, 1fr); }
     .hero { grid-template-columns: 1fr; }
     .plot { min-height: 150px; }
-    .list { overflow: visible; }
   }
 </style>
 </head>
