@@ -409,7 +409,15 @@ $('dials').addEventListener('click', function (ev) {
   var types = r >= 60 ? ['breast', 'milk', 'pump'] : ['pee', 'poop', 'both'];
   var a = (Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360, t = S.dayStart + (half * 12 + a / 30) * 3600000;
   var tol = (12 / r) / (2 * Math.PI) * 12 * 3600000;
-  var hits = S.timeline.filter(function (e) { return types.indexOf(e.type) >= 0 && t >= e.t - tol && t <= (e.end || e.t) + tol; });
+  var ch = a / 30, tolH = tol / 3600000;
+  var hits = S.timeline.filter(function (e) {
+    if (types.indexOf(e.type) < 0) return false;
+    var eh = (e.t - S.dayStart) / 3600000;
+    if (Math.floor(eh / 12) !== half) return false;
+    eh -= half * 12;
+    var dh = e.end ? (e.end - e.t) / 3600000 : 0, d = Math.abs(eh - ch);
+    return Math.min(d, 12 - d) <= tolH || (ch >= eh - tolH && ch <= eh + dh + tolH);  // 12時をまたぐ近さも拾う
+  });
   if (!hits.length) return;
   if (hits.length === 1) openEdit(hits[0].id); else openPick(hits);
 });
