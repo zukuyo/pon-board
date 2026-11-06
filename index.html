@@ -12,7 +12,7 @@
     --bg: linear-gradient(160deg, #f5f7fb 0%, #e9edf6 100%); --card: rgba(255,255,255,.88); --ink: #15171c; --sub: #6a7080; --line: rgba(20,24,40,.09);
     --grid3: rgba(20,24,40,.16); --grid1: rgba(20,24,40,.06); --lane: rgba(20,24,40,.045);
     --feed: #2f7bff; --milk: #7c5cff; --pee: #f5a524; --poop: #9a6b43;
-    --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff;
+    --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff; --win: rgba(90,200,250,.30);
     --btn: #ffffff; --btnInk: #15171c; --sheet: #ffffff; --chip: rgba(20,24,40,.06);
     --shadow: 0 1px 1px rgba(20,24,40,.04), 0 10px 28px rgba(20,24,40,.07);
     --clk: clamp(52px, 13.5vh, 118px);
@@ -21,7 +21,7 @@
     --bg: linear-gradient(160deg, #0d0706 0%, #120907 100%); --card: rgba(30,16,13,.92); --ink: #ffb9a5; --sub: #a96b5e; --line: rgba(255,150,120,.12);
     --grid3: rgba(255,150,120,.20); --grid1: rgba(255,150,120,.07); --lane: rgba(255,150,120,.05);
     --feed: #ff7a5c; --milk: #e0705a; --pee: #e0a456; --poop: #b27a5e;
-    --warn: #ffa050; --alert: #ff5040; --ok: #c98a68; --accent: #ff7a5c;
+    --warn: #ffa050; --alert: #ff5040; --ok: #c98a68; --accent: #ff7a5c; --win: rgba(110,200,230,.20);
     --btn: #231310; --btnInk: #ffb9a5; --sheet: #1e100d; --chip: rgba(255,150,120,.10);
     --shadow: none;
   }
@@ -89,6 +89,7 @@
   .seg { position: absolute; top: 18%; bottom: 18%; border-radius: 6px; min-width: 9px; }
   .pt { position: absolute; top: 50%; width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px; border-radius: 50%; box-shadow: 0 0 0 2px var(--card); }
   .nowwrap { grid-column: 2; grid-row: 1 / 4; position: relative; pointer-events: none; }
+  .nextwin { position: absolute; top: 36px; bottom: 0; background: var(--win); border-radius: 7px; }
   .now { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--alert); border-radius: 1px; }
   .now::before { content: ''; position: absolute; top: -1px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--alert); }
 
@@ -340,6 +341,14 @@ function renderHero() {
 /* ───────── 今日の流れ ───────── */
 function xPct(t) { return Math.max(0, Math.min(100, (t - S.dayStart) / 86400000 * 100)); }
 function placeNow() { if (S) { $('nowline').style.left = xPct(Date.now()) + '%'; updateHands(); } }
+function nextFeedMs() { if (!S || !S.lastFeed) return null; return (S.feedSessionStart || S.lastFeed.t) + S.notifyMin * 60000; }
+function renderWindow() {
+  var nw = document.getElementById('nextwin'), n = nextFeedMs();
+  if (!nw) { nw = document.createElement('div'); nw.id = 'nextwin'; nw.className = 'nextwin'; document.querySelector('.nowwrap').insertBefore(nw, $('nowline')); }
+  if (n === null || n >= S.dayStart + 86400000 || n + 1800000 <= S.dayStart) { nw.style.display = 'none'; return; }
+  var a = xPct(n), b = xPct(n + 1800000);
+  nw.style.display = ''; nw.style.left = a + '%'; nw.style.width = Math.max(0.4, b - a) + '%';
+}
 function renderTimeline() {
   var ax = '';
   for (var h = 0; h <= 24; h++) {
@@ -357,6 +366,7 @@ function renderTimeline() {
     if (lane === 'f') feed += html; else dia += html;
   });
   $('laneFeed').innerHTML = feed; $('laneDiaper').innerHTML = dia;
+  renderWindow();
   placeNow();
 }
 function dialSvg(half) {
@@ -365,6 +375,14 @@ function dialSvg(half) {
   o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
   o += '<circle cx="100" cy="100" r="70" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
   o += '<circle cx="100" cy="100" r="50" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
+  var nf = nextFeedMs();
+  if (nf !== null) {
+    var w0 = (nf - S.dayStart) / 3600000, w1 = w0 + 0.5, h0 = half * 12, s0 = Math.max(w0, h0), s1 = Math.min(w1, h0 + 12);
+    if (s1 > s0) {
+      var d0 = (s0 - h0) * 30 - 90, d1 = (s1 - h0) * 30 - 90, p1 = pt(96, d0), p2 = pt(96, d1), p3 = pt(38, d1), p4 = pt(38, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+      o += '<path d="M' + f(p1) + ' A96 96 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A38 38 0 0 0 ' + f(p4) + ' Z" style="fill:var(--win)"/>';
+    }
+  }
   for (var i = 0; i < 12; i++) {
     var major = i % 3 === 0, tp = pt(87, i * 30 - 90);
     o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 14 : 10.5) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
