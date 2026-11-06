@@ -45,7 +45,7 @@
   .clock { font-size: var(--clk); font-weight: 600; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; line-height: 1; }
   .top-r { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-bottom: calc(var(--clk) * 0.46); }
   .tools { display: flex; gap: 6px; }
-  .tool { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 15px; background: var(--card); border: 1px solid var(--line); font-size: 12.5px; font-weight: 600; color: var(--sub); box-shadow: var(--shadow); }
+  .tool { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); font-size: 12.5px; font-weight: 600; color: var(--sub); box-shadow: var(--shadow); }
   .tool svg { width: 15px; height: 15px; }
   .tool.on { color: var(--ok); }
   .tool.lock { color: var(--warn); }
@@ -65,7 +65,7 @@
   .hero.alert .nextT, .hero.alert .nextSub { color: var(--alert); }
   .meta { grid-column: 1 / -1; font-size: 14.5px; color: var(--sub); display: flex; gap: 14px; flex-wrap: wrap; }
   .meta b { color: var(--ink); font-weight: 600; }
-  .pill { position: absolute; top: 10px; right: 12px; height: 28px; padding: 0 12px; border-radius: 14px; background: var(--chip); font-size: 12.5px; font-weight: 600; color: var(--sub); }
+  .pill { position: absolute; top: 10px; right: 12px; height: 30px; padding: 0 14px; border-radius: 15px; background: var(--chip); font-size: 12.5px; font-weight: 600; color: var(--sub); }
   .pill b { color: var(--ink); font-weight: 700; margin-left: 4px; font-variant-numeric: tabular-nums; }
 
   /* 今日の流れ */
@@ -102,7 +102,7 @@
   .b .sw { width: 9px; height: 9px; border-radius: 50%; flex: none; }
   .agoRow { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
   .agoRow .label { white-space: nowrap; font-size: 12.5px; margin-right: 2px; }
-  .chip { flex: 1; min-height: 38px; border-radius: 12px; background: var(--chip); font-size: 14px; font-weight: 600; color: var(--sub); padding: 6px 8px; }
+  .chip { flex: 1; min-height: 38px; border-radius: 12px; background: var(--chip); font-size: 14px; font-weight: 600; color: var(--sub); padding: 8px 10px; }
   .chip.on { background: var(--ink); color: var(--card); }
   .recentcard { display: flex; flex-direction: column; min-height: 0; }
   .list { list-style: none; margin: 4px 0 0; padding: 0; }
@@ -134,14 +134,14 @@
   .rowl .k { color: var(--sub); font-weight: 600; font-size: 14px; }
   .rowl button.v { font-weight: 700; color: var(--accent); font-size: 17px; font-variant-numeric: tabular-nums; }
   .segc { display: flex; background: var(--chip); border-radius: 12px; padding: 3px; gap: 2px; margin: 8px 0; }
-  .segc button { flex: 1; min-height: 38px; border-radius: 10px; font-size: 14.5px; font-weight: 600; color: var(--sub); }
+  .segc button { flex: 1; min-height: 40px; padding: 6px 10px; border-radius: 10px; font-size: 14.5px; font-weight: 600; color: var(--sub); }
   .segc button.on { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
   .stepper { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; }
   .stepper .val { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 120px; text-align: center; }
   .stepper .val small { font-size: 15px; color: var(--sub); font-weight: 600; margin-left: 4px; }
   .stepper button { width: 56px; height: 56px; border-radius: 28px; background: var(--chip); font-size: 28px; font-weight: 500; line-height: 1; }
   .quick { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }
-  .quick button { flex: 1; min-width: 56px; min-height: 36px; border-radius: 10px; background: var(--chip); font-size: 14px; font-weight: 600; }
+  .quick button { flex: 1; min-width: 56px; min-height: 38px; padding: 6px 10px; border-radius: 10px; background: var(--chip); font-size: 14px; font-weight: 600; }
   .noteIn { width: 100%; font: inherit; font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); margin: 8px 0; -webkit-user-select: text; user-select: text; }
   .wheels { display: flex; gap: 6px; justify-content: center; align-items: center; position: relative; isolation: isolate; }
   .wheel { position: relative; height: 220px; width: 110px; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch;
