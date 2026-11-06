@@ -15,7 +15,7 @@
     --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff;
     --btn: #ffffff; --btnInk: #15171c; --sheet: #ffffff; --chip: rgba(20,24,40,.06);
     --shadow: 0 1px 1px rgba(20,24,40,.04), 0 10px 28px rgba(20,24,40,.07);
-    --clk: clamp(40px, 10vh, 88px);
+    --clk: clamp(52px, 13.5vh, 118px);
   }
   body.night {
     --bg: linear-gradient(160deg, #0d0706 0%, #120907 100%); --card: rgba(30,16,13,.92); --ink: #ffb9a5; --sub: #a96b5e; --line: rgba(255,150,120,.12);
@@ -50,7 +50,9 @@
   .tool.on { color: var(--ok); }
   .tool.lock { color: var(--warn); }
   .tool.off { color: var(--alert); }
-  .date { color: var(--sub); font-size: 13.5px; text-align: right; line-height: 1.3; font-weight: 500; }
+  .date { text-align: right; line-height: 1.15; }
+  .date .dd { font-size: clamp(22px, 3.9vh, 32px); font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+  .date .da { font-size: 14px; color: var(--sub); font-weight: 500; margin-top: 3px; }
 
   /* 前の授乳から／次回授乳 */
   .hero { position: relative; display: grid; grid-template-columns: 1.05fr 1fr; gap: 6px 18px; padding-top: calc(var(--clk) * 0.4 + 10px); padding-bottom: 12px; }
@@ -116,12 +118,15 @@
   .toast { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 220%); opacity: 0; pointer-events: none; background: rgba(21,23,28,.92); color: #fff; padding: 12px 20px; border-radius: 16px; font-size: 16.5px; font-weight: 600; transition: transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .25s; z-index: 30; max-width: 90vw; text-align: center; }
   body.night .toast { background: rgba(70,24,18,.96); color: #ffb9a5; }
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .toast.act { pointer-events: auto; display: flex; gap: 14px; align-items: center; padding: 10px 12px 10px 20px; }
+  .toast .ta { background: var(--accent); color: #fff; border-radius: 12px; padding: 9px 16px; font-size: 15.5px; font-weight: 700; }
 
   /* シート */
   .sheet { position: fixed; inset: 0; background: rgba(8,10,18,.38); display: none; align-items: flex-end; justify-content: center; z-index: 20; }
   .sheet.show { display: flex; animation: fade .2s ease; }
   @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes rise { from { transform: translateY(40px); opacity: .4 } to { transform: none; opacity: 1 } }
+  .panel.wide { max-width: 680px; }
   .panel { background: var(--sheet); width: 100%; max-width: 560px; border-radius: 26px 26px 0 0; padding: 14px 18px max(16px, env(safe-area-inset-bottom)); animation: rise .28s cubic-bezier(.2,.9,.3,1); max-height: 92vh; overflow-y: auto; }
   .ph { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .ph h3 { margin: 0; font-size: 18px; font-weight: 700; }
@@ -149,6 +154,14 @@
   .wheel::-webkit-scrollbar { display: none; }
   .wheel .pad { height: 88px; }
   .wheel .it { height: 44px; scroll-snap-align: center; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .wc { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .wl { font-size: 17px; font-weight: 700; color: var(--sub); height: 26px; }
+  .wheel.big { height: 270px; width: 170px; }
+  .wheel.big .pad { height: 109px; }
+  .wheel.big .it { height: 52px; font-size: 30px; }
+  .bandc { position: absolute; left: 6px; right: 6px; top: 135px; height: 52px; border-radius: 14px; background: var(--chip); z-index: -1; }
+  .panel.wide .acts .btn { min-height: 58px; font-size: 18px; }
+  .panel.wide .segc button { min-height: 46px; font-size: 16px; }
   .band { position: absolute; left: 6px; right: 6px; top: 88px; height: 44px; border-radius: 12px; background: var(--chip); pointer-events: none; z-index: -1; }
   .wheels .colon { font-size: 26px; font-weight: 700; padding-bottom: 2px; }
   .daystep { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 6px 0 2px; font-weight: 600; font-size: 15px; }
@@ -192,7 +205,7 @@
           <button class="tool" id="helpBtn" aria-label="声の例"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>声の例</button>
           <button class="tool off" id="voiceBtn" aria-label="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span id="voiceTxt">音声案内 オフ</span></button>
         </div>
-        <div class="date"><span id="date"></span> <span id="age"></span></div>
+        <div class="date"><div class="dd" id="date"></div><div class="da" id="age"></div></div>
       </div>
     </div>
 
@@ -392,35 +405,45 @@ function beep() {
   } catch (e) {}
 }
 var toastTimer;
-function toast(msg) { var el = $('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.classList.remove('show'); }, 2600); }
+function toast(msg) { var el = $('toast'); el.classList.remove('act'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.classList.remove('show'); }, 2600); }
+function toastAct(msg, label, fn) {
+  var el = $('toast');
+  el.innerHTML = '<span></span><button class="ta">' + label + '</button>';
+  el.firstChild.textContent = msg;
+  el.querySelector('button').onclick = function () { el.classList.remove('show', 'act'); fn(); };
+  el.classList.add('show', 'act'); clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { el.classList.remove('show', 'act'); }, 8000);
+}
 function act(params) {
   if (ago > 0) params.ago = ago;
   params.withState = 1;
   toast('記録中…');
   call(params, function (r) {
     if (r && r.ok) beep();
-    toast(r ? r.speech : '失敗しました');
     if (r && r.state) { S = r.state; render(); } else refresh();
+    if (r && r.ok && params.a === 'add' && params.t === 'breast' && r.id) toastAct(r.speech, '分数を入れる', function () { openEdit(r.id); });
+    else toast(r ? r.speech : '失敗しました');
     setAgo(0);
   });
 }
 function setAgo(v) { ago = v; Array.prototype.forEach.call(document.querySelectorAll('[data-ago]'), function (b) { b.classList.toggle('on', Number(b.dataset.ago) === v); }); }
 
 /* ───────── シート共通 ───────── */
-function openSheet(html) { $('panel').innerHTML = html; $('sheet').classList.add('show'); }
+function openSheet(html, wide) { $('panel').className = 'panel' + (wide ? ' wide' : ''); $('panel').innerHTML = html; $('sheet').classList.add('show'); }
 function closeSheet() { $('sheet').classList.remove('show'); ED = null; }
 $('sheet').addEventListener('click', function (e) { if (e.target === this) closeSheet(); });
 
-function makeWheel(el, items, selIdx, onChange) {
+function makeWheel(el, items, selIdx, onChange, H) {
+  H = H || 44;
   var pad88 = '<div class="pad"></div>';
   el.innerHTML = pad88 + items.map(function (it, i) { return '<div class="it" data-i="' + i + '">' + it.label + '</div>'; }).join('') + pad88;
   var timer;
-  el.scrollTop = selIdx * 44;
+  el.scrollTop = selIdx * H;
   el.addEventListener('scroll', function () {
     clearTimeout(timer);
-    timer = setTimeout(function () { var i = Math.max(0, Math.min(items.length - 1, Math.round(el.scrollTop / 44))); onChange(items[i].v, i); }, 90);
+    timer = setTimeout(function () { var i = Math.max(0, Math.min(items.length - 1, Math.round(el.scrollTop / H))); onChange(items[i].v, i); }, 90);
   });
-  el.addEventListener('click', function (e) { var it = e.target.closest('.it'); if (it) el.scrollTo({ top: Number(it.dataset.i) * 44, behavior: 'smooth' }); });
+  el.addEventListener('click', function (e) { var it = e.target.closest('.it'); if (it) el.scrollTo({ top: Number(it.dataset.i) * H, behavior: 'smooth' }); });
 }
 function range(a, b, step, fmt) { var o = []; for (var v = a; v <= b; v += step) o.push({ v: v, label: fmt ? fmt(v) : String(v) }); return o; }
 
@@ -438,6 +461,7 @@ function openInterval() {
 }
 
 /* 声の例 */
+var VOICE_ASK = [['前うんち出たのいつだっけ', '最後のうんちの時間'], ['さっきおしっこ出たのいつだっけ', '最後のおしっこの時間'], ['前の授乳いつだっけ', '最後の授乳の時間'], ['次の授乳いつだっけ', '次の授乳の時間と、あと何分'], ['次はどっち', '次に飲ませる側'], ['今日のまとめ', '今日の回数と量'], ['教えて', '「何を知りたい？」と聞かれて、自由に聞く']];
 var VOICE_EX = [
   ['母乳 左', '左から飲み始めたとき'], ['母乳 右', '右から飲み始めたとき'], ['母乳', '左右を言わずに記録'], ['おっぱい終わり', '開始からの分数を自動で記録'],
   ['ミルク', '「何ミリ？」と聞かれたら「100」'], ['搾乳', '「何ミリ？」と聞かれたら数字で答える'],
@@ -446,7 +470,7 @@ var VOICE_EX = [
 function openVoiceHelp() {
   openSheet('<div class="ph"><h3>声の例</h3><button class="x" data-close>閉じる</button></div><div class="label">「Hey Siri、」のあとに言います</div><ul class="vlist">' +
     VOICE_EX.map(function (x) { return '<li><span class="p">' + x[0] + '</span><span class="d">' + x[1] + '</span></li>'; }).join('') +
-    '</ul><div class="note2">ほかに「うんちとおしっこ」「寝た」「起きた」も使えます。「Hey Siri」を言わずに、自分で決めた言葉で動かす設定もできます。</div><div class="acts"><button class="btn" id="testVoice">声を試す</button><button class="btn pri" data-close>閉じる</button></div>');
+    '</ul><div class="label" style="margin-top:12px">聞く（声で教えてくれます）</div><ul class="vlist">' + VOICE_ASK.map(function (x) { return '<li><span class="p">' + x[0] + '</span><span class="d">' + x[1] + '</span></li>'; }).join('') + '</ul><div class="note2">ほかに「うんちとおしっこ」「寝た」「起きた」も使えます。「Hey Siri」を言わずに、自分で決めた言葉で動かす設定もできます。</div><div class="acts"><button class="btn" id="testVoice">声を試す</button><button class="btn pri" data-close>閉じる</button></div>');
   $('testVoice').onclick = function () { unlockVoice(); speak(S && S.announceText || 'もうすぐミルクの時間です'); };
 }
 
@@ -455,9 +479,24 @@ function findEv(id) { var f = null; (S.recent.concat(S.timeline)).forEach(functi
 function openPick(list) {
   openSheet('<div class="ph"><h3>どの記録？</h3><button class="x" data-close>閉じる</button></div><div class="pick">' + list.map(function (e) { return '<button data-edit="' + e.id + '"><span>' + hm(e.t) + '　' + evText(e) + '</span>' + CHEV + '</button>'; }).join('') + '</div>');
 }
+function breastSession(id) {
+  var all = {}; S.recent.concat(S.timeline).forEach(function (e) { if (e.type === 'breast') all[e.id] = e; });
+  var arr = Object.keys(all).map(function (k) { return all[k]; }).sort(function (a, b) { return a.t - b.t; });
+  var i = -1; arr.forEach(function (e, k) { if (e.id === id) i = k; });
+  if (i < 0) return null;
+  var lo = i, hi = i, G = 30 * 60000;
+  while (lo > 0 && arr[lo].t - (arr[lo - 1].end || arr[lo - 1].t) <= G) lo--;
+  while (hi < arr.length - 1 && arr[hi + 1].t - (arr[hi].end || arr[hi].t) <= G) hi++;
+  return arr.slice(lo, hi + 1);
+}
 function openEdit(id, focus) {
   var e = findEv(id); if (!e) return;
-  ED = { id: id, orig: e, type: e.type, side: SIDE_REV(e.side), min: Number(e.min) || 0, amt: Number(e.amt) || 0, note: e.note || '', t: e.t, direct: focus === 'time' };
+  ED = { id: id, orig: e, type: e.type, side: SIDE_REV(e.side), min: Number(e.min) || 0, amt: Number(e.amt) || 0, note: e.note || '', t: e.t, direct: focus === 'time', l: 0, r: 0, first: 'L' };
+  if (e.type === 'breast') {
+    var ss = breastSession(id) || [e], fs = null;
+    ss.forEach(function (x) { if (x.side === '左') ED.l += Number(x.min) || 0; if (x.side === '右') ED.r += Number(x.min) || 0; if (!fs && x.side) fs = x.side === '右' ? 'R' : 'L'; });
+    ED.first = fs || 'L'; ED.t = ss[0].t; ED.t0 = ss[0].t; ED.sess = true;
+  }
   if (focus === 'time') drawTime(); else drawContent();
 }
 function SIDE_REV(s) { return s === '左' ? 'L' : s === '右' ? 'R' : ''; }
@@ -469,17 +508,22 @@ function drawContent() {
   } else {
     h += '<div class="segc" id="typeSeg">' + types.map(function (t) { return '<button data-ty="' + t[0] + '" class="' + (d.type === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>';
     if (d.type === 'breast') {
-      h += '<div class="label">左右</div><div class="segc" id="sideSeg">' + [['', 'なし'], ['L', '左'], ['R', '右']].map(function (s) { return '<button data-sd="' + s[0] + '" class="' + (d.side === s[0] ? 'on' : '') + '">' + s[1] + '</button>'; }).join('') + '</div>';
-      h += '<div class="label">授乳時間</div><div class="stepper"><button data-st="min" data-d="-1">−</button><div class="val"><span id="vMin">' + d.min + '</span><small>分</small></div><button data-st="min" data-d="1">＋</button></div><div class="quick">' + [0, 5, 8, 10, 15].map(function (m) { return '<button data-qm="' + m + '">' + (m ? m + '分' : 'なし') + '</button>'; }).join('') + '</div>';
+      h += '<div class="label">授乳した時間（スクロールで選びます）</div><div class="wheels"><div class="wc"><div class="wl">左</div><div class="bandc"></div><div class="wheel big" id="wL"></div></div><div class="wc"><div class="wl">右</div><div class="bandc"></div><div class="wheel big" id="wR"></div></div></div>';
+      h += '<div class="label" style="margin-top:6px">先に飲んだ側</div><div class="segc" id="firstSeg"><button data-fs="L" class="' + (d.first === 'L' ? 'on' : '') + '">左が先</button><button data-fs="R" class="' + (d.first === 'R' ? 'on' : '') + '">右が先</button></div>';
     }
     if (d.type === 'milk' || d.type === 'pump') {
       h += '<div class="label">量</div><div class="stepper"><button data-st="amt" data-d="-10">−</button><div class="val"><span id="vAmt">' + d.amt + '</span><small>ml</small></div><button data-st="amt" data-d="10">＋</button></div><div class="quick">' + [20, 40, 60, 80, 100, 120].map(function (m) { return '<button data-qa="' + m + '">' + m + '</button>'; }).join('') + '</div>';
     }
   }
-  h += '<div class="rowl"><span class="k">時刻</span><button class="v" id="timeRow">' + hm(d.t) + (startOfDay(d.t) !== startOfDay(Date.now()) ? '（' + (new Date(d.t).getMonth() + 1) + '/' + new Date(d.t).getDate() + '）' : '') + '　›</button></div>';
+  h += '<div class="rowl"><span class="k">' + (d.type === 'breast' ? '開始時刻' : '時刻') + '</span><button class="v" id="timeRow">' + hm(d.t) + (startOfDay(d.t) !== startOfDay(Date.now()) ? '（' + (new Date(d.t).getMonth() + 1) + '/' + new Date(d.t).getDate() + '）' : '') + '　›</button></div>';
   h += '<div class="acts"><button class="btn dng" id="edDel">消す</button><button class="btn" data-close>キャンセル</button><button class="btn pri" id="edSave">保存</button></div>';
-  openSheet(h);
+  openSheet(h, d.type === 'breast');
   if (d.type === 'memo') $('noteIn').value = d.note;
+  if (d.type === 'breast') {
+    var items = range(0, 60, 1, function (v) { return v ? v + '分' : 'なし'; });
+    makeWheel($('wL'), items, d.l, function (v) { d.l = v; }, 52);
+    makeWheel($('wR'), items, d.r, function (v) { d.r = v; }, 52);
+  }
 }
 function drawTime() {
   var d = ED, dt = new Date(d.t), hh = dt.getHours(), mm = dt.getMinutes(), base = startOfDay(d.t);
@@ -497,6 +541,13 @@ function drawTime() {
 }
 function saveEdit(timeOnly) {
   var d = ED, o = d.orig, p = { a: 'edit', id: d.id, withState: 1 }, patch = {};
+  if (o.type === 'breast' && d.type === 'breast' && d.sess) {
+    var bp = { a: 'breastset', id: d.id, l: timeOnly ? d.l : d.l, r: d.r, first: d.first, withState: 1 };
+    if (d.t !== d.t0) bp.time = iso(d.t);
+    closeSheet(); toast('直しています…');
+    call(bp, function (r) { toast(r && r.ok ? '直しました' : '直せませんでした'); if (r && r.state) { S = r.state; render(); } else refresh(); });
+    return;
+  }
   if (d.t !== o.t) { p.time = iso(d.t); patch.t = d.t; }
   if (!timeOnly) {
     if (d.type !== o.type) { p.type = d.type; patch.type = d.type; patch.label = TYPE_LABEL[d.type]; }
@@ -562,6 +613,7 @@ document.addEventListener('click', function (ev) {
   if (b.dataset.edit) { openEdit(b.dataset.edit, b.dataset.focus); return; }
   if (ED) {
     if (b.dataset.ty) { ED.type = b.dataset.ty; if ((ED.type === 'milk' || ED.type === 'pump') && !ED.amt) ED.amt = 60; drawContent(); return; }
+    if (b.dataset.fs) { ED.first = b.dataset.fs; Array.prototype.forEach.call(document.querySelectorAll('[data-fs]'), function (x) { x.classList.toggle('on', x.dataset.fs === ED.first); }); return; }
     if (b.dataset.sd !== undefined) { ED.side = b.dataset.sd; drawContent(); return; }
     if (b.dataset.st) { var k = b.dataset.st, dl = Number(b.dataset.d); ED[k] = Math.max(0, ED[k] + dl); $(k === 'min' ? 'vMin' : 'vAmt').textContent = ED[k]; return; }
     if (b.dataset.qm !== undefined) { ED.min = Number(b.dataset.qm); $('vMin').textContent = ED.min; return; }
