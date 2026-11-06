@@ -143,7 +143,7 @@
   .quick { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }
   .quick button { flex: 1; min-width: 56px; min-height: 36px; border-radius: 10px; background: var(--chip); font-size: 14px; font-weight: 600; }
   .noteIn { width: 100%; font: inherit; font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); margin: 8px 0; -webkit-user-select: text; user-select: text; }
-  .wheels { display: flex; gap: 6px; justify-content: center; align-items: center; position: relative; }
+  .wheels { display: flex; gap: 6px; justify-content: center; align-items: center; position: relative; isolation: isolate; }
   .wheel { position: relative; height: 220px; width: 110px; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch;
     -webkit-mask-image: linear-gradient(transparent, #000 32%, #000 68%, transparent); mask-image: linear-gradient(transparent, #000 32%, #000 68%, transparent); }
   .wheel::-webkit-scrollbar { display: none; }
@@ -159,7 +159,8 @@
   .vlist .p { font-size: 17px; font-weight: 650; }
   .vlist .d { font-size: 13px; color: var(--sub); text-align: right; }
   .note2 { font-size: 13px; color: var(--sub); line-height: 1.6; margin: 10px 2px 0; }
-  .pick button { display: flex; width: 100%; justify-content: space-between; padding: 14px 4px; border-bottom: 1px solid var(--line); font-size: 17px; font-weight: 600; text-align: left; }
+  .pick svg { width: 14px; height: 14px; color: var(--sub); flex: none; }
+  .pick button { display: flex; align-items: center; width: 100%; justify-content: space-between; padding: 14px 4px; border-bottom: 1px solid var(--line); font-size: 17px; font-weight: 600; text-align: left; }
 
   /* 壁掛け（横向き）：スクロールなしで全部収める */
   @media (orientation: landscape) and (min-width: 800px) {
@@ -344,7 +345,7 @@ function laneClick(laneId, types) {
     var hits = S.timeline.filter(function (e) {
       if (types.indexOf(e.type) < 0) return false;
       var a = xPct(e.t) / 100 * r.width, b = (e.end ? xPct(e.end) / 100 * r.width : a);
-      return px >= a - 16 && px <= b + 16;
+      return px >= a - 12 && px <= b + 12;
     });
     if (!hits.length) return;
     if (hits.length === 1) openEdit(hits[0].id);
