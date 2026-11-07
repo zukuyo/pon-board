@@ -11,7 +11,7 @@
   :root {
     --bg: linear-gradient(160deg, #f5f7fb 0%, #e9edf6 100%); --card: rgba(255,255,255,.88); --ink: #15171c; --sub: #6a7080; --line: rgba(20,24,40,.09);
     --grid3: rgba(20,24,40,.16); --grid1: rgba(20,24,40,.06); --lane: rgba(20,24,40,.045);
-    --feed: #1a46d0; --breast: #1a46d0; --milk: #7c5cff; --pee: #f5a524; --poop: #9a6b43;
+    --feed: #1a46d0; --breast: #8ea6d0; --milk: #a99bd6; --pee: #e6b66e; --poop: #a88566; --winS: #c4d9e6; --band: #e6e4ee;
     --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff; --win: rgba(90,200,250,.30);
     --btn: #ffffff; --btnInk: #15171c; --sheet: #ffffff; --chip: rgba(20,24,40,.06);
     --shadow: 0 1px 1px rgba(20,24,40,.04), 0 10px 28px rgba(20,24,40,.07);
@@ -20,7 +20,7 @@
   body.night {
     --bg: linear-gradient(160deg, #0d0706 0%, #120907 100%); --card: rgba(30,16,13,.92); --ink: #ffb9a5; --sub: #a96b5e; --line: rgba(255,150,120,.12);
     --grid3: rgba(255,150,120,.20); --grid1: rgba(255,150,120,.07); --lane: rgba(255,150,120,.05);
-    --feed: #ff7a5c; --breast: #4a78ff; --milk: #e0705a; --pee: #e0a456; --poop: #b27a5e;
+    --feed: #ff7a5c; --breast: #6f86c0; --milk: #c98b7d; --pee: #d3ab6f; --poop: #a88470; --winS: #3d4d5a; --band: #2a1c19;
     --warn: #ffa050; --alert: #ff5040; --ok: #c98a68; --accent: #ff7a5c; --win: rgba(110,200,230,.20);
     --btn: #231310; --btnInk: #ffb9a5; --sheet: #1e100d; --chip: rgba(255,150,120,.10);
     --shadow: none;
@@ -422,14 +422,16 @@ function renderTimeline() {
 }
 function dialSvg(half) {
   var pt = function (r, deg) { var a = deg * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
-  // 角度d0〜d1（度）の扇形（内側r=38〜外側r=96）。授乳予定と授乳した記録で同じ形。記録は少し濃く
-  var cap = function (d0, d1, color, op) {
-    var ri = 38, ro = 96, p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
-    return '<path d="M' + f(p1) + ' A' + ro + ' ' + ro + ' 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A' + ri + ' ' + ri + ' 0 0 0 ' + f(p4) + ' Z" style="fill:' + color + '"' + (op ? ' fill-opacity="' + op + '"' : '') + '/>';
+  // 角度d0〜d1（度）の扇形（内側r=38〜外側r=96）。不透明。角は同じ色の縁取りで少し丸める
+  var cap = function (d0, d1, color) {
+    var rr = 2, ri = 38 + rr, ro = 96 - rr, inset = rr / 67 * 180 / Math.PI;
+    d0 += inset; d1 -= inset; if (d1 - d0 < 0.5) { var m = (d0 + d1) / 2; d0 = m - 0.25; d1 = m + 0.25; }
+    var p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+    return '<path d="M' + f(p1) + ' A' + ro + ' ' + ro + ' 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A' + ri + ' ' + ri + ' 0 0 0 ' + f(p4) + ' Z" style="fill:' + color + ';stroke:' + color + '" stroke-width="' + (rr * 2) + '" stroke-linejoin="round"/>';
   };
   var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
   o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
-  o += '<circle cx="100" cy="100" r="70" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
+  o += '<circle cx="100" cy="100" r="70" fill="none" style="stroke:var(--band)" stroke-width="16"/>';
   var nf = nextFeedMs();
   if (nf !== null) {
     var w0 = (nf - S.dayStart) / 3600000, w1 = w0 + 0.5, h0 = half * 12;
@@ -437,7 +439,7 @@ function dialSvg(half) {
     if (w0 >= 25) { w0 -= 24; w1 -= 24; }
     var hiEnd = h0 + 12; if (half === 1 && w1 > 24 && w0 < 25) hiEnd = 25;
     var s0 = Math.max(w0, h0), s1 = Math.min(w1, hiEnd);
-    if (s1 > s0) o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, 'var(--win)');
+    if (s1 > s0) o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, 'var(--winS)');
   }
   S.timeline.forEach(function (e) {
     if (e.type !== 'breast' && e.type !== 'milk' && e.type !== 'pump') return;
@@ -445,10 +447,8 @@ function dialSvg(half) {
     var dur = e.end ? (e.end - e.t) / 3600000 : 0; dur = Math.max(dur, 0.25);
     var s0 = Math.max(hs, h0), s1 = Math.min(hs + dur, h0 + 12);
     if (s1 <= s0) return;
-    o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, COLORS[e.type], 0.5);
+    o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, COLORS[e.type]);
   });
-  // 外周の内側の線（2本）を扇の上にも重ねる。予定の扇にも授乳した扇にも同じ線が通って見える
-  o += '<circle cx="100" cy="100" r="70" fill="none" style="stroke:var(--card)" stroke-width="16" opacity=".55"/>';
   for (var i = 0; i < 12; i++) {
     var major = i % 3 === 0, tp = pt(87, i * 30 - 90);
     o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 13 : 10) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
@@ -459,7 +459,7 @@ function dialSvg(half) {
     if (Math.floor(hrs / 12) !== half) return;
     if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both') return;
     var c = pt(70, (hrs % 12) * 30 - 90);
-    o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.5" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--card)" stroke-width="2"/>';
+    o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.5" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--sheet)" stroke-width="2"/>';
     if (e.type === 'both') o += '<path d="M' + (c[0] - 6.5).toFixed(1) + ' ' + c[1].toFixed(1) + ' a6.5 6.5 0 0 1 13 0z" style="fill:var(--pee)"/>';
   });
   o += '<line id="hand' + half + '" x1="100" y1="100" x2="100" y2="14" stroke="var(--alert)" stroke-width="2.2" stroke-linecap="round" style="display:none"/>';
