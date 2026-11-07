@@ -421,17 +421,21 @@ function renderTimeline() {
 }
 function dialSvg(half) {
   var pt = function (r, deg) { var a = deg * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
+  var TR = 70, TW = 13;  // 授乳の帯：半径70、太さ13（丸い端）
+  // 角度d0〜d1（度）の丸端の帯。丸い端ぶん内側に縮めて、実際の長さがずれないようにする
+  var cap = function (d0, d1, color, op) {
+    var inset = (TW / 2) / TR * 180 / Math.PI, mid = (d0 + d1) / 2, span = Math.max(0.01, (d1 - d0) - 2 * inset);
+    var a = pt(TR, mid - span / 2), b = pt(TR, mid + span / 2);
+    return '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' A' + TR + ' ' + TR + ' 0 0 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" style="stroke:' + color + '" stroke-width="' + TW + '" stroke-linecap="round"' + (op ? ' opacity="' + op + '"' : '') + '/>';
+  };
   var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
   o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
-  o += '<circle cx="100" cy="100" r="70" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
-  o += '<circle cx="100" cy="100" r="50" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
+  o += '<circle cx="100" cy="100" r="' + TR + '" fill="none" style="stroke:var(--card)" stroke-width="' + (TW + 5) + '"/>';
+  o += '<circle cx="100" cy="100" r="46" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
   var nf = nextFeedMs();
   if (nf !== null) {
     var w0 = (nf - S.dayStart) / 3600000, w1 = w0 + 0.5, h0 = half * 12, s0 = Math.max(w0, h0), s1 = Math.min(w1, h0 + 12);
-    if (s1 > s0) {
-      var d0 = (s0 - h0) * 30 - 90, d1 = (s1 - h0) * 30 - 90, p1 = pt(96, d0), p2 = pt(96, d1), p3 = pt(38, d1), p4 = pt(38, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
-      o += '<path d="M' + f(p1) + ' A96 96 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A38 38 0 0 0 ' + f(p4) + ' Z" style="fill:var(--win)"/>';
-    }
+    if (s1 > s0) o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, 'var(--win)');
   }
   S.timeline.forEach(function (e) {
     if (e.type !== 'breast' && e.type !== 'milk' && e.type !== 'pump') return;
@@ -439,29 +443,20 @@ function dialSvg(half) {
     var dur = e.end ? (e.end - e.t) / 3600000 : 0; dur = Math.max(dur, e.type === 'breast' ? 0.17 : 0.25);
     var s0 = Math.max(hs, h0), s1 = Math.min(hs + dur, h0 + 12);
     if (s1 <= s0) return;
-    var d0 = (s0 - h0) * 30 - 90, d1 = (s1 - h0) * 30 - 90, q1 = pt(96, d0), q2 = pt(96, d1), q3 = pt(38, d1), q4 = pt(38, d0), ff = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
-    o += '<path d="M' + ff(q1) + ' A96 96 0 0 1 ' + ff(q2) + ' L' + ff(q3) + ' A38 38 0 0 0 ' + ff(q4) + ' Z" style="fill:' + COLORS[e.type] + '" opacity=".9"/>';
+    o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, COLORS[e.type]);
   });
   for (var i = 0; i < 12; i++) {
-    var major = i % 3 === 0, tp = pt(87, i * 30 - 90);
-    o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 14 : 10.5) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
+    var major = i % 3 === 0, tp = pt(88, i * 30 - 90);
+    o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 13 : 10) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
   }
   o += '<text x="100" y="131" text-anchor="middle" style="fill:var(--sub)" font-size="13" font-weight="600">' + (half ? '午後' : '午前') + '</text>';
   S.timeline.forEach(function (e) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
-    var ring = (e.type === 'pee' || e.type === 'poop' || e.type === 'both') ? 50 : 0;
-    if (!ring) return;
-    var d0 = (hrs % 12) * 30 - 90;
-    if (e.type === 'breast' && e.end) {
-      var d1 = Math.min(d0 + Math.max(5, (e.end - e.t) / 3600000 * 30), half ? 270 : 270);
-      var a = pt(ring, d0), b = pt(ring, d1);
-      o += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' A' + ring + ' ' + ring + ' 0 ' + ((d1 - d0) > 180 ? 1 : 0) + ' 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" stroke="var(--breast)" stroke-width="12" stroke-linecap="round"/>';
-    } else {
-      var c = pt(ring, d0);
-      o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.5" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type].indexOf('gradient') < 0 ? COLORS[e.type] : 'var(--poop)') + ';stroke:var(--card)" stroke-width="2"/>';
-      if (e.type === 'both') o += '<path d="M' + (c[0] - 6.5).toFixed(1) + ' ' + c[1].toFixed(1) + ' a6.5 6.5 0 0 1 13 0z" style="fill:var(--pee)"/>';
-    }
+    if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both') return;
+    var c = pt(46, (hrs % 12) * 30 - 90);
+    o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.5" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--card)" stroke-width="2"/>';
+    if (e.type === 'both') o += '<path d="M' + (c[0] - 6.5).toFixed(1) + ' ' + c[1].toFixed(1) + ' a6.5 6.5 0 0 1 13 0z" style="fill:var(--pee)"/>';
   });
   o += '<line id="hand' + half + '" x1="100" y1="100" x2="100" y2="14" stroke="var(--alert)" stroke-width="2.2" stroke-linecap="round" style="display:none"/>';
   o += '<circle cx="100" cy="100" r="3.2" style="fill:var(--alert)"/></svg>';
@@ -482,7 +477,7 @@ $('dials').addEventListener('click', function (ev) {
   var svg = ev.target.closest('svg'); if (!svg || !S) return;
   var half = Number(svg.dataset.half), r0 = svg.getBoundingClientRect(), sc = 200 / Math.min(r0.width, r0.height);
   var x = (ev.clientX - r0.left - r0.width / 2) * sc, y = (ev.clientY - r0.top - r0.height / 2) * sc, r = Math.sqrt(x * x + y * y);
-  if (r < 36 || r > 94) return;
+  if (r < 34 || r > 94) return;
   var FEED = ['breast', 'milk', 'pump'], DIA = ['pee', 'poop', 'both'];
   var a = (Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360, t = S.dayStart + (half * 12 + a / 30) * 3600000;
   var tol = (12 / r) / (2 * Math.PI) * 12 * 3600000;
