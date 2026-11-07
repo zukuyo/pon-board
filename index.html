@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>PONログ</title>
 <style>
   :root {
@@ -202,6 +202,13 @@
     .plot { min-height: 150px; }
   }
 </style>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="PONログ">
+<meta name="application-name" content="PONログ">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1c1a72">
 </head>
 <body>
 <div class="wrap">
@@ -274,8 +281,10 @@
 <script>
 // GASから配るときは埋め込み、別の場所に置くときはURLの#以降（#key=..&exec=..）から読む
 var HASH = {}; location.hash.replace(/^#/, '').split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) HASH[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); });
-var KEY = HASH.key || '';
-var EXEC = HASH.exec || '';
+var SAVED = {}; try { SAVED = JSON.parse(localStorage.getItem('pon.cfg') || '{}'); } catch (e) {}
+if (HASH.key && HASH.exec) { try { localStorage.setItem('pon.cfg', JSON.stringify({ key: HASH.key, exec: HASH.exec })); } catch (e) {} }
+var KEY = HASH.key || SAVED.key || '';
+var EXEC = HASH.exec || SAVED.exec || '';
 var S = null, ago = 0, nightOverride = null, ED = null;
 var $ = function (id) { return document.getElementById(id); };
 var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ' };
@@ -733,10 +742,23 @@ laneClick('laneDiaper', ['pee', 'poop', 'both']);
 try { speechSynthesis.getVoices(); } catch (e) {}
 updateVoiceBtn();
 setView(ls('pon.view') === 'clock' ? 'clock' : 'bar');
-tick(); refresh();
-setInterval(tick, 1000);
-setInterval(refresh, 30000);
-document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+function openSetup() {
+  openSheet('<div class="ph"><h3>はじめの設定</h3></div><div class="label">PONログのリンクを、ここに貼ってください（LINEで送られたリンク）</div><textarea class="noteIn" id="cfgIn" rows="4" placeholder="https://zukuyo.github.io/pon-board/#key=…"></textarea><div class="err" id="cfgErr"></div><div class="acts"><button class="btn pri" id="cfgSave">保存して開く</button></div>', true);
+  $('sheet').onclick = null;
+  $('cfgSave').onclick = function () {
+    var t = $('cfgIn').value, i = t.indexOf('#'), h = {};
+    if (i >= 0) t.slice(i + 1).split('&').forEach(function (kv) { var j = kv.indexOf('='); if (j > 0) h[kv.slice(0, j)] = decodeURIComponent(kv.slice(j + 1).trim()); });
+    if (!h.key || !h.exec) { $('cfgErr').textContent = 'リンクが正しくないようです。LINEのリンクを、そのまま貼ってください'; return; }
+    try { localStorage.setItem('pon.cfg', JSON.stringify({ key: h.key, exec: h.exec })); } catch (e) {}
+    location.hash = '#key=' + encodeURIComponent(h.key) + '&exec=' + encodeURIComponent(h.exec); location.reload();
+  };
+}
+if (!KEY || !EXEC) { openSetup(); } else {
+  tick(); refresh();
+  setInterval(tick, 1000);
+  setInterval(refresh, 30000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+}
 </script>
 </body>
 </html>
