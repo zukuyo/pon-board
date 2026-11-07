@@ -52,6 +52,10 @@
   .tool.off { color: var(--alert); }
   .date { text-align: right; line-height: 1.15; }
   .date .dd { font-size: clamp(22px, 3.9vh, 32px); font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+  .wx { margin-left: 10px; white-space: nowrap; }
+  .wx b { font-weight: 700; }
+  .wx .hi { color: var(--warn); }
+  .wx .lo { color: var(--feed); }
   .date .da { font-size: 14px; color: var(--sub); font-weight: 500; margin-top: 3px; }
 
   /* 前の授乳から／次回授乳 */
@@ -201,6 +205,31 @@
     .hero { grid-template-columns: 1fr; }
     .plot { min-height: 150px; }
   }
+  @media (max-width: 700px) {
+    :root { --clk: 54px; }
+    .top { margin-bottom: 6px; gap: 8px; align-items: flex-start; }
+    .top-r { padding-bottom: 0; align-items: flex-end; min-width: 0; }
+    .tools { flex-wrap: wrap; justify-content: flex-end; }
+    .tool { height: 28px; padding: 0 10px; font-size: 11.5px; }
+    .date .dd { font-size: 19px; }
+    .date .da { font-size: 12.5px; }
+    .hero { grid-template-columns: 1fr 1fr; padding-top: 44px; gap: 4px 10px; }
+    .since { font-size: 44px; }
+    .since.long { font-size: 28px; }
+    .nextT { font-size: 40px; }
+    .nextSub { font-size: 13px; }
+    .pill { top: 8px; right: 10px; height: 26px; font-size: 11.5px; padding: 0 11px; }
+    .meta { text-align: left; font-size: 13px; }
+    .tlhead { flex-wrap: wrap; gap: 6px; }
+    .tlhead .label { white-space: nowrap; }
+    .legend { width: 100%; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; }
+    .tk.minor { display: none; }
+    .chip { font-size: 12.5px; padding: 8px 2px; white-space: nowrap; }
+    .stat .v { font-size: 18px; }
+  }
+  @media (orientation: portrait) {
+    .dials { flex: none; height: 190px; }
+  }
 </style>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -220,7 +249,7 @@
           <button class="tool" id="helpBtn" aria-label="声の例"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>声の例</button>
           <button class="tool off" id="voiceBtn" aria-label="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span id="voiceTxt">音声案内 オフ</span></button>
         </div>
-        <div class="date"><div class="dd" id="date"></div><div class="da" id="age"></div></div>
+        <div class="date"><div class="dd" id="date"></div><div class="da"><span id="age"></span><span class="wx" id="wx"></span></div></div>
       </div>
     </div>
 
@@ -302,7 +331,17 @@ function call(params, cb) {
   });
 }
 function showErr(e) { $('err').textContent = '通信できませんでした（' + (e && e.message || e) + '）'; }
-function refresh() { call({ a: 'state' }, function (r) { if (r && r.ok) { S = r; render(); } }); }
+function showWx(o) { $('wx').innerHTML = '最高 <b class="hi">' + o.hi + '°</b> 最低 <b class="lo">' + o.lo + '°</b>'; }
+function loadWx() {
+  var t = new Date(), ds = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate()), c = null;
+  try { c = JSON.parse(ls('pon.wx') || 'null'); } catch (e) {}
+  if (c && c.d === ds) { showWx(c); if (Date.now() - c.at < 3600000) return; }
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=35.65&longitude=139.69&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo&forecast_days=1')
+    .then(function (r) { return r.json(); })
+    .then(function (j) { var o = { d: ds, hi: Math.round(j.daily.temperature_2m_max[0]), lo: Math.round(j.daily.temperature_2m_min[0]), at: Date.now() }; ls('pon.wx', JSON.stringify(o)); showWx(o); })
+    .catch(function () {});
+}
+function refresh() { loadWx(); call({ a: 'state' }, function (r) { if (r && r.ok) { S = r; render(); } }); }
 
 /* ───────── 表示用の道具 ───────── */
 function pad(n) { return (n < 10 ? '0' : '') + n; }
