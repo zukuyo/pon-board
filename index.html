@@ -246,6 +246,7 @@
       <div class="clock" id="clock" title="タップで夜モード切り替え">--:--</div>
       <div class="top-r">
         <div class="tools">
+          <button class="tool" id="growthBtn" aria-label="体重・身長"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8.5 9.5a4.5 4.5 0 0 1 7 0"/><path d="M12 14l1.8-3.2"/></svg>成長</button>
           <button class="tool" id="helpBtn" aria-label="声の例"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>声の例</button>
           <button class="tool off" id="voiceBtn" aria-label="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span id="voiceTxt">音声案内 オフ</span></button>
         </div>
@@ -316,7 +317,8 @@ var KEY = HASH.key || SAVED.key || '';
 var EXEC = HASH.exec || SAVED.exec || '';
 var S = null, ago = 0, nightOverride = null, ED = null;
 var $ = function (id) { return document.getElementById(id); };
-var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ' };
+var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ', weight: '体重', height: '身長' };
+var GROW = { weight: { label: '体重', unit: 'g', step: 10, big: 100, def: 3000, dec: 0 }, height: { label: '身長', unit: 'cm', step: 0.1, big: 1, def: 50, dec: 1 } };
 var SIDE = { L: '左', R: '右' };
 var COLORS = { breast: 'var(--feed)', milk: 'var(--milk)', pump: 'var(--milk)', pee: 'var(--pee)', poop: 'var(--poop)', both: 'linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)' };
 function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
@@ -596,6 +598,52 @@ function openInterval() {
   };
 }
 
+/* 成長（体重・身長） */
+function fmtG(kind, v) { var g = GROW[kind]; return (g.dec ? Number(v).toFixed(g.dec) : String(Math.round(Number(v))).replace(/\B(?=(\d{3})+$)/g, ',')) + g.unit; }
+function md(t) { var d = new Date(t); return (d.getMonth() + 1) + '/' + d.getDate(); }
+function growthChart(data, kind) {
+  if (data.length < 2) return '<div class="note2" style="margin:10px 0">2回以上はかると、ここにグラフが出ます</div>';
+  var W = 320, H = 112, L = 10, R = 10, T = 18, B = 22;
+  var vs = data.map(function (e) { return Number(e.amt); }), mn = Math.min.apply(null, vs), mx = Math.max.apply(null, vs);
+  if (mx === mn) { mx += 1; mn -= 1; }
+  var t0 = data[0].t, t1 = data[data.length - 1].t, span = Math.max(1, t1 - t0);
+  var X = function (t) { return L + (t - t0) / span * (W - L - R); };
+  var Y = function (v) { return T + (mx - v) / (mx - mn) * (H - T - B); };
+  var pts = data.map(function (e) { return X(e.t).toFixed(1) + ',' + Y(Number(e.amt)).toFixed(1); }).join(' ');
+  var dots = data.map(function (e) { return '<circle cx="' + X(e.t).toFixed(1) + '" cy="' + Y(Number(e.amt)).toFixed(1) + '" r="3.2" fill="var(--feed)"/>'; }).join('');
+  var last = data[data.length - 1];
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block;margin:8px 0 2px"><polyline points="' + pts + '" fill="none" stroke="var(--feed)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>' + dots +
+    '<text x="' + L + '" y="' + (H - 6) + '" font-size="11" fill="var(--sub)">' + md(t0) + '</text><text x="' + (W - R) + '" y="' + (H - 6) + '" font-size="11" fill="var(--sub)" text-anchor="end">' + md(t1) + '</text>' +
+    '<text x="' + Math.min(W - R, Math.max(L + 30, X(last.t))).toFixed(1) + '" y="' + (Y(Number(last.amt)) - 8).toFixed(1) + '" font-size="12" font-weight="700" fill="var(--ink)" text-anchor="end">' + fmtG(kind, last.amt) + '</text></svg>';
+}
+function openGrowth(kind) {
+  var g = GROW[kind], data = ((kind === 'weight' ? S && S.growth : S && S.growthH) || []).slice().sort(function (a, b) { return a.t - b.t; });
+  var last = data.length ? data[data.length - 1] : null, prev = data.length > 1 ? data[data.length - 2] : null;
+  var val = last ? Number(last.amt) : g.def;
+  var sum = last ? '<div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 0"><span style="font-size:30px;font-weight:700;font-variant-numeric:tabular-nums">' + fmtG(kind, last.amt) + '</span><span class="sub" style="color:var(--sub);font-size:13.5px;font-weight:600">' + md(last.t) + (prev ? '　前回より ' + (last.amt - prev.amt >= 0 ? '+' : '−') + fmtG(kind, Math.abs(last.amt - prev.amt)) : '') + '</span></div>' : '<div class="note2" style="margin:8px 0">まだ記録がありません</div>';
+  var hist = data.slice().reverse().slice(0, 6).map(function (e) { return '<button data-edit="' + e.id + '"><span>' + md(e.t) + '　' + hm(e.t) + '　' + fmtG(kind, e.amt) + '</span>' + CHEV + '</button>'; }).join('');
+  openSheet('<div class="ph"><h3>成長の記録</h3><button class="x" data-close>閉じる</button></div>' +
+    '<div class="segc"><button id="gk1" class="' + (kind === 'weight' ? 'on' : '') + '">体重</button><button id="gk2" class="' + (kind === 'height' ? 'on' : '') + '">身長</button></div>' +
+    sum + growthChart(data, kind) +
+    '<div class="label" style="margin-top:6px">いま測った' + g.label + '</div><div class="stepper"><button id="gMinus">−</button><div class="val"><input id="gIn" type="number" inputmode="decimal" step="' + g.step + '" value="' + val + '" style="width:130px;font:inherit;text-align:center;border:0;background:transparent;color:inherit;-webkit-user-select:text;user-select:text"><small>' + g.unit + '</small></div><button id="gPlus">＋</button></div>' +
+    '<div class="quick"><button id="gM2">−' + g.big + '</button><button id="gP2">＋' + g.big + '</button></div>' +
+    '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="gSave">記録する</button></div>' +
+    (hist ? '<div class="label" style="margin-top:12px">これまで　<span style="font-weight:500">タップで直せます</span></div><div class="pick">' + hist + '</div>' : ''));
+  var inp = $('gIn');
+  var step = function (d) { var v = Math.max(0, Math.round((Number(inp.value || 0) + d) * 10) / 10); inp.value = v; };
+  $('gMinus').onclick = function () { step(-g.step); };
+  $('gPlus').onclick = function () { step(g.step); };
+  $('gM2').onclick = function () { step(-g.big); };
+  $('gP2').onclick = function () { step(g.big); };
+  $('gk1').onclick = function () { openGrowth('weight'); };
+  $('gk2').onclick = function () { openGrowth('height'); };
+  $('gSave').onclick = function () {
+    var v = Number(inp.value);
+    if (!(v > 0)) { toast('数字を入れてください'); return; }
+    closeSheet(); act({ a: 'add', t: kind, amt: v });
+  };
+}
+
 /* 声の例 */
 var VOICE_ASK = [['前うんち出たのいつだっけ', '最後のうんちの時間'], ['さっきおしっこ出たのいつだっけ', '最後のおしっこの時間'], ['前の授乳いつだっけ', '最後の授乳の時間'], ['次の授乳いつだっけ', '次の授乳の時間と、あと何分'], ['次はどっち', '次に飲ませる側'], ['今日のまとめ', '今日の回数と量'], ['教えて', '「何を知りたい？」と聞かれて、自由に聞く']];
 var VOICE_EX = [
@@ -611,7 +659,7 @@ function openVoiceHelp() {
 }
 
 /* 記録の編集 */
-function findEv(id) { var f = null; (S.recent.concat(S.timeline)).forEach(function (e) { if (e.id === id && !f) f = e; }); return f; }
+function findEv(id) { var f = null; (S.recent.concat(S.timeline, S.growth || [], S.growthH || [])).forEach(function (e) { if (e.id === id && !f) f = e; }); return f; }
 function openPick(list) {
   openSheet('<div class="ph"><h3>どの記録？</h3><button class="x" data-close>閉じる</button></div><div class="pick">' + list.map(function (e) { return '<button data-edit="' + e.id + '"><span>' + hm(e.t) + '　' + evText(e) + '</span>' + CHEV + '</button>'; }).join('') + '</div>');
 }
@@ -641,6 +689,10 @@ function drawContent() {
   var h = '<div class="ph"><h3>記録を直す</h3><button class="x" data-close>閉じる</button></div>';
   if (d.type === 'memo') {
     h += '<input class="noteIn" id="noteIn" value="" placeholder="メモ">';
+  } else if (GROW[d.type]) {
+    var gw = GROW[d.type];
+    h += '<div class="label">' + gw.label + '</div><div class="stepper"><button data-st="amt" data-d="-' + gw.step + '">−</button><div class="val"><span id="vAmt">' + d.amt + '</span><small>' + gw.unit + '</small></div><button data-st="amt" data-d="' + gw.step + '">＋</button></div>';
+    h += '<div class="quick"><button data-st="amt" data-d="-' + gw.big + '">−' + gw.big + '</button><button data-st="amt" data-d="' + gw.big + '">＋' + gw.big + '</button></div>';
   } else {
     h += '<div class="segc" id="typeSeg">' + types.map(function (t) { return '<button data-ty="' + t[0] + '" class="' + (d.type === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>';
     if (d.type === 'breast') {
@@ -691,6 +743,7 @@ function saveEdit(timeOnly) {
       p.side = d.side; patch.side = SIDE[d.side] || ''; p.min = d.min; patch.min = d.min || '';
     }
     if (d.type === 'milk' || d.type === 'pump') { p.amt = d.amt; patch.amt = d.amt; patch.unit = 'ml'; }
+    if (GROW[d.type]) { p.amt = d.amt; patch.amt = d.amt; patch.unit = GROW[d.type].unit; }
     if (d.type === 'memo') { d.note = $('noteIn').value; p.note = d.note; patch.note = d.note; }
   }
   var id = d.id; closeSheet();
@@ -740,6 +793,7 @@ document.addEventListener('click', function (ev) {
   if (b.dataset.view) { setView(b.dataset.view); return; }
   if (b.id === 'ivBtn') { openInterval(); return; }
   if (b.id === 'helpBtn') { openVoiceHelp(); return; }
+  if (b.id === 'growthBtn') { openGrowth('weight'); return; }
   if (b.id === 'voiceBtn') {
     VOICE.pref = !VOICE.pref; ls('pon.voice', VOICE.pref ? '1' : '0');
     if (VOICE.pref) { VOICE.unlocked = false; unlockVoice(); speak('音声案内をオンにしました'); } updateVoiceBtn(); return;
@@ -752,7 +806,7 @@ document.addEventListener('click', function (ev) {
     if (b.dataset.ty) { ED.type = b.dataset.ty; if ((ED.type === 'milk' || ED.type === 'pump') && !ED.amt) ED.amt = 60; drawContent(); return; }
     if (b.dataset.fs) { ED.first = b.dataset.fs; Array.prototype.forEach.call(document.querySelectorAll('[data-fs]'), function (x) { x.classList.toggle('on', x.dataset.fs === ED.first); }); return; }
     if (b.dataset.sd !== undefined) { ED.side = b.dataset.sd; drawContent(); return; }
-    if (b.dataset.st) { var k = b.dataset.st, dl = Number(b.dataset.d); ED[k] = Math.max(0, ED[k] + dl); $(k === 'min' ? 'vMin' : 'vAmt').textContent = ED[k]; return; }
+    if (b.dataset.st) { var k = b.dataset.st, dl = Number(b.dataset.d); ED[k] = Math.max(0, Math.round((ED[k] + dl) * 10) / 10); $(k === 'min' ? 'vMin' : 'vAmt').textContent = ED[k]; return; }
     if (b.dataset.qm !== undefined) { ED.min = Number(b.dataset.qm); $('vMin').textContent = ED.min; return; }
     if (b.dataset.qa !== undefined) { ED.amt = Number(b.dataset.qa); $('vAmt').textContent = ED.amt; return; }
     if (b.id === 'timeRow') { drawTime(); return; }
