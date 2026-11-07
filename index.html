@@ -421,12 +421,11 @@ function renderTimeline() {
 }
 function dialSvg(half) {
   var pt = function (r, deg) { var a = deg * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
-  var TR = 70, TW = 13;  // 授乳の帯：半径70、太さ13（丸い端）
-  // 角度d0〜d1（度）の丸端の帯。丸い端ぶん内側に縮めて、実際の長さがずれないようにする
-  var cap = function (d0, d1, color, op) {
-    var inset = (TW / 2) / TR * 180 / Math.PI, mid = (d0 + d1) / 2, span = Math.max(0.01, (d1 - d0) - 2 * inset);
-    var a = pt(TR, mid - span / 2), b = pt(TR, mid + span / 2);
-    return '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' A' + TR + ' ' + TR + ' 0 0 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" style="stroke:' + color + '" stroke-width="' + TW + '" stroke-linecap="round"' + (op ? ' opacity="' + op + '"' : '') + '/>';
+  var TR = 70, TW = 14;  // 授乳の帯：半径70、太さ14
+  // 角度d0〜d1（度）の、輪に沿った帯（端は四角）
+  var cap = function (d0, d1, color) {
+    var a = pt(TR, d0), b = pt(TR, d1);
+    return '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' A' + TR + ' ' + TR + ' 0 0 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" style="stroke:' + color + '" stroke-width="' + TW + '"/>';
   };
   var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
   o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
@@ -440,7 +439,7 @@ function dialSvg(half) {
   S.timeline.forEach(function (e) {
     if (e.type !== 'breast' && e.type !== 'milk' && e.type !== 'pump') return;
     var hs = (e.t - S.dayStart) / 3600000, h0 = half * 12;
-    var dur = e.end ? (e.end - e.t) / 3600000 : 0; dur = Math.max(dur, e.type === 'breast' ? 0.17 : 0.25);
+    var dur = e.end ? (e.end - e.t) / 3600000 : 0; dur = Math.max(dur, 0.25);
     var s0 = Math.max(hs, h0), s1 = Math.min(hs + dur, h0 + 12);
     if (s1 <= s0) return;
     o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, COLORS[e.type]);
@@ -488,7 +487,7 @@ $('dials').addEventListener('click', function (ev) {
     if (Math.floor(eh / 12) !== half) return false;
     eh -= half * 12;
     var dh = e.end ? (e.end - e.t) / 3600000 : 0, d = Math.abs(eh - ch);
-    if (feedMin) { dh = Math.max(dh, e.type === 'breast' ? 0.17 : 0.25); return ch >= eh && ch <= eh + dh; }
+    if (feedMin) { dh = Math.max(dh, 0.25); return ch >= eh && ch <= eh + dh; }
     return Math.min(d, 12 - d) <= tolH || (ch >= eh - tolH && ch <= eh + dh + tolH);  // 12時をまたぐ近さも拾う
   }); };
   var hits = r < 60 ? find(DIA, false) : [];
