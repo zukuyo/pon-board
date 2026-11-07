@@ -395,7 +395,8 @@ function nextFeedMs() { if (!S || !S.lastFeed) return null; return (S.feedSessio
 function renderWindow() {
   var nw = document.getElementById('nextwin'), n = nextFeedMs();
   if (!nw) { nw = document.createElement('div'); nw.id = 'nextwin'; nw.className = 'nextwin'; document.querySelector('.nowwrap').insertBefore(nw, $('nowline')); }
-  if (n === null || n >= S.dayStart + 86400000 || n + 1800000 <= S.dayStart) { nw.style.display = 'none'; return; }
+  if (n !== null && n >= S.dayStart + 86400000) n -= 86400000;  // 日をまたぐときは、翌日の時刻として左端（0時台）に出す
+  if (n === null || n + 1800000 <= S.dayStart) { nw.style.display = 'none'; return; }
   var a = xPct(n), b = xPct(n + 1800000);
   nw.style.display = ''; nw.style.left = a + '%'; nw.style.width = Math.max(0.4, b - a) + '%';
 }
@@ -428,10 +429,14 @@ function dialSvg(half) {
   };
   var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
   o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
-  o += '<circle cx="100" cy="100" r="50" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
+  o += '<circle cx="100" cy="100" r="66" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
   var nf = nextFeedMs();
   if (nf !== null) {
-    var w0 = (nf - S.dayStart) / 3600000, w1 = w0 + 0.5, h0 = half * 12, s0 = Math.max(w0, h0), s1 = Math.min(w1, h0 + 12);
+    var w0 = (nf - S.dayStart) / 3600000, w1 = w0 + 0.5, h0 = half * 12;
+    // 日をまたぐ次回授乳：24時台は午後の時計の12時の先へはみ出して表示、1時以降は翌日の時刻として午前の時計に出す
+    if (w0 >= 25) { w0 -= 24; w1 -= 24; }
+    var hiEnd = h0 + 12; if (half === 1 && w1 > 24 && w0 < 25) hiEnd = 25;
+    var s0 = Math.max(w0, h0), s1 = Math.min(w1, hiEnd);
     if (s1 > s0) o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, 'var(--win)');
   }
   S.timeline.forEach(function (e) {
@@ -451,7 +456,7 @@ function dialSvg(half) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
     if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both') return;
-    var c = pt(50, (hrs % 12) * 30 - 90);
+    var c = pt(66, (hrs % 12) * 30 - 90);
     o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.5" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--card)" stroke-width="2"/>';
     if (e.type === 'both') o += '<path d="M' + (c[0] - 6.5).toFixed(1) + ' ' + c[1].toFixed(1) + ' a6.5 6.5 0 0 1 13 0z" style="fill:var(--pee)"/>';
   });
@@ -488,7 +493,7 @@ $('dials').addEventListener('click', function (ev) {
     if (feedMin) { dh = Math.max(dh, 0.25); return ch >= eh && ch <= eh + dh; }
     return Math.min(d, 12 - d) <= tolH || (ch >= eh - tolH && ch <= eh + dh + tolH);  // 12時をまたぐ近さも拾う
   }); };
-  var hits = r < 60 ? find(DIA, false) : [];
+  var hits = r >= 56 ? find(DIA, false) : [];
   if (!hits.length) hits = find(FEED, true);
   if (!hits.length) return;
   if (hits.length === 1) openEdit(hits[0].id); else openPick(hits);
