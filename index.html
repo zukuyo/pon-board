@@ -11,7 +11,7 @@
   :root {
     --bg: linear-gradient(160deg, #f5f7fb 0%, #e9edf6 100%); --card: rgba(255,255,255,.88); --ink: #15171c; --sub: #6a7080; --line: rgba(20,24,40,.09);
     --grid3: rgba(20,24,40,.16); --grid1: rgba(20,24,40,.06); --lane: rgba(20,24,40,.045);
-    --feed: #1a46d0; --milk: #7c5cff; --pee: #f5a524; --poop: #9a6b43;
+    --feed: #1a46d0; --breast: #1a46d0; --milk: #7c5cff; --pee: #f5a524; --poop: #9a6b43;
     --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff; --win: rgba(90,200,250,.26);
     --btn: #ffffff; --btnInk: #15171c; --sheet: #ffffff; --chip: rgba(20,24,40,.06);
     --shadow: 0 1px 1px rgba(20,24,40,.04), 0 10px 28px rgba(20,24,40,.07);
@@ -20,7 +20,7 @@
   body.night {
     --bg: linear-gradient(160deg, #0d0706 0%, #120907 100%); --card: rgba(30,16,13,.92); --ink: #ffb9a5; --sub: #a96b5e; --line: rgba(255,150,120,.12);
     --grid3: rgba(255,150,120,.20); --grid1: rgba(255,150,120,.07); --lane: rgba(255,150,120,.05);
-    --feed: #ff7a5c; --milk: #e0705a; --pee: #e0a456; --poop: #b27a5e;
+    --feed: #ff7a5c; --breast: #4a78ff; --milk: #e0705a; --pee: #e0a456; --poop: #b27a5e;
     --warn: #ffa050; --alert: #ff5040; --ok: #c98a68; --accent: #ff7a5c; --win: rgba(110,200,230,.20);
     --btn: #231310; --btnInk: #ffb9a5; --sheet: #1e100d; --chip: rgba(255,150,120,.10);
     --shadow: none;
@@ -264,7 +264,7 @@
 
     <div class="card tl" id="tlcard">
       <div class="tlhead"><div style="display:flex;align-items:center"><div class="label">今日の流れ</div><div class="vsw" id="vsw"><button data-view="bar" class="on">帯</button><button data-view="clock">時計</button></div></div>
-        <div class="legend"><span><i style="background:var(--feed)"></i>母乳</span><span><i style="background:var(--milk)"></i>ミルク・搾乳</span><span><i style="background:var(--pee)"></i>おしっこ</span><span><i style="background:var(--poop)"></i>うんち</span></div>
+        <div class="legend"><span><i style="background:var(--breast)"></i>母乳</span><span><i style="background:var(--milk)"></i>ミルク・搾乳</span><span><i style="background:var(--pee)"></i>おしっこ</span><span><i style="background:var(--poop)"></i>うんち</span></div>
       </div>
       <div class="plot" id="plot">
         <div class="axis" id="axis"></div>
@@ -281,8 +281,8 @@
   <div class="colR">
     <div class="card controls">
       <div class="btns">
-        <button class="b" data-a="add" data-t="breast" data-side="L"><span class="sw" style="background:var(--feed)"></span>母乳 左</button>
-        <button class="b" data-a="add" data-t="breast" data-side="R"><span class="sw" style="background:var(--feed)"></span>母乳 右</button>
+        <button class="b" data-a="add" data-t="breast" data-side="L"><span class="sw" style="background:var(--breast)"></span>母乳 左</button>
+        <button class="b" data-a="add" data-t="breast" data-side="R"><span class="sw" style="background:var(--breast)"></span>母乳 右</button>
         <button class="b" data-a="end" data-t="breast">おっぱい<br>終わり</button>
         <button class="b" data-open="milk"><span class="sw" style="background:var(--milk)"></span>ミルク</button>
         <button class="b" data-a="add" data-t="pee"><span class="sw" style="background:var(--pee)"></span>おしっこ</button>
@@ -321,7 +321,7 @@ var $ = function (id) { return document.getElementById(id); };
 var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ', weight: '体重', height: '身長' };
 var GROW = { weight: { label: '体重', unit: 'g', step: 10, big: 100, def: 3000, dec: 0 }, height: { label: '身長', unit: 'cm', step: 0.1, big: 1, def: 50, dec: 1 } };
 var SIDE = { L: '左', R: '右' };
-var COLORS = { breast: 'var(--feed)', milk: 'var(--milk)', pump: 'var(--milk)', pee: 'var(--pee)', poop: 'var(--poop)', both: 'linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)' };
+var COLORS = { breast: 'var(--breast)', milk: 'var(--milk)', pump: 'var(--milk)', pee: 'var(--pee)', poop: 'var(--poop)', both: 'linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)' };
 function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
 
 /* ───────── 通信 ───────── */
@@ -448,7 +448,7 @@ function dialSvg(half) {
     if (e.type === 'breast' && e.end) {
       var d1 = Math.min(d0 + Math.max(5, (e.end - e.t) / 3600000 * 30), half ? 270 : 270);
       var a = pt(ring, d0), b = pt(ring, d1);
-      o += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' A' + ring + ' ' + ring + ' 0 ' + ((d1 - d0) > 180 ? 1 : 0) + ' 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" stroke="var(--feed)" stroke-width="12" stroke-linecap="round"/>';
+      o += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' A' + ring + ' ' + ring + ' 0 ' + ((d1 - d0) > 180 ? 1 : 0) + ' 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" stroke="var(--breast)" stroke-width="12" stroke-linecap="round"/>';
     } else {
       var c = pt(ring, d0);
       o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.5" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type].indexOf('gradient') < 0 ? COLORS[e.type] : 'var(--poop)') + ';stroke:var(--card)" stroke-width="2"/>';
