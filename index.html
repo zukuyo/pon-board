@@ -80,7 +80,7 @@
   .tlhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
   .legend { display: flex; gap: 10px; font-size: 11.5px; color: var(--sub); }
   .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
-  .plot { flex: 1 1 auto; min-height: 120px; display: grid; grid-template-columns: 42px 1fr; grid-template-rows: 30px 1fr 1fr; column-gap: 4px; row-gap: 6px; margin-top: 6px; position: relative; }
+  .plot { flex: 1 1 auto; min-height: 120px; display: grid; grid-template-columns: 42px 1fr; grid-template-rows: 30px 1fr; column-gap: 4px; row-gap: 6px; margin-top: 6px; position: relative; }
   .axis { position: relative; grid-column: 2; grid-row: 1; }
   .tk { position: absolute; bottom: 4px; transform: translateX(-50%); font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; }
   .tk.major { font-size: 13.5px; font-weight: 700; color: var(--ink); }
@@ -91,9 +91,9 @@
   .lane { position: relative; border-radius: 10px; background-color: var(--lane); cursor: pointer;
     background-image: linear-gradient(to right, var(--grid3) 1px, transparent 1px), linear-gradient(to right, var(--grid1) 1px, transparent 1px);
     background-size: calc(100% / 8) 100%, calc(100% / 24) 100%; overflow: hidden; }
-  .seg { position: absolute; top: 18%; bottom: 18%; border-radius: 6px; min-width: 9px; }
-  .pt { position: absolute; top: 50%; width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px; border-radius: 50%; box-shadow: 0 0 0 2px var(--card); }
-  .nowwrap { grid-column: 2; grid-row: 1 / 4; position: relative; pointer-events: none; }
+  .seg { position: absolute; top: 0; bottom: 0; border-radius: 4px; min-width: 9px; z-index: 1; }
+  .pt { position: absolute; z-index: 2; top: 50%; width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px; border-radius: 50%; box-shadow: 0 0 0 2px var(--card); }
+  .nowwrap { grid-column: 2; grid-row: 1 / 3; position: relative; pointer-events: none; }
   .nextwin { position: absolute; top: 36px; bottom: 0; background: var(--win); border-radius: 7px; }
   .now { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--alert); border-radius: 1px; }
   .now::before { content: ''; position: absolute; top: -1px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--alert); }
@@ -268,8 +268,7 @@
       </div>
       <div class="plot" id="plot">
         <div class="axis" id="axis"></div>
-        <div class="lname" style="grid-row:2">授乳</div><div class="lane" id="laneFeed" style="grid-column:2;grid-row:2"></div>
-        <div class="lname" style="grid-row:3">おむつ</div><div class="lane" id="laneDiaper" style="grid-column:2;grid-row:3"></div>
+        <div class="lname" style="grid-row:2;line-height:1.5">授乳<br>おむつ</div><div class="lane" id="laneFeed" style="grid-column:2;grid-row:2"></div>
         <div class="nowwrap"><div class="now" id="nowline"></div></div>
       </div>
       <div class="dials" id="dials"></div>
@@ -412,11 +411,11 @@ function renderTimeline() {
     var lane = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 'f' : (e.type === 'pee' || e.type === 'poop' || e.type === 'both') ? 'd' : null;
     if (!lane) return;
     var html;
-    if (e.type === 'breast' && e.end) html = '<div class="seg" style="left:' + xPct(e.t) + '%;width:' + Math.max(0.6, xPct(e.end) - xPct(e.t)) + '%;background:' + COLORS.breast + '"></div>';
+    if (lane === 'f') html = '<div class="seg" style="left:' + xPct(e.t) + '%;width:' + Math.max(e.type === 'breast' ? 1 : 1.2, e.end ? xPct(e.end) - xPct(e.t) : 0) + '%;background:' + COLORS[e.type] + '"></div>';
     else html = '<div class="pt" style="left:' + xPct(e.t) + '%;background:' + COLORS[e.type] + '"></div>';
     if (lane === 'f') feed += html; else dia += html;
   });
-  $('laneFeed').innerHTML = feed; $('laneDiaper').innerHTML = dia;
+  $('laneFeed').innerHTML = feed + dia;
   renderWindow();
   placeNow();
 }
@@ -434,6 +433,15 @@ function dialSvg(half) {
       o += '<path d="M' + f(p1) + ' A96 96 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A38 38 0 0 0 ' + f(p4) + ' Z" style="fill:var(--win)"/>';
     }
   }
+  S.timeline.forEach(function (e) {
+    if (e.type !== 'breast' && e.type !== 'milk' && e.type !== 'pump') return;
+    var hs = (e.t - S.dayStart) / 3600000, h0 = half * 12;
+    var dur = e.end ? (e.end - e.t) / 3600000 : 0; dur = Math.max(dur, e.type === 'breast' ? 0.17 : 0.25);
+    var s0 = Math.max(hs, h0), s1 = Math.min(hs + dur, h0 + 12);
+    if (s1 <= s0) return;
+    var d0 = (s0 - h0) * 30 - 90, d1 = (s1 - h0) * 30 - 90, q1 = pt(96, d0), q2 = pt(96, d1), q3 = pt(38, d1), q4 = pt(38, d0), ff = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+    o += '<path d="M' + ff(q1) + ' A96 96 0 0 1 ' + ff(q2) + ' L' + ff(q3) + ' A38 38 0 0 0 ' + ff(q4) + ' Z" style="fill:' + COLORS[e.type] + '" opacity=".9"/>';
+  });
   for (var i = 0; i < 12; i++) {
     var major = i % 3 === 0, tp = pt(87, i * 30 - 90);
     o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 14 : 10.5) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
@@ -442,7 +450,7 @@ function dialSvg(half) {
   S.timeline.forEach(function (e) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
-    var ring = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 70 : (e.type === 'pee' || e.type === 'poop' || e.type === 'both') ? 50 : 0;
+    var ring = (e.type === 'pee' || e.type === 'poop' || e.type === 'both') ? 50 : 0;
     if (!ring) return;
     var d0 = (hrs % 12) * 30 - 90;
     if (e.type === 'breast' && e.end) {
@@ -475,18 +483,21 @@ $('dials').addEventListener('click', function (ev) {
   var half = Number(svg.dataset.half), r0 = svg.getBoundingClientRect(), sc = 200 / Math.min(r0.width, r0.height);
   var x = (ev.clientX - r0.left - r0.width / 2) * sc, y = (ev.clientY - r0.top - r0.height / 2) * sc, r = Math.sqrt(x * x + y * y);
   if (r < 36 || r > 94) return;
-  var types = r >= 60 ? ['breast', 'milk', 'pump'] : ['pee', 'poop', 'both'];
+  var FEED = ['breast', 'milk', 'pump'], DIA = ['pee', 'poop', 'both'];
   var a = (Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360, t = S.dayStart + (half * 12 + a / 30) * 3600000;
   var tol = (12 / r) / (2 * Math.PI) * 12 * 3600000;
   var ch = a / 30, tolH = tol / 3600000;
-  var hits = S.timeline.filter(function (e) {
+  var find = function (types, feedMin) { return S.timeline.filter(function (e) {
     if (types.indexOf(e.type) < 0) return false;
     var eh = (e.t - S.dayStart) / 3600000;
     if (Math.floor(eh / 12) !== half) return false;
     eh -= half * 12;
     var dh = e.end ? (e.end - e.t) / 3600000 : 0, d = Math.abs(eh - ch);
+    if (feedMin) { dh = Math.max(dh, e.type === 'breast' ? 0.17 : 0.25); return ch >= eh && ch <= eh + dh; }
     return Math.min(d, 12 - d) <= tolH || (ch >= eh - tolH && ch <= eh + dh + tolH);  // 12時をまたぐ近さも拾う
-  });
+  }); };
+  var hits = r < 60 ? find(DIA, false) : [];
+  if (!hits.length) hits = find(FEED, true);
   if (!hits.length) return;
   if (hits.length === 1) openEdit(hits[0].id); else openPick(hits);
 });
@@ -496,7 +507,7 @@ function laneClick(laneId, types) {
     var r = this.getBoundingClientRect(), px = ev.clientX - r.left;
     var hits = S.timeline.filter(function (e) {
       if (types.indexOf(e.type) < 0) return false;
-      var a = xPct(e.t) / 100 * r.width, b = (e.end ? xPct(e.end) / 100 * r.width : a);
+      var a = xPct(e.t) / 100 * r.width, isF = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump'), b = isF ? Math.max(e.end ? xPct(e.end) / 100 * r.width : 0, a + 0.012 * r.width) : a;
       return px >= a - 12 && px <= b + 12;
     });
     if (!hits.length) return;
@@ -831,8 +842,7 @@ function openMilk() {
   $('mt1').onclick = function () { kind = 'milk'; $('mt1').classList.add('on'); $('mt2').classList.remove('on'); Array.prototype.forEach.call(document.querySelectorAll('[data-ml]'), function (x) { x.dataset.mt = 'milk'; }); };
   $('mt2').onclick = function () { kind = 'pump'; $('mt2').classList.add('on'); $('mt1').classList.remove('on'); Array.prototype.forEach.call(document.querySelectorAll('[data-ml]'), function (x) { x.dataset.mt = 'pump'; }); };
 }
-laneClick('laneFeed', ['breast', 'milk', 'pump']);
-laneClick('laneDiaper', ['pee', 'poop', 'both']);
+laneClick('laneFeed', ['breast', 'milk', 'pump', 'pee', 'poop', 'both']);
 try { speechSynthesis.getVoices(); } catch (e) {}
 updateVoiceBtn();
 setView(ls('pon.view') === 'clock' ? 'clock' : 'bar');
