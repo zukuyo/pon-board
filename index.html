@@ -421,14 +421,14 @@ function renderTimeline() {
 }
 function dialSvg(half) {
   var pt = function (r, deg) { var a = deg * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
-  // 角度d0〜d1（度）の扇形（内側r=38〜外側r=80。数字は外側に残す）。角は丸めて、数字は上に重ねる
+  // 角度d0〜d1（度）の扇形（内側r=38〜外側r=69。数字・おむつの丸は外側）。角は丸めて、数字は上に重ねる
   var cap = function (d0, d1, color) {
-    var ri = 36.5, ro = 78.5, p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+    var ri = 34.5, ro = 67.5, p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
     return '<path d="M' + f(p1) + ' A' + ro + ' ' + ro + ' 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A' + ri + ' ' + ri + ' 0 0 0 ' + f(p4) + ' Z" style="fill:' + color + ';stroke:' + color + '" stroke-width="3" stroke-linejoin="round"/>';
   };
   var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
   o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
-  o += '<circle cx="100" cy="100" r="46" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
+  o += '<circle cx="100" cy="100" r="90" fill="none" style="stroke:var(--card)" stroke-width="15"/>';
   var nf = nextFeedMs();
   if (nf !== null) {
     var w0 = (nf - S.dayStart) / 3600000, w1 = w0 + 0.5, h0 = half * 12, s0 = Math.max(w0, h0), s1 = Math.min(w1, h0 + 12);
@@ -443,7 +443,7 @@ function dialSvg(half) {
     o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, COLORS[e.type]);
   });
   for (var i = 0; i < 12; i++) {
-    var major = i % 3 === 0, tp = pt(88, i * 30 - 90);
+    var major = i % 3 === 0, tp = pt(78, i * 30 - 90);
     o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 13 : 10) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
   }
   o += '<text x="100" y="131" text-anchor="middle" style="fill:var(--sub)" font-size="13" font-weight="600">' + (half ? '午後' : '午前') + '</text>';
@@ -451,7 +451,7 @@ function dialSvg(half) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
     if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both') return;
-    var c = pt(46, (hrs % 12) * 30 - 90);
+    var c = pt(90, (hrs % 12) * 30 - 90);
     o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.5" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--card)" stroke-width="2"/>';
     if (e.type === 'both') o += '<path d="M' + (c[0] - 6.5).toFixed(1) + ' ' + c[1].toFixed(1) + ' a6.5 6.5 0 0 1 13 0z" style="fill:var(--pee)"/>';
   });
@@ -474,7 +474,7 @@ $('dials').addEventListener('click', function (ev) {
   var svg = ev.target.closest('svg'); if (!svg || !S) return;
   var half = Number(svg.dataset.half), r0 = svg.getBoundingClientRect(), sc = 200 / Math.min(r0.width, r0.height);
   var x = (ev.clientX - r0.left - r0.width / 2) * sc, y = (ev.clientY - r0.top - r0.height / 2) * sc, r = Math.sqrt(x * x + y * y);
-  if (r < 34 || r > 94) return;
+  if (r < 32 || r > 98) return;
   var FEED = ['breast', 'milk', 'pump'], DIA = ['pee', 'poop', 'both'];
   var a = (Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360, t = S.dayStart + (half * 12 + a / 30) * 3600000;
   var tol = (12 / r) / (2 * Math.PI) * 12 * 3600000;
@@ -488,7 +488,7 @@ $('dials').addEventListener('click', function (ev) {
     if (feedMin) { dh = Math.max(dh, 0.25); return ch >= eh && ch <= eh + dh; }
     return Math.min(d, 12 - d) <= tolH || (ch >= eh - tolH && ch <= eh + dh + tolH);  // 12時をまたぐ近さも拾う
   }); };
-  var hits = r < 60 ? find(DIA, false) : [];
+  var hits = r >= 80 ? find(DIA, false) : [];
   if (!hits.length) hits = find(FEED, true);
   if (!hits.length) return;
   if (hits.length === 1) openEdit(hits[0].id); else openPick(hits);
