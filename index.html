@@ -448,6 +448,9 @@ function dialSvg(half) {
     if (s1 <= s0) return;
     o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, COLORS[e.type], 0.5);
   });
+  // 外周の内側の線（2本）を扇の上にも重ねる。予定の扇にも授乳した扇にも同じ線が通って見える
+  o += '<circle cx="100" cy="100" r="70" fill="none" style="stroke:var(--card)" stroke-width="16" opacity=".55"/>';
+  o += '<circle cx="100" cy="100" r="50" fill="none" style="stroke:var(--card)" stroke-width="16" opacity=".55"/>';
   for (var i = 0; i < 12; i++) {
     var major = i % 3 === 0, tp = pt(87, i * 30 - 90);
     o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 13 : 10) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
