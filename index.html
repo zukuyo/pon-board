@@ -421,9 +421,9 @@ function renderTimeline() {
 }
 function dialSvg(half) {
   var pt = function (r, deg) { var a = deg * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
-  // 角度d0〜d1（度）の扇形（内側r=38〜外側r=94）。角は丸めて、数字は上に重ねる
+  // 角度d0〜d1（度）の扇形（内側r=38〜外側r=80。数字は外側に残す）。角は丸めて、数字は上に重ねる
   var cap = function (d0, d1, color) {
-    var ri = 39.5, ro = 92.5, p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+    var ri = 36.5, ro = 78.5, p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
     return '<path d="M' + f(p1) + ' A' + ro + ' ' + ro + ' 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A' + ri + ' ' + ri + ' 0 0 0 ' + f(p4) + ' Z" style="fill:' + color + ';stroke:' + color + '" stroke-width="3" stroke-linejoin="round"/>';
   };
   var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
