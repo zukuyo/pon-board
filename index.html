@@ -422,9 +422,9 @@ function renderTimeline() {
 }
 function dialSvg(half) {
   var pt = function (r, deg) { var a = deg * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
-  // 角度d0〜d1（度）の扇形（内側r=62〜外側r=96）。授乳予定と授乳した記録で同じ形。記録は少し濃く
+  // 角度d0〜d1（度）の扇形（内側r=38〜外側r=96）。授乳予定と授乳した記録で同じ形。記録は少し濃く
   var cap = function (d0, d1, color, op) {
-    var ri = 62, ro = 96, p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+    var ri = 38, ro = 96, p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
     return '<path d="M' + f(p1) + ' A' + ro + ' ' + ro + ' 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A' + ri + ' ' + ri + ' 0 0 0 ' + f(p4) + ' Z" style="fill:' + color + '"' + (op ? ' fill-opacity="' + op + '"' : '') + '/>';
   };
   var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
@@ -481,7 +481,7 @@ $('dials').addEventListener('click', function (ev) {
   var svg = ev.target.closest('svg'); if (!svg || !S) return;
   var half = Number(svg.dataset.half), r0 = svg.getBoundingClientRect(), sc = 200 / Math.min(r0.width, r0.height);
   var x = (ev.clientX - r0.left - r0.width / 2) * sc, y = (ev.clientY - r0.top - r0.height / 2) * sc, r = Math.sqrt(x * x + y * y);
-  if (r < 56 || r > 98) return;
+  if (r < 32 || r > 98) return;
   var FEED = ['breast', 'milk', 'pump'], DIA = ['pee', 'poop', 'both'];
   var a = (Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360, t = S.dayStart + (half * 12 + a / 30) * 3600000;
   var tol = (12 / r) / (2 * Math.PI) * 12 * 3600000;
