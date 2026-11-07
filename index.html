@@ -421,15 +421,13 @@ function renderTimeline() {
 }
 function dialSvg(half) {
   var pt = function (r, deg) { var a = deg * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
-  var TR = 70, TW = 14;  // 授乳の帯：半径70、太さ14
-  // 角度d0〜d1（度）の、輪に沿った帯（端は四角）
+  // 角度d0〜d1（度）の扇形（内側r=38〜外側r=94）。角は丸めて、数字は上に重ねる
   var cap = function (d0, d1, color) {
-    var a = pt(TR, d0), b = pt(TR, d1);
-    return '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' A' + TR + ' ' + TR + ' 0 0 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" style="stroke:' + color + '" stroke-width="' + TW + '"/>';
+    var ri = 39.5, ro = 92.5, p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+    return '<path d="M' + f(p1) + ' A' + ro + ' ' + ro + ' 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A' + ri + ' ' + ri + ' 0 0 0 ' + f(p4) + ' Z" style="fill:' + color + ';stroke:' + color + '" stroke-width="3" stroke-linejoin="round"/>';
   };
   var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
   o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
-  o += '<circle cx="100" cy="100" r="' + TR + '" fill="none" style="stroke:var(--card)" stroke-width="' + (TW + 5) + '"/>';
   o += '<circle cx="100" cy="100" r="46" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
   var nf = nextFeedMs();
   if (nf !== null) {
