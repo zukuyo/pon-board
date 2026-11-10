@@ -72,8 +72,9 @@
   .since { font-size: clamp(40px, 12vh, 108px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
   .since { white-space: nowrap; }
   .since.long { font-size: clamp(36px, 10.5vh, 92px); }
-  .since.long, .since { min-height: 1em; display: flex; align-items: baseline; }
-  .nextT { min-height: 1em; }
+  /* 左右の数字の段を同じ高さにして、下の補足（13:31 母乳／あと◯分）の高さをそろえる */
+  .since, .nextT { height: clamp(40px, 12vh, 108px); display: flex; align-items: flex-end; }
+  .since.long { line-height: 1.12; }
   .since small { font-size: .3em; font-weight: 600; letter-spacing: 0; margin: 0 5px 0 3px; color: var(--sub); }
   .nextT { cursor: pointer; font-size: clamp(40px, 12vh, 108px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
   .nextSub, .sinceSub { font-size: 16px; font-weight: 600; color: var(--sub); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -242,6 +243,7 @@
     .since { font-size: 44px; }
     .since.long { font-size: 28px; }
     .nextT { font-size: 40px; }
+    .since, .nextT { height: 44px; }
     .nextSub, .sinceSub { font-size: 13px; }
     .pill { top: 8px; right: 10px; height: 26px; font-size: 11.5px; padding: 0 11px; }
     .meta { text-align: left; font-size: 13px; }
