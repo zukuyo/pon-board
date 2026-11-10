@@ -118,9 +118,9 @@
   .tl.vclock .plot { display: none; }
   .tl.vclock .dials { display: grid; }
   .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 10px 12px; }
-  .stat { text-align: center; }
-  .stat .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-  .stat .k { font-size: 11px; color: var(--sub); margin-top: 2px; font-weight: 500; }
+  .stat { text-align: center; min-width: 0; }
+  .stat .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; height: 26px; line-height: 26px; white-space: nowrap; }
+  .stat .k { font-size: 11px; color: var(--sub); margin-top: 3px; font-weight: 500; height: 15px; line-height: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* ボタン */
   .btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
