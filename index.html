@@ -176,6 +176,8 @@
   .acts .btn { flex: 1; min-height: 48px; border-radius: 14px; font-size: 16px; font-weight: 650; background: var(--chip); }
   .acts .btn.pri { background: var(--accent); color: #fff; }
   .acts .btn.dng { color: var(--alert); flex: .7; }
+  .acts .btn.dng.sure { background: var(--alert); color: #fff; flex: 1.4; font-size: 14px; }
+  #undoOk { background: var(--alert); color: #fff; flex: 1; }
   .rowl { display: flex; justify-content: space-between; align-items: center; padding: 12px 2px; border-bottom: 1px solid var(--line); font-size: 16px; }
   .rowl .k { color: var(--sub); font-weight: 600; font-size: 14px; }
   .rowl button.v { font-weight: 700; color: var(--accent); font-size: 17px; font-variant-numeric: tabular-nums; }
@@ -879,8 +881,8 @@ function saveEdit(timeOnly) {
   call(p, function (r) { toast(r && r.ok ? '直しました' : '直せませんでした'); if (r && r.state) { S = r.state; render(); } else refresh(); });
 }
 function deleteEdit() {
-  var id = ED.id;
-  if (!confirm('この記録を消しますか？')) return;
+  var id = ED.id, b = $('edDel');
+  if (b && !b.classList.contains('sure')) { b.classList.add('sure'); b.textContent = 'もう一度押すと消えます'; return; }
   closeSheet();
   S.recent = S.recent.filter(function (e) { return e.id !== id; }); S.timeline = S.timeline.filter(function (e) { return e.id !== id; }); render();
   call({ a: 'del', id: id, withState: 1 }, function (r) { toast(r && r.ok ? '消しました' : '消せませんでした'); if (r && r.state) { S = r.state; render(); } else refresh(); });
@@ -1094,7 +1096,12 @@ document.addEventListener('click', function (ev) {
     var p = { a: b.dataset.a };
     if (b.dataset.t) p.t = b.dataset.t;
     if (b.dataset.side) p.side = b.dataset.side;
-    if (p.a === 'undo' && !confirm('直前の記録を取り消しますか？')) return;
+    if (p.a === 'undo') {
+      var last = S && S.recent && S.recent[0];
+      openSheet('<div class="ph"><h3>取り消し</h3><button class="x" data-close>閉じる</button></div><div class="label" style="font-size:15px;margin:6px 0 4px">直前の記録を取り消しますか？</div>' + (last ? '<div style="font-size:18px;font-weight:600;margin:4px 0 8px">' + hm(last.t) + '　' + evText(last) + '</div>' : '') + '<div class="acts"><button class="btn" data-close>やめる</button><button class="btn dng" id="undoOk">取り消す</button></div>');
+      $('undoOk').onclick = function () { closeSheet(); act({ a: 'undo' }); };
+      return;
+    }
     act(p);
   }
 });
