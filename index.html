@@ -1130,7 +1130,8 @@ function renderMemo() {
   var b = $('memoBtn'), t = $('memoTxt');
   if (!m) { b.className = 'memo empty'; b.style.color = ''; t.textContent = '引き継ぎメモ（タップで書く）'; return; }
   b.className = 'memo run'; b.style.color = MEMO_COLORS[m.color] || MEMO_COLORS.amber;
-  t.textContent = m.text;
+  var at = new Date(m.exp - 10 * 3600000);
+  t.textContent = pad(at.getHours()) + ':' + pad(at.getMinutes()) + '　' + m.text;
   b.style.setProperty('--mdur', Math.max(8, 6 + m.text.length * 0.45) + 's');
 }
 function openMemo() {
