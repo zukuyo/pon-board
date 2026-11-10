@@ -1165,7 +1165,7 @@ function openOther() {
 /* 引き継ぎメモ（電光掲示板。保存から10時間で消える） */
 var MEMO_COLORS = { amber: '#ffb224', green: '#59e08a', red: '#ff6b5e', blue: '#6fbaff', white: '#f2f2f2' };
 var memoShown = null;
-function liveMemos() { var t = Date.now(); return ((S && S.memos) || []).filter(function (m) { return m.exp > t; }); }
+function liveMemos() { var t = Date.now(); return ((S && S.memos) || []).filter(function (m) { return m.exp > t; }).sort(function (a, b) { return b.exp - a.exp; }); }
 function renderMemo() {
   var ms = liveMemos(), key = ms.map(function (m) { return m.text + '|' + m.color; }).join('||');
   if (key === memoShown) return;
@@ -1183,7 +1183,7 @@ function openMemo() {
   var ms = liveMemos(), slots = [ms[0] || null, ms[1] || null], colors = [slots[0] ? slots[0].color : 'amber', slots[1] ? slots[1].color : 'green'];
   var block = function (i) {
     var m = slots[i], left = m ? Math.max(0, Math.round((m.exp - Date.now()) / 360000) / 10) : 0;
-    return '<div class="label" style="margin-top:' + (i ? 14 : 4) + 'px">メモ' + (i + 1) + (m ? '（あと約' + left + '時間で消えます）' : '') + '</div><textarea class="noteIn" id="memoIn' + i + '" rows="2" maxlength="200" placeholder="' + (i ? '2つ目（なくてもよい）' : '例：3時にミルク60飲んだ。次は左から') + '"></textarea><div class="swatches" data-slot="' + i + '">' +
+    return '<div class="label" style="margin-top:' + (i ? 14 : 4) + 'px;display:flex;justify-content:space-between;align-items:center"><span>' + (m ? (i === 0 && slots[1] ? '新しいメモ' : i === 1 ? '古いメモ' : 'メモ') : 'メモ' + (i + 1)) + (m ? '　' + (function () { var at = new Date(m.exp - 10 * 3600000); return pad(at.getHours()) + ':' + pad(at.getMinutes()); })() + 'に保存（あと約' + left + '時間で消えます）' : '') + '</span>' + (m ? '<button class="memoDelOne" data-del="' + i + '" style="color:var(--alert);font-size:13px;font-weight:600;padding:4px 10px;border-radius:10px;background:var(--chip)">このメモを消す</button>' : '') + '</div><textarea class="noteIn" id="memoIn' + i + '" rows="2" maxlength="200" placeholder="' + (i ? '2つ目（なくてもよい）' : '例：3時にミルク60飲んだ。次は左から') + '"></textarea><div class="swatches" data-slot="' + i + '">' +
       Object.keys(MEMO_COLORS).map(function (k) { return '<button data-mc="' + k + '" aria-label="' + k + '" class="' + (k === colors[i] ? 'on' : '') + '" style="background-color:' + MEMO_COLORS[k] + '"></button>'; }).join('') + '</div>';
   };
   openSheet('<div class="ph"><h3>引き継ぎメモ</h3><button class="x" data-close>閉じる</button></div><div class="label">次に見る人への一言。2つまで書けます。それぞれ保存から10時間で消えます</div>' + block(0) + block(1) +
@@ -1204,6 +1204,13 @@ function openMemo() {
     save(a, b2);
   };
   if (ms.length) $('memoDel').onclick = function () { save('', ''); };
+  // 片方だけ消す：もう片方は書いてある内容のまま残す（消える時刻もそのまま）
+  Array.prototype.forEach.call(document.querySelectorAll('.memoDelOne'), function (btn) {
+    btn.onclick = function () {
+      var k = Number(btn.dataset.del), other = 1 - k, keepTxt = slots[other] ? slots[other].text : '';
+      if (other === 0) save(keepTxt, ''); else { colors = [colors[1], colors[0]]; save(keepTxt, ''); }
+    };
+  });
 }
 laneClick('laneFeed', ['breast', 'milk', 'pump', 'pee', 'poop', 'both', 'spit']);
 try { speechSynthesis.getVoices(); } catch (e) {}
