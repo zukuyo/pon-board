@@ -319,7 +319,7 @@
         <button class="b" data-a="add" data-t="pee"><span class="sw" style="background:var(--pee)"></span>おしっこ</button>
         <button class="b" data-a="add" data-t="poop"><span class="sw" style="background:var(--poop)"></span>うんち</button>
         <button class="b" data-a="add" data-t="both"><span class="sw" style="background:linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)"></span>両方</button>
-        <button class="b" data-a="add" data-t="spit"><span class="sw" style="background:var(--spit)"></span>吐き戻し</button>
+        <button class="b" data-open="spit"><span class="sw" style="background:var(--spit)"></span>吐き戻し</button>
         <button class="b low" data-a="undo">取り消し</button>
         <button class="b low" data-open="other">その他</button>
       </div>
@@ -826,6 +826,7 @@ function drawContent() {
       h += '<div class="label">授乳した時間（スクロールで選びます）</div><div class="wheels"><div class="wc"><div class="wl">左</div><div class="bandc"></div><div class="wheel big" id="wL"></div></div><div class="wc"><div class="wl">右</div><div class="bandc"></div><div class="wheel big" id="wR"></div></div></div>';
       h += '<div class="label" style="margin-top:6px">先に飲んだ側</div><div class="segc" id="firstSeg"><button data-fs="L" class="' + (d.first === 'L' ? 'on' : '') + '">左が先</button><button data-fs="R" class="' + (d.first === 'R' ? 'on' : '') + '">右が先</button></div>';
     }
+    if (d.type === 'spit') h += '<div class="label">量</div>' + spitSeg(d.note, 'spSeg');
     if (d.type === 'milk' || d.type === 'pump') {
       h += '<div class="label">量</div><div class="stepper"><button data-st="amt" data-d="-10">−</button><div class="val"><span id="vAmt">' + d.amt + '</span><small>ml</small></div><button data-st="amt" data-d="10">＋</button></div><div class="quick">' + [20, 40, 60, 80, 100, 120].map(function (m) { return '<button data-qa="' + m + '">' + m + '</button>'; }).join('') + '</div>';
     }
@@ -872,6 +873,7 @@ function saveEdit(timeOnly) {
     if (d.type === 'milk' || d.type === 'pump') { p.amt = d.amt; patch.amt = d.amt; patch.unit = 'ml'; }
     if (GROW[d.type]) { p.amt = d.amt; patch.amt = d.amt; patch.unit = GROW[d.type].unit; }
     if (d.type === 'memo') { d.note = $('noteIn').value; p.note = d.note; patch.note = d.note; }
+    if (d.type === 'spit' && d.note !== (o.note || '')) { p.note = d.note; patch.note = d.note; }
   }
   var id = d.id; closeSheet();
   // 先に画面を更新（通信は2〜3秒かかるため）
@@ -992,11 +994,13 @@ function openAddAny(type, at) {
     h += '<div class="label" style="margin-top:6px">' + (type === 'milk' || type === 'pump' ? '量' : TYPE_LABEL[type]) + '</div><div class="stepper"><button id="adM" data-s="' + step + '">−</button><div class="val"><input id="adAmt" type="number" inputmode="decimal" step="' + step + '" value="' + amt + '" style="width:130px;font:inherit;text-align:center;border:0;background:transparent;color:inherit;-webkit-user-select:text;user-select:text"><small>' + unit + '</small></div><button id="adP">＋</button></div>';
   }
   if (type === 'memo') h += '<textarea class="noteIn" id="adNote" rows="3" placeholder="メモ"></textarea>';
+  if (type === 'spit') h += '<div class="label" style="margin-top:6px">量</div>' + spitSeg('そこそこ', 'adSpit');
   if (type === 'breast') h += '<div class="note2">追加したあと、左右の分数を入れる窓が開きます</div>';
   h += '<div class="rowl"><span class="k">' + (type === 'breast' ? '開始時刻' : '時刻') + '</span><button class="v" id="adTime">' + hm(at) + day + '　›</button></div>';
   h += '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="adSave">追加する</button></div>';
   openSheet(h, true);
   var keep = function () { var n = $('adNote'); return n ? n.value : ''; };
+  if ($('adSpit')) $('adSpit').onclick = function (ev) { var x = ev.target.closest('[data-sp]'); if (!x) return; ev.stopPropagation(); Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); };
   $('adType').onclick = function (ev) { var x = ev.target.closest('[data-at]'); if (x) openAddAny(x.dataset.at, at); };
   if ($('adAmt')) {
     var stp = function (d) { var v = Math.max(0, Math.round((Number($('adAmt').value || 0) + d) * 10) / 10); $('adAmt').value = step < 1 ? v.toFixed(1) : v; };
@@ -1017,6 +1021,7 @@ function openAddAny(type, at) {
   $('adSave').onclick = function () {
     var p = { a: 'add', t: type, time: iso(at), withState: 1 };
     if ($('adAmt')) { var v = Number($('adAmt').value); if (!(v > 0)) { toast('数字を入れてください'); return; } p.amt = v; }
+    if (type === 'spit') { var on = document.querySelector('#adSpit .on'); if (on) p.note = on.dataset.sp; }
     if (type === 'memo') { var nt = $('adNote').value.trim(); if (!nt) { toast('メモを入れてください'); return; } p.note = nt; }
     closeSheet(); toast('追加しています…');
     call(p, function (r) {
@@ -1078,9 +1083,12 @@ document.addEventListener('click', function (ev) {
   if (b.dataset.open === 'pump') { openMilk('pump'); return; }
   if (b.dataset.open === 'breast') { act({ a: 'add', t: 'breast' }, true); return; }
   if (b.dataset.open === 'other') { openOther(); return; }
+  if (b.dataset.open === 'spit') { openSpit(); return; }
+  if (b.dataset.spadd) { closeSheet(); act({ a: 'add', t: 'spit', note: b.dataset.spadd }); return; }
   if (b.id === 'memoBtn') { openMemo(); return; }
   if (b.dataset.edit) { openEdit(b.dataset.edit, b.dataset.focus); return; }
   if (ED) {
+    if (b.dataset.sp) { ED.note = b.dataset.sp; Array.prototype.forEach.call(document.querySelectorAll('[data-sp]'), function (x) { x.classList.toggle('on', x === b); }); return; }
     if (b.dataset.ty) { ED.type = b.dataset.ty; if ((ED.type === 'milk' || ED.type === 'pump') && !ED.amt) ED.amt = 60; drawContent(); return; }
     if (b.dataset.fs) { ED.first = b.dataset.fs; Array.prototype.forEach.call(document.querySelectorAll('[data-fs]'), function (x) { x.classList.toggle('on', x.dataset.fs === ED.first); }); return; }
     if (b.dataset.sd !== undefined) { ED.side = b.dataset.sd; drawContent(); return; }
@@ -1110,6 +1118,13 @@ function openMilk(kind) {
   var h = '<div class="ph"><h3>' + (kind === 'pump' ? '搾乳の量' : 'ミルクの量') + '</h3><button class="x" data-close>閉じる</button></div><div class="label">何ミリリットル？</div><div class="quick" style="margin-top:10px">';
   for (var m = 10; m <= 200; m += 10) h += '<button data-ml="' + m + '" data-mt="' + kind + '" style="min-height:52px;font-size:18px;min-width:18%">' + m + '</button>';
   openSheet(h + '</div>');
+}
+/* 吐き戻し：量を3つから選ぶ（記録のメモ欄に入る） */
+var SPIT_LV = ['ちょっと', 'そこそこ', 'まるっと'];
+function spitSeg(cur, id) { return '<div class="segc" id="' + id + '">' + SPIT_LV.map(function (v) { return '<button data-sp="' + v + '" class="' + (cur === v ? 'on' : '') + '">' + v + '</button>'; }).join('') + '</div>'; }
+function openSpit() {
+  openSheet('<div class="ph"><h3>吐き戻し</h3><button class="x" data-close>閉じる</button></div><div class="label">どのくらい？</div><div class="quick" style="margin-top:10px">' +
+    SPIT_LV.map(function (v) { return '<button data-spadd="' + v + '" style="min-height:64px;font-size:19px">' + v + '</button>'; }).join('') + '</div>');
 }
 /* その他（たまに使う記録） */
 function openOther() {
