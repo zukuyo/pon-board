@@ -229,7 +229,7 @@
     .colL .tl { flex: 1 1 0; }
     .colR .controls { flex: none; }
     .colR .recentcard { flex: 1 1 0; overflow: hidden; }
-    .colR .recentcard .list { flex: 1 1 0; min-height: 0; overflow: hidden; }
+    .colR .recentcard .list { flex: 1 1 0; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
     .sheet { align-items: center; }
     .panel { border-radius: 26px; max-width: 520px; }
   }
@@ -611,14 +611,15 @@ var CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 function renderRecent() {
   $('err').textContent = '';
   var ul = $('recent');
-  ul.innerHTML = S.recent.slice(0, 12).map(function (e) {
+  var keep = ul.scrollTop;
+  ul.innerHTML = S.recent.map(function (e) {
     var main = e.label + (e.side ? ' ' + e.side : ''), sub = '';
     if (e.amt !== '' && e.amt != null) sub += e.amt + (e.unit || '');
     if (e.min) sub += (sub ? '　' : '') + e.min + '分';
     if (e.note) sub += (sub ? '　' : '') + e.note;
     return '<li><button class="t" data-edit="' + e.id + '" data-focus="time">' + hm(e.t) + '</button><button class="n" data-edit="' + e.id + '"><span><i class="dot" style="background:' + (COLORS[e.type] || 'var(--grid3)') + '"></i>' + main + ' <span class="sub">' + sub + '</span></span>' + CHEV + '</button></li>';
   }).join('');
-  while (ul.lastChild && ul.scrollHeight > ul.clientHeight + 1) ul.removeChild(ul.lastChild);
+  ul.scrollTop = keep;  // 30秒ごとの更新で、見ている位置が先頭に戻らないようにする
 }
 function render() { renderHero(); renderTimeline(); renderStats(); renderRecent(); renderMemo(); if ($('tlcard').classList.contains('vclock')) renderDials(); }
 
