@@ -494,7 +494,7 @@ function dialSvg(half) {
     if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both') return;
     var c = pt(70, (hrs - half * 12) * 30 - 90);
     o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="9" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--sheet)" stroke-width="2"/>';
-    if (e.type === 'both') o += '<path d="M' + (c[0] - 9).toFixed(1) + ' ' + c[1].toFixed(1) + ' a9 9 0 0 1 18 0z" style="fill:var(--pee)"/>';
+    if (e.type === 'both') o += '<path d="M' + (c[0] - 8).toFixed(1) + ' ' + c[1].toFixed(1) + ' a8 8 0 0 1 16 0z" style="fill:var(--pee)"/>';
   });
   o += '<line data-hand="' + half + '" x1="100" y1="100" x2="100" y2="14" stroke="var(--alert)" stroke-width="2.2" stroke-linecap="round" style="display:none"/>';
   o += '<circle cx="100" cy="100" r="3.2" style="fill:var(--alert)"/></svg>';
@@ -532,7 +532,7 @@ function dialSvgClassic(half) {
     } else {
       var c = pt(ring, d0);
       o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="9" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type].indexOf('gradient') < 0 ? COLORS[e.type] : 'var(--poop)') + ';stroke:var(--card)" stroke-width="2"/>';
-      if (e.type === 'both') o += '<path d="M' + (c[0] - 9).toFixed(1) + ' ' + c[1].toFixed(1) + ' a9 9 0 0 1 18 0z" style="fill:var(--pee)"/>';
+      if (e.type === 'both') o += '<path d="M' + (c[0] - 8).toFixed(1) + ' ' + c[1].toFixed(1) + ' a8 8 0 0 1 16 0z" style="fill:var(--pee)"/>';
     }
   });
   o += '<line data-hand="' + half + '" x1="100" y1="100" x2="100" y2="14" stroke="var(--alert)" stroke-width="2.2" stroke-linecap="round" style="display:none"/>';
