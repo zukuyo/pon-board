@@ -3,6 +3,8 @@
 <head>
 <base target="_top">
 <meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -11,7 +13,7 @@
   :root {
     --bg: linear-gradient(160deg, #f5f7fb 0%, #e9edf6 100%); --card: rgba(255,255,255,.88); --ink: #15171c; --sub: #6a7080; --line: rgba(20,24,40,.09);
     --grid3: rgba(20,24,40,.16); --grid1: rgba(20,24,40,.06); --lane: rgba(20,24,40,.045);
-    --feed: #1a46d0; --breast: #8ea6d0; --milk: #a99bd6; --pee: #e6b66e; --poop: #a88566; --winS: #c4d9e6; --band: #e6e4ee;
+    --feed: #1a46d0; --breast: #8ea6d0; --milk: #c39bc9; --pump: #8487d6; --spit: #9db8a0; --pee: #e6b66e; --poop: #a88566; --winS: #c4d9e6; --band: #e6e4ee;
     --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff; --win: rgba(90,200,250,.30);
     --btn: #ffffff; --btnInk: #15171c; --sheet: #ffffff; --chip: rgba(20,24,40,.06);
     --shadow: 0 1px 1px rgba(20,24,40,.04), 0 10px 28px rgba(20,24,40,.07);
@@ -20,7 +22,7 @@
   body.night {
     --bg: linear-gradient(160deg, #0d0706 0%, #120907 100%); --card: rgba(30,16,13,.92); --ink: #ffb9a5; --sub: #a96b5e; --line: rgba(255,150,120,.12);
     --grid3: rgba(255,150,120,.20); --grid1: rgba(255,150,120,.07); --lane: rgba(255,150,120,.05);
-    --feed: #ff7a5c; --breast: #6f86c0; --milk: #c98b7d; --pee: #d3ab6f; --poop: #a88470; --winS: #3d4d5a; --band: #2a1c19;
+    --feed: #ff7a5c; --breast: #6f86c0; --milk: #c98b7d; --pump: #8a84c8; --spit: #93a585; --pee: #d3ab6f; --poop: #a88470; --winS: #3d4d5a; --band: #2a1c19;
     --warn: #ffa050; --alert: #ff5040; --ok: #c98a68; --accent: #ff7a5c; --win: rgba(110,200,230,.20);
     --btn: #231310; --btnInk: #ffb9a5; --sheet: #1e100d; --chip: rgba(255,150,120,.10);
     --shadow: none;
@@ -115,6 +117,19 @@
   .b { min-height: clamp(54px, 10vh, 84px); border-radius: 18px; background: var(--btn); color: var(--btnInk); font-size: 16.5px; font-weight: 650; line-height: 1.25; padding: 8px 8px; border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .12s, opacity .2s; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; }
   .b:active { transform: scale(.96); opacity: .8; }
   .b .sw { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .b.low { min-height: clamp(40px, 6vh, 52px); font-size: 14.5px; grid-column: span 2; color: var(--sub); }
+  .memo { display: block; width: 100%; height: 38px; margin-bottom: 8px; border-radius: 10px; background: #14151a; overflow: hidden; position: relative; font-family: 'DotGothic16', 'Hiragino Maru Gothic ProN', monospace; font-size: 20px; line-height: 38px; white-space: nowrap; text-align: left; }
+  .memo span { display: inline-block; padding-left: 100%; will-change: transform; }
+  .memo.run span { animation: marquee var(--mdur, 14s) linear infinite; }
+  .memo.empty { background: var(--chip); font-family: inherit; font-size: 13px; font-weight: 600; color: var(--sub); text-align: center; }
+  .memo.empty span { padding-left: 0; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+  .swatches { display: flex; gap: 10px; margin: 10px 0 4px; }
+  .swatches button { width: 40px; height: 40px; border-radius: 50%; border: 3px solid transparent; background-clip: padding-box; }
+  .swatches button.on { border-color: var(--ink); }
+  .list .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 9px; flex: none; opacity: .9; }
+  .rhead { display: flex; justify-content: space-between; align-items: center; }
+  .rhead button { font-size: 12.5px; font-weight: 600; color: var(--sub); background: var(--chip); border-radius: 10px; padding: 5px 12px; }
   .agoRow { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
   .agoRow .label { white-space: nowrap; font-size: 12.5px; margin-right: 2px; }
   .chip { flex: 1; min-height: 38px; border-radius: 12px; background: var(--chip); font-size: 14px; font-weight: 600; color: var(--sub); padding: 8px 10px; }
@@ -203,6 +218,7 @@
   @media (max-width: 700px) {
     .stats { grid-template-columns: repeat(3, 1fr); row-gap: 10px; }
     .btns { grid-template-columns: repeat(2, 1fr); }
+    .b.low { grid-column: span 1; }
     .hero { grid-template-columns: 1fr; }
     .plot { min-height: 150px; }
   }
@@ -264,7 +280,7 @@
 
     <div class="card tl" id="tlcard">
       <div class="tlhead"><div style="display:flex;align-items:center"><div class="label">今日の流れ</div><div class="vsw" id="vsw"><button data-view="bar" class="on">帯</button><button data-view="clock">時計</button></div></div>
-        <div class="legend"><span><i style="background:var(--breast)"></i>母乳</span><span><i style="background:var(--milk)"></i>ミルク・搾乳</span><span><i style="background:var(--pee)"></i>おしっこ</span><span><i style="background:var(--poop)"></i>うんち</span></div>
+        <div class="legend"><span><i style="background:var(--breast)"></i>母乳</span><span><i style="background:var(--milk)"></i>ミルク</span><span><i style="background:var(--pump)"></i>搾乳</span><span><i style="background:var(--pee)"></i>おしっこ</span><span><i style="background:var(--poop)"></i>うんち</span></div>
       </div>
       <div class="plot" id="plot">
         <div class="axis" id="axis"></div>
@@ -279,15 +295,18 @@
 
   <div class="colR">
     <div class="card controls">
+      <button class="memo empty" id="memoBtn" aria-label="引き継ぎメモ"><span id="memoTxt">引き継ぎメモ（タップで書く）</span></button>
       <div class="btns">
-        <button class="b" data-a="add" data-t="breast" data-side="L"><span class="sw" style="background:var(--breast)"></span>母乳 左</button>
-        <button class="b" data-a="add" data-t="breast" data-side="R"><span class="sw" style="background:var(--breast)"></span>母乳 右</button>
-        <button class="b" data-a="end" data-t="breast">おっぱい<br>終わり</button>
+        <button class="b" data-open="breast"><span class="sw" style="background:var(--breast)"></span>母乳</button>
         <button class="b" data-open="milk"><span class="sw" style="background:var(--milk)"></span>ミルク</button>
+        <button class="b" data-open="pump"><span class="sw" style="background:var(--pump)"></span>搾乳</button>
+        <button class="b" data-a="end" data-t="breast">おっぱい<br>終わり</button>
         <button class="b" data-a="add" data-t="pee"><span class="sw" style="background:var(--pee)"></span>おしっこ</button>
         <button class="b" data-a="add" data-t="poop"><span class="sw" style="background:var(--poop)"></span>うんち</button>
         <button class="b" data-a="add" data-t="both"><span class="sw" style="background:linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)"></span>両方</button>
-        <button class="b" data-a="undo">取り消し</button>
+        <button class="b" data-a="add" data-t="spit"><span class="sw" style="background:var(--spit)"></span>吐き戻し</button>
+        <button class="b low" data-a="undo">取り消し</button>
+        <button class="b low" data-open="other">その他</button>
       </div>
       <div class="agoRow">
         <span class="label">時刻</span>
@@ -298,7 +317,7 @@
       </div>
     </div>
     <div class="card recentcard">
-      <div class="label">さいきんの記録　<span style="font-weight:500">タップで直せます</span></div>
+      <div class="rhead"><div class="label">さいきんの記録　<span style="font-weight:500">タップで直せます</span></div><button id="histBtn">過去</button></div>
       <ul class="list" id="recent"></ul>
       <div class="err" id="err"></div>
     </div>
@@ -317,10 +336,10 @@ var KEY = HASH.key || SAVED.key || '';
 var EXEC = HASH.exec || SAVED.exec || '';
 var S = null, ago = 0, nightOverride = null, ED = null;
 var $ = function (id) { return document.getElementById(id); };
-var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ', weight: '体重', height: '身長' };
+var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ', weight: '体重', height: '身長', spit: '吐き戻し', temp: '体温' };
 var GROW = { weight: { label: '体重', unit: 'g', step: 10, big: 100, def: 3000, dec: 0 }, height: { label: '身長', unit: 'cm', step: 0.1, big: 1, def: 50, dec: 1 } };
 var SIDE = { L: '左', R: '右' };
-var COLORS = { breast: 'var(--breast)', milk: 'var(--milk)', pump: 'var(--milk)', pee: 'var(--pee)', poop: 'var(--poop)', both: 'linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)' };
+var COLORS = { breast: 'var(--breast)', milk: 'var(--milk)', pump: 'var(--pump)', spit: 'var(--spit)', pee: 'var(--pee)', poop: 'var(--poop)', both: 'linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)' };
 function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
 
 /* ───────── 通信 ───────── */
@@ -409,6 +428,7 @@ function renderTimeline() {
   $('axis').innerHTML = ax;
   var feed = '', dia = '';
   S.timeline.forEach(function (e) {
+    if ((e.end || e.t) < S.dayStart) return;
     var lane = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 'f' : (e.type === 'pee' || e.type === 'poop' || e.type === 'both') ? 'd' : null;
     if (!lane) return;
     var html;
@@ -505,7 +525,7 @@ function laneClick(laneId, types) {
     if (!S) return;
     var r = this.getBoundingClientRect(), px = ev.clientX - r.left;
     var hits = S.timeline.filter(function (e) {
-      if (types.indexOf(e.type) < 0) return false;
+      if (types.indexOf(e.type) < 0 || (e.end || e.t) < S.dayStart) return false;
       var a = xPct(e.t) / 100 * r.width, isF = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump'), b = isF ? Math.max(e.end ? xPct(e.end) / 100 * r.width : 0, a + 0.012 * r.width) : a;
       return px >= a - 12 && px <= b + 12;
     });
@@ -534,11 +554,11 @@ function renderRecent() {
     if (e.amt !== '' && e.amt != null) sub += e.amt + (e.unit || '');
     if (e.min) sub += (sub ? '　' : '') + e.min + '分';
     if (e.note) sub += (sub ? '　' : '') + e.note;
-    return '<li><button class="t" data-edit="' + e.id + '" data-focus="time">' + hm(e.t) + '</button><button class="n" data-edit="' + e.id + '"><span>' + main + ' <span class="sub">' + sub + '</span></span>' + CHEV + '</button></li>';
+    return '<li><button class="t" data-edit="' + e.id + '" data-focus="time">' + hm(e.t) + '</button><button class="n" data-edit="' + e.id + '"><span><i class="dot" style="background:' + (COLORS[e.type] || 'var(--grid3)') + '"></i>' + main + ' <span class="sub">' + sub + '</span></span>' + CHEV + '</button></li>';
   }).join('');
   while (ul.lastChild && ul.scrollHeight > ul.clientHeight + 1) ul.removeChild(ul.lastChild);
 }
-function render() { renderHero(); renderTimeline(); renderStats(); renderRecent(); if ($('tlcard').classList.contains('vclock')) renderDials(); }
+function render() { renderHero(); renderTimeline(); renderStats(); renderRecent(); renderMemo(); if ($('tlcard').classList.contains('vclock')) renderDials(); }
 
 /* ───────── 記録ボタン ───────── */
 function beep() {
@@ -563,14 +583,15 @@ function toastAct(msg, label, fn) {
   el.classList.add('show', 'act'); clearTimeout(toastTimer);
   toastTimer = setTimeout(function () { el.classList.remove('show', 'act'); }, 8000);
 }
-function act(params) {
+function act(params, openAfter) {
   if (ago > 0) params.ago = ago;
   params.withState = 1;
   toast('記録中…');
   call(params, function (r) {
     if (r && r.ok) beep();
     if (r && r.state) { S = r.state; render(); } else refresh();
-    if (r && r.ok && params.a === 'add' && params.t === 'breast' && r.id) toastAct(r.speech, '分数を入れる', function () { openEdit(r.id); });
+    if (r && r.ok && openAfter && r.id) { toast(r.speech); openEdit(r.id); }
+    else if (r && r.ok && params.a === 'add' && params.t === 'breast' && r.id) toastAct(r.speech, '分数を入れる', function () { openEdit(r.id); });
     else toast(r ? r.speech : '失敗しました');
     setAgo(0);
   });
@@ -811,7 +832,11 @@ document.addEventListener('click', function (ev) {
   }
   if (b.dataset.close !== undefined) { closeSheet(); return; }
   if (b.dataset.ago !== undefined) { setAgo(Number(b.dataset.ago)); return; }
-  if (b.dataset.open === 'milk') { openMilk(); return; }
+  if (b.dataset.open === 'milk') { openMilk('milk'); return; }
+  if (b.dataset.open === 'pump') { openMilk('pump'); return; }
+  if (b.dataset.open === 'breast') { act({ a: 'add', t: 'breast' }, true); return; }
+  if (b.dataset.open === 'other') { openOther(); return; }
+  if (b.id === 'memoBtn') { openMemo(); return; }
   if (b.dataset.edit) { openEdit(b.dataset.edit, b.dataset.focus); return; }
   if (ED) {
     if (b.dataset.ty) { ED.type = b.dataset.ty; if ((ED.type === 'milk' || ED.type === 'pump') && !ED.amt) ED.amt = 60; drawContent(); return; }
@@ -833,13 +858,55 @@ document.addEventListener('click', function (ev) {
     act(p);
   }
 });
-function openMilk() {
-  var h = '<div class="ph"><h3>ミルクの量</h3><button class="x" data-close>閉じる</button></div><div class="segc"><button class="on" id="mt1" data-x="milk">ミルク</button><button id="mt2" data-x="pump">搾乳</button></div><div class="quick" style="margin-top:10px">';
-  for (var m = 20; m <= 200; m += 20) h += '<button data-ml="' + m + '" data-mt="milk" style="min-height:56px;font-size:19px">' + m + '</button>';
+function openMilk(kind) {
+  kind = kind === 'pump' ? 'pump' : 'milk';
+  var h = '<div class="ph"><h3>' + (kind === 'pump' ? '搾乳の量' : 'ミルクの量') + '</h3><button class="x" data-close>閉じる</button></div><div class="label">何ミリリットル？</div><div class="quick" style="margin-top:10px">';
+  for (var m = 10; m <= 200; m += 10) h += '<button data-ml="' + m + '" data-mt="' + kind + '" style="min-height:52px;font-size:18px;min-width:18%">' + m + '</button>';
   openSheet(h + '</div>');
-  var kind = 'milk';
-  $('mt1').onclick = function () { kind = 'milk'; $('mt1').classList.add('on'); $('mt2').classList.remove('on'); Array.prototype.forEach.call(document.querySelectorAll('[data-ml]'), function (x) { x.dataset.mt = 'milk'; }); };
-  $('mt2').onclick = function () { kind = 'pump'; $('mt2').classList.add('on'); $('mt1').classList.remove('on'); Array.prototype.forEach.call(document.querySelectorAll('[data-ml]'), function (x) { x.dataset.mt = 'pump'; }); };
+}
+/* その他（たまに使う記録） */
+function openOther() {
+  openSheet('<div class="ph"><h3>その他の記録</h3><button class="x" data-close>閉じる</button></div><div class="pick">' +
+    '<button id="oGrow"><span>体重・身長</span>' + CHEV + '</button><button id="oTemp"><span>体温</span>' + CHEV + '</button><button id="oMemo"><span>メモ（記録に残す）</span>' + CHEV + '</button></div>');
+  $('oGrow').onclick = function () { openGrowth('weight'); };
+  $('oTemp').onclick = function () {
+    openSheet('<div class="ph"><h3>体温</h3><button class="x" data-close>閉じる</button></div><div class="stepper"><button id="tM">−</button><div class="val"><input id="tIn" type="number" inputmode="decimal" step="0.1" value="36.8" style="width:130px;font:inherit;text-align:center;border:0;background:transparent;color:inherit;-webkit-user-select:text;user-select:text"><small>℃</small></div><button id="tP">＋</button></div><div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="tSaveT">記録する</button></div>');
+    var st = function (d) { $('tIn').value = (Math.round((Number($('tIn').value || 0) + d) * 10) / 10).toFixed(1); };
+    $('tM').onclick = function () { st(-0.1); }; $('tP').onclick = function () { st(0.1); };
+    $('tSaveT').onclick = function () { var v = Number($('tIn').value); if (!(v > 30 && v < 45)) { toast('体温を入れてください'); return; } closeSheet(); act({ a: 'add', t: 'temp', amt: v }); };
+  };
+  $('oMemo').onclick = function () {
+    openSheet('<div class="ph"><h3>メモ</h3><button class="x" data-close>閉じる</button></div><textarea class="noteIn" id="mNote" rows="3" placeholder="気づいたこと"></textarea><div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="mSaveN">記録する</button></div>');
+    $('mSaveN').onclick = function () { var v = $('mNote').value.trim(); if (!v) { toast('メモを入れてください'); return; } closeSheet(); act({ a: 'add', t: 'memo', note: v }); };
+  };
+}
+/* 引き継ぎメモ（電光掲示板。保存から10時間で消える） */
+var MEMO_COLORS = { amber: '#ffb224', green: '#59e08a', red: '#ff6b5e', blue: '#6fbaff', white: '#f2f2f2' };
+var memoShown = null;
+function renderMemo() {
+  var m = S && S.memo && S.memo.exp > Date.now() ? S.memo : null, key = m ? m.text + '|' + m.color : '';
+  if (key === memoShown) return;
+  memoShown = key;
+  var b = $('memoBtn'), t = $('memoTxt');
+  if (!m) { b.className = 'memo empty'; b.style.color = ''; t.textContent = '引き継ぎメモ（タップで書く）'; return; }
+  b.className = 'memo run'; b.style.color = MEMO_COLORS[m.color] || MEMO_COLORS.amber;
+  t.textContent = m.text;
+  b.style.setProperty('--mdur', Math.max(8, 6 + m.text.length * 0.45) + 's');
+}
+function openMemo() {
+  var m = S && S.memo && S.memo.exp > Date.now() ? S.memo : null, color = m ? m.color : 'amber';
+  var left = m ? Math.max(0, Math.round((m.exp - Date.now()) / 360000) / 10) : 0;
+  openSheet('<div class="ph"><h3>引き継ぎメモ</h3><button class="x" data-close>閉じる</button></div><div class="label">次に見る人への一言。保存から10時間で消えます' + (m ? '（あと約' + left + '時間）' : '') + '</div><textarea class="noteIn" id="memoIn" rows="3" maxlength="200" placeholder="例：3時にミルク60飲んだ。次は左から"></textarea><div class="label">文字の色</div><div class="swatches" id="memoSw">' +
+    Object.keys(MEMO_COLORS).map(function (k) { return '<button data-mc="' + k + '" aria-label="' + k + '" class="' + (k === color ? 'on' : '') + '" style="background-color:' + MEMO_COLORS[k] + '"></button>'; }).join('') +
+    '</div><div class="acts">' + (m ? '<button class="btn dng" id="memoDel">消す</button>' : '') + '<button class="btn" data-close>キャンセル</button><button class="btn pri" id="memoSave">保存</button></div>');
+  $('memoIn').value = m ? m.text : '';
+  $('memoSw').onclick = function (ev) { var x = ev.target.closest('[data-mc]'); if (!x) return; color = x.dataset.mc; Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); };
+  var save = function (text) {
+    closeSheet(); toast('保存しています…');
+    call({ a: 'set', k: 'memo', text: text, color: color, withState: 1 }, function (r) { toast(r && r.ok ? (text ? 'メモを保存しました' : 'メモを消しました') : '保存できませんでした'); if (r && r.state) { S = r.state; render(); } else refresh(); });
+  };
+  $('memoSave').onclick = function () { var v = $('memoIn').value.replace(/\s+/g, ' ').trim(); if (!v) { toast('メモを入れてください'); return; } save(v); };
+  if (m) $('memoDel').onclick = function () { save(''); };
 }
 laneClick('laneFeed', ['breast', 'milk', 'pump', 'pee', 'poop', 'both']);
 try { speechSynthesis.getVoices(); } catch (e) {}
