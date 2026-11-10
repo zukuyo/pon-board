@@ -64,6 +64,10 @@
   /* 前の授乳から／次回授乳 */
   .hero { position: relative; display: grid; grid-template-columns: 1.05fr 1fr; gap: 6px 18px; padding-top: calc(var(--clk) * 0.4 + 10px); padding-bottom: 12px; }
   .blk .label { margin-bottom: 2px; }
+  .nextLbl { display: inline-flex; align-items: center; gap: 5px; margin: 0 0 4px -8px; padding: 4px 10px 4px 8px; border-radius: 10px; background: var(--chip); color: var(--sub); font-size: 13px; font-weight: 600; letter-spacing: .02em; transition: transform .12s, opacity .2s; }
+  .nextLbl:active { transform: scale(.96); opacity: .8; }
+  .nextLbl svg { width: 13px; height: 13px; flex: none; }
+  .nextLbl.once { background: var(--accent); color: #fff; }
   .since { font-size: clamp(46px, 14.5vh, 128px); font-weight: 700; letter-spacing: -0.045em; font-variant-numeric: tabular-nums; line-height: .98; }
   .since { white-space: nowrap; }
   .since.long { font-size: clamp(38px, 11.5vh, 100px); }
@@ -275,7 +279,7 @@
     <div class="card hero" id="hero">
       <button class="pill" id="ivBtn">授乳間隔<b id="ivVal">3:00</b></button>
       <div class="blk"><div class="label">前の授乳から</div><div class="since" id="since">--</div></div>
-      <div class="blk"><div class="label">次回授乳</div><div class="nextT" id="nextT">--:--</div><div class="nextSub" id="nextSub"></div></div>
+      <div class="blk"><button class="nextLbl" id="nextLbl" aria-label="次回授乳の時刻を変える"><span id="nextLblTxt">次回授乳</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button><div class="nextT" id="nextT">--:--</div><div class="nextSub" id="nextSub"></div></div>
       <div class="meta" id="meta"></div>
     </div>
 
@@ -401,7 +405,8 @@ function renderHero() {
   $('since').innerHTML = mAll >= 60 ? Math.floor(mAll / 60) + '<small>時間</small>' + pad(mAll % 60) + '<small>分</small>' : mAll + '<small>分</small>';
   var next = nextFeedMs(), rem = next - now;
   $('nextT').textContent = hm(next);
-  $('nextSub').textContent = (rem > 0 ? 'あと ' + durJa(rem) : durJa(-rem) + ' 過ぎています') + (S.nextOnce ? '（手動）' : '');
+  $('nextSub').textContent = (rem > 0 ? 'あと ' + durJa(rem) : durJa(-rem) + ' 過ぎています');
+  $('nextLbl').classList.toggle('once', !!S.nextOnce); $('nextLblTxt').textContent = S.nextOnce ? '次回授乳（今回だけ）' : '次回授乳';
   if (rem <= -15 * 60000) hero.classList.add('alert'); else if (rem <= 10 * 60000) hero.classList.add('warn');
   var lf = S.lastFeed;
   var what = lf.type === 'milk' ? 'ミルク ' + lf.amt + 'ml' : lf.type === 'pump' ? '搾乳 ' + lf.amt + 'ml' : '母乳' + (S.lastSides.length ? ' ' + S.lastSides.join('→') : '');
@@ -972,7 +977,7 @@ document.addEventListener('pointerdown', function () { if (VOICE.pref) { audioCt
 for (var ml = 20; ml <= 200; ml += 20) {}
 document.addEventListener('click', function (ev) {
   var b = ev.target.closest('button, #clock, #nextT'); if (!b) return;
-  if (b.id === 'nextT') { openNextOnce(); return; }
+  if (b.id === 'nextT' || b.id === 'nextLbl') { openNextOnce(); return; }
   if (b.id === 'setBtn') { openSettings(); return; }
   if (b.id === 'histBtn') { openHistory(); return; }
   if (b.id === 'clock') { nightOverride = !isNight(); tick(); return; }
