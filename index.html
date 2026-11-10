@@ -971,8 +971,10 @@ function openSettings() {
     '<div class="label" style="margin-top:14px">時計のデザイン</div>' +
     '<div class="segc" id="sDial"><button data-d="now" class="' + (dial === 'now' ? 'on' : '') + '">いまの（扇）</button><button data-d="classic" class="' + (dial === 'classic' ? 'on' : '') + '">最初の（丸）</button></div>' +
     '<div class="rowl" style="margin-top:12px"><span class="k">Siriに言う言葉</span><button class="v" id="sVoice">声の例　›</button></div>' +
+    '<div class="rowl"><span class="k">画面の更新</span><button class="v" id="sReload">最新にする　›</button></div>' +
     '<div class="note2">音とデザインは、この端末だけの設定です。授乳間隔は家族で共通です。</div>' +
     '<div class="acts"><button class="btn pri" data-close>閉じる</button></div>');
+  $('sReload').onclick = function () { this.textContent = '更新しています…'; location.reload(); };
   $('sIv').onclick = openInterval;
   $('sVoice').onclick = openVoiceHelp;
   $('sKind').onclick = function (ev) { var x = ev.target.closest('[data-k]'); if (!x) return; SND.kind = x.dataset.k; ls('pon.snd.kind', SND.kind); Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); };
