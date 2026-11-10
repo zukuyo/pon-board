@@ -43,7 +43,10 @@
 
   /* 上段：時計は「前の授乳」の枠に少し乗せる */
   .top { position: relative; z-index: 2; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 0 6px; margin-bottom: calc(var(--clk) * -0.4); pointer-events: none; }
-  .top > * { pointer-events: auto; }
+  .top > * { pointer-events: none; }
+  .top .tools, .top .tool, .top .clock { pointer-events: auto; }
+  .pill { z-index: 3; }
+  .pill::after { content: ''; position: absolute; inset: -10px -12px -12px -16px; }
   .clock { font-size: var(--clk); font-weight: 600; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; line-height: 1; }
   .top-r { min-width: 0; flex: 0 1 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-bottom: calc(var(--clk) * 0.46); }
   .tools { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 6px; }
