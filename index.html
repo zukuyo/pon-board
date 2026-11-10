@@ -68,7 +68,7 @@
   .since { white-space: nowrap; }
   .since.long { font-size: clamp(38px, 11.5vh, 100px); }
   .since small { font-size: .3em; font-weight: 600; letter-spacing: 0; margin: 0 5px 0 3px; color: var(--sub); }
-  .nextT { font-size: clamp(40px, 12vh, 108px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .nextT { cursor: pointer; font-size: clamp(40px, 12vh, 108px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
   .nextSub { font-size: 16px; font-weight: 600; color: var(--sub); margin-top: 4px; }
   .hero.warn .nextT, .hero.warn .nextSub { color: var(--warn); }
   .hero.alert .nextT, .hero.alert .nextSub { color: var(--alert); }
@@ -264,6 +264,7 @@
       <div class="top-r">
         <div class="tools">
           <button class="tool" id="growthBtn" aria-label="体重・身長"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8.5 9.5a4.5 4.5 0 0 1 7 0"/><path d="M12 14l1.8-3.2"/></svg>成長</button>
+          <button class="tool" id="setBtn" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="18" cy="18" r="2.2"/></svg>設定</button>
           <button class="tool" id="helpBtn" aria-label="声の例"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>声の例</button>
           <button class="tool off" id="voiceBtn" aria-label="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span id="voiceTxt">音声案内 オフ</span></button>
         </div>
@@ -398,9 +399,9 @@ function renderHero() {
   var base = S.feedSessionStart || S.lastFeed.t, mAll = Math.max(0, Math.floor((now - base) / 60000));
   $('since').classList.toggle('long', mAll >= 60);
   $('since').innerHTML = mAll >= 60 ? Math.floor(mAll / 60) + '<small>時間</small>' + pad(mAll % 60) + '<small>分</small>' : mAll + '<small>分</small>';
-  var next = base + S.notifyMin * 60000, rem = next - now;
+  var next = nextFeedMs(), rem = next - now;
   $('nextT').textContent = hm(next);
-  $('nextSub').textContent = rem > 0 ? 'あと ' + durJa(rem) : durJa(-rem) + ' 過ぎています';
+  $('nextSub').textContent = (rem > 0 ? 'あと ' + durJa(rem) : durJa(-rem) + ' 過ぎています') + (S.nextOnce ? '（手動）' : '');
   if (rem <= -15 * 60000) hero.classList.add('alert'); else if (rem <= 10 * 60000) hero.classList.add('warn');
   var lf = S.lastFeed;
   var what = lf.type === 'milk' ? 'ミルク ' + lf.amt + 'ml' : lf.type === 'pump' ? '搾乳 ' + lf.amt + 'ml' : '母乳' + (S.lastSides.length ? ' ' + S.lastSides.join('→') : '');
@@ -410,7 +411,7 @@ function renderHero() {
 /* ───────── 今日の流れ ───────── */
 function xPct(t) { return Math.max(0, Math.min(100, (t - S.dayStart) / 86400000 * 100)); }
 function placeNow() { if (S) { $('nowline').style.left = xPct(Date.now()) + '%'; updateHands(); } }
-function nextFeedMs() { if (!S || !S.lastFeed) return null; return (S.feedSessionStart || S.lastFeed.t) + S.notifyMin * 60000; }
+function nextFeedMs() { if (!S || !S.lastFeed) return null; if (S.nextOnce && S.nextFeedAt) return S.nextFeedAt; return (S.feedSessionStart || S.lastFeed.t) + S.notifyMin * 60000; }
 function renderWindow() {
   var nw = document.getElementById('nextwin'), n = nextFeedMs();
   if (!nw) { nw = document.createElement('div'); nw.id = 'nextwin'; nw.className = 'nextwin'; document.querySelector('.nowwrap').insertBefore(nw, $('nowline')); }
@@ -473,24 +474,66 @@ function dialSvg(half) {
     var major = i % 3 === 0, tp = pt(87, i * 30 - 90);
     o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 13 : 10) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
   }
-  o += '<text x="100" y="131" text-anchor="middle" style="fill:var(--sub)" font-size="13" font-weight="600">' + (half ? '午後' : '午前') + '</text>';
+  o += '<text x="100" y="131" text-anchor="middle" style="fill:var(--sub)" font-size="' + (half < 0 ? 10.5 : 13) + '" font-weight="600">' + (half < 0 ? '昨日の午後' : half ? '午後' : '午前') + '</text>';
   S.timeline.forEach(function (e) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
     if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both') return;
-    var c = pt(70, (hrs % 12) * 30 - 90);
+    var c = pt(70, (hrs - half * 12) * 30 - 90);
     o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.5" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--sheet)" stroke-width="2"/>';
     if (e.type === 'both') o += '<path d="M' + (c[0] - 6.5).toFixed(1) + ' ' + c[1].toFixed(1) + ' a6.5 6.5 0 0 1 13 0z" style="fill:var(--pee)"/>';
   });
-  o += '<line id="hand' + half + '" x1="100" y1="100" x2="100" y2="14" stroke="var(--alert)" stroke-width="2.2" stroke-linecap="round" style="display:none"/>';
+  o += '<line data-hand="' + half + '" x1="100" y1="100" x2="100" y2="14" stroke="var(--alert)" stroke-width="2.2" stroke-linecap="round" style="display:none"/>';
   o += '<circle cx="100" cy="100" r="3.2" style="fill:var(--alert)"/></svg>';
   return o;
 }
-function renderDials() { if (!S) return; $('dials').innerHTML = dialSvg(0) + dialSvg(1); updateHands(); }
+function dialSvgClassic(half) {
+  var pt = function (r, deg) { var a = deg * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
+  var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
+  o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
+  o += '<circle cx="100" cy="100" r="70" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
+  o += '<circle cx="100" cy="100" r="50" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
+  var nf = nextFeedMs();
+  if (nf !== null) {
+    var w0 = (nf - S.dayStart) / 3600000, w1 = w0 + 0.5, h0 = half * 12, s0 = Math.max(w0, h0), s1 = Math.min(w1, h0 + 12);
+    if (s1 > s0) {
+      var d0 = (s0 - h0) * 30 - 90, d1 = (s1 - h0) * 30 - 90, p1 = pt(96, d0), p2 = pt(96, d1), p3 = pt(38, d1), p4 = pt(38, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+      o += '<path d="M' + f(p1) + ' A96 96 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A38 38 0 0 0 ' + f(p4) + ' Z" style="fill:var(--win)"/>';
+    }
+  }
+  for (var i = 0; i < 12; i++) {
+    var major = i % 3 === 0, tp = pt(87, i * 30 - 90);
+    o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 14 : 10.5) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
+  }
+  o += '<text x="100" y="131" text-anchor="middle" style="fill:var(--sub)" font-size="13" font-weight="600">' + (half < 0 ? '昨日の午後' : half ? '午後' : '午前') + '</text>';
+  S.timeline.forEach(function (e) {
+    var hrs = (e.t - S.dayStart) / 3600000;
+    if (Math.floor(hrs / 12) !== half) return;
+    var ring = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 70 : (e.type === 'pee' || e.type === 'poop' || e.type === 'both') ? 50 : 0;
+    if (!ring) return;
+    var d0 = (hrs - half * 12) * 30 - 90;
+    if (e.type === 'breast' && e.end) {
+      var d1 = Math.min(d0 + Math.max(5, (e.end - e.t) / 3600000 * 30), half ? 270 : 270);
+      var a = pt(ring, d0), b = pt(ring, d1);
+      o += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' A' + ring + ' ' + ring + ' 0 ' + ((d1 - d0) > 180 ? 1 : 0) + ' 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" stroke="var(--breast)" stroke-width="12" stroke-linecap="round"/>';
+    } else {
+      var c = pt(ring, d0);
+      o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6.5" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type].indexOf('gradient') < 0 ? COLORS[e.type] : 'var(--poop)') + ';stroke:var(--card)" stroke-width="2"/>';
+      if (e.type === 'both') o += '<path d="M' + (c[0] - 6.5).toFixed(1) + ' ' + c[1].toFixed(1) + ' a6.5 6.5 0 0 1 13 0z" style="fill:var(--pee)"/>';
+    }
+  });
+  o += '<line data-hand="' + half + '" x1="100" y1="100" x2="100" y2="14" stroke="var(--alert)" stroke-width="2.2" stroke-linecap="round" style="display:none"/>';
+  o += '<circle cx="100" cy="100" r="3.2" style="fill:var(--alert)"/></svg>';
+  return o;
+}
+// 右＝いまの12時間、左＝そのひとつ前の12時間（午前中は「昨日の午後」）
+function dialHalves() { var h = (Date.now() - S.dayStart) / 3600000; return h >= 12 ? [0, 1] : [-1, 0]; }
+function renderDials() { if (!S) return; var f = ls('pon.dial') === 'classic' ? dialSvgClassic : dialSvg, hv = dialHalves(); $('dials').innerHTML = f(hv[0]) + f(hv[1]); updateHands(); }
 function updateHands() {
   if (!S) return;
-  var h = (Date.now() - S.dayStart) / 3600000, half = h >= 12 ? 1 : 0;
-  for (var k = 0; k < 2; k++) { var el = document.getElementById('hand' + k); if (!el) continue; el.style.display = k === half ? '' : 'none'; el.setAttribute('transform', 'rotate(' + ((h % 12) * 30) + ' 100 100)'); }
+  var h = (Date.now() - S.dayStart) / 3600000, half = h >= 12 ? 1 : 0, svgs = $('dials').querySelectorAll('svg');
+  if (svgs.length && Number(svgs[svgs.length - 1].dataset.half) !== half) { renderDials(); return; }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-hand]'), function (el) { var k = Number(el.dataset.hand); el.style.display = k === half ? '' : 'none'; el.setAttribute('transform', 'rotate(' + ((h - half * 12) * 30) + ' 100 100)'); });
 }
 function setView(v) {
   ls('pon.view', v); $('tlcard').classList.toggle('vclock', v === 'clock');
@@ -515,8 +558,9 @@ $('dials').addEventListener('click', function (ev) {
     if (feedMin) { dh = Math.max(dh, 0.25); return ch >= eh && ch <= eh + dh; }
     return Math.min(d, 12 - d) <= tolH || (ch >= eh - tolH && ch <= eh + dh + tolH);  // 12時をまたぐ近さも拾う
   }); };
-  var hits = r >= 56 ? find(DIA, false) : [];
-  if (!hits.length) hits = find(FEED, true);
+  var CL = ls('pon.dial') === 'classic';
+  var hits = CL ? (r >= 60 ? find(FEED, false) : find(DIA, false)) : (r >= 56 ? find(DIA, false) : []);
+  if (!hits.length && !CL) hits = find(FEED, true);
   if (!hits.length) return;
   if (hits.length === 1) openEdit(hits[0].id); else openPick(hits);
 });
@@ -635,24 +679,38 @@ function fmtG(kind, v) { var g = GROW[kind]; return (g.dec ? Number(v).toFixed(g
 function md(t) { var d = new Date(t); return (d.getMonth() + 1) + '/' + d.getDate(); }
 function growthChart(data, kind) {
   if (data.length < 2) return '<div class="note2" style="margin:10px 0">2回以上はかると、ここにグラフが出ます</div>';
-  var W = 320, H = 112, L = 10, R = 10, T = 18, B = 22;
-  var vs = data.map(function (e) { return Number(e.amt); }), mn = Math.min.apply(null, vs), mx = Math.max.apply(null, vs);
-  if (mx === mn) { mx += 1; mn -= 1; }
-  var t0 = data[0].t, t1 = data[data.length - 1].t, span = Math.max(1, t1 - t0);
+  var W = 340, H = 176, L = 46, R = 18, T = 24, B = 32, g = GROW[kind];
+  var vs = data.map(function (e) { return Number(e.amt); }), mn = Math.min.apply(null, vs), mx = Math.max.apply(null, vs), sp = (mx - mn) || 1;
+  mn -= sp * 0.15; mx += sp * 0.15;
+  var t0 = data[0].t, t1 = data[data.length - 1].t, span = Math.max(1, t1 - t0), n = data.length, step = Math.ceil(n / 6);
   var X = function (t) { return L + (t - t0) / span * (W - L - R); };
   var Y = function (v) { return T + (mx - v) / (mx - mn) * (H - T - B); };
-  var pts = data.map(function (e) { return X(e.t).toFixed(1) + ',' + Y(Number(e.amt)).toFixed(1); }).join(' ');
-  var dots = data.map(function (e) { return '<circle cx="' + X(e.t).toFixed(1) + '" cy="' + Y(Number(e.amt)).toFixed(1) + '" r="3.2" fill="var(--feed)"/>'; }).join('');
-  var last = data[data.length - 1];
-  return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block;margin:8px 0 2px"><polyline points="' + pts + '" fill="none" stroke="var(--feed)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>' + dots +
-    '<text x="' + L + '" y="' + (H - 6) + '" font-size="11" fill="var(--sub)">' + md(t0) + '</text><text x="' + (W - R) + '" y="' + (H - 6) + '" font-size="11" fill="var(--sub)" text-anchor="end">' + md(t1) + '</text>' +
-    '<text x="' + Math.min(W - R, Math.max(L + 30, X(last.t))).toFixed(1) + '" y="' + (Y(Number(last.amt)) - 8).toFixed(1) + '" font-size="12" font-weight="700" fill="var(--ink)" text-anchor="end">' + fmtG(kind, last.amt) + '</text></svg>';
+  var num = function (v) { return g.dec ? Number(v).toFixed(g.dec) : String(Math.round(v)).replace(/\B(?=(\d{3})+$)/g, ','); };
+  var o = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block;margin:8px 0 2px">';
+  for (var k = 0; k < 3; k++) {
+    var gv = mn + (mx - mn) * (0.1 + 0.4 * k), gy = Y(gv);
+    o += '<line x1="' + L + '" y1="' + gy.toFixed(1) + '" x2="' + (W - R) + '" y2="' + gy.toFixed(1) + '" style="stroke:var(--line)" stroke-width="1"/><text x="' + (L - 6) + '" y="' + (gy + 3.5).toFixed(1) + '" font-size="10" text-anchor="end" style="fill:var(--sub)">' + num(g.dec ? gv : Math.round(gv / 10) * 10) + '</text>';
+  }
+  o += '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" style="stroke:var(--grid3)" stroke-width="1"/>';
+  o += '<polyline points="' + data.map(function (e) { return X(e.t).toFixed(1) + ',' + Y(Number(e.amt)).toFixed(1); }).join(' ') + '" fill="none" style="stroke:var(--breast)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
+  var lastLabelX = -99;
+  data.forEach(function (e, i) {
+    var x = X(e.t), y = Y(Number(e.amt)), isLast = i === n - 1, show = isLast || ((n - 1 - i) % step === 0 && X(t1) - x > 34);
+    o += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (show ? 3.6 : 2.4) + '" style="fill:var(--breast);stroke:var(--sheet)" stroke-width="1.5"/>';
+    if (!show || x - lastLabelX < 34 && !isLast) return;
+    lastLabelX = x;
+    var anchor = x > W - R - 20 ? 'end' : x < L + 16 ? 'start' : 'middle';
+    o += '<line x1="' + x.toFixed(1) + '" y1="' + (H - B) + '" x2="' + x.toFixed(1) + '" y2="' + (H - B + 4) + '" style="stroke:var(--grid3)" stroke-width="1"/>';
+    o += '<text x="' + x.toFixed(1) + '" y="' + (H - B + 16) + '" font-size="10.5" text-anchor="' + anchor + '" style="fill:var(--sub)">' + md(e.t) + '</text>';
+    o += '<text x="' + x.toFixed(1) + '" y="' + (y - 8).toFixed(1) + '" font-size="' + (isLast ? 12 : 10.5) + '" font-weight="' + (isLast ? 700 : 500) + '" text-anchor="' + anchor + '" style="fill:' + (isLast ? 'var(--ink)' : 'var(--sub)') + '">' + num(e.amt) + '</text>';
+  });
+  return o + '</svg>';
 }
 function openGrowth(kind) {
   var g = GROW[kind], data = ((kind === 'weight' ? S && S.growth : S && S.growthH) || []).slice().sort(function (a, b) { return a.t - b.t; });
   var last = data.length ? data[data.length - 1] : null, prev = data.length > 1 ? data[data.length - 2] : null;
   var val = last ? Number(last.amt) : g.def;
-  var sum = last ? '<div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 0"><span style="font-size:30px;font-weight:700;font-variant-numeric:tabular-nums">' + fmtG(kind, last.amt) + '</span><span class="sub" style="color:var(--sub);font-size:13.5px;font-weight:600">' + md(last.t) + (prev ? '　前回より ' + (last.amt - prev.amt >= 0 ? '+' : '−') + fmtG(kind, Math.abs(last.amt - prev.amt)) : '') + '</span></div>' : '<div class="note2" style="margin:8px 0">まだ記録がありません</div>';
+  var sum = last ? '<div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 0"><span style="font-size:30px;font-weight:700;font-variant-numeric:tabular-nums">' + fmtG(kind, last.amt) + '</span><span class="sub" style="color:var(--sub);font-size:13.5px;font-weight:600">' + md(last.t) + (prev ? '　前回より ' + (last.amt - prev.amt >= 0 ? '+' : '−') + fmtG(kind, Math.abs(last.amt - prev.amt)) : '') + '</span></div>' + (data.length > 2 ? '<div class="label" style="margin-top:2px">最初（' + md(data[0].t) + '）から ' + (last.amt - data[0].amt >= 0 ? '+' : '−') + fmtG(kind, Math.abs(last.amt - data[0].amt)) + '（' + Math.round((last.t - data[0].t) / 86400000) + '日）</div>' : '') : '<div class="note2" style="margin:8px 0">まだ記録がありません</div>';
   var hist = data.slice().reverse().slice(0, 6).map(function (e) { return '<button data-edit="' + e.id + '"><span>' + md(e.t) + '　' + hm(e.t) + '　' + fmtG(kind, e.amt) + '</span>' + CHEV + '</button>'; }).join('');
   openSheet('<div class="ph"><h3>成長の記録</h3><button class="x" data-close>閉じる</button></div>' +
     '<div class="segc"><button id="gk1" class="' + (kind === 'weight' ? 'on' : '') + '">体重</button><button id="gk2" class="' + (kind === 'height' ? 'on' : '') + '">身長</button></div>' +
@@ -691,7 +749,7 @@ function openVoiceHelp() {
 }
 
 /* 記録の編集 */
-function findEv(id) { var f = null; (S.recent.concat(S.timeline, S.growth || [], S.growthH || [])).forEach(function (e) { if (e.id === id && !f) f = e; }); return f; }
+function findEv(id) { var f = null; (S.recent.concat(S.timeline, S.growth || [], S.growthH || [], HIST)).forEach(function (e) { if (e.id === id && !f) f = e; }); return f; }
 function openPick(list) {
   openSheet('<div class="ph"><h3>どの記録？</h3><button class="x" data-close>閉じる</button></div><div class="pick">' + list.map(function (e) { return '<button data-edit="' + e.id + '"><span>' + hm(e.t) + '　' + evText(e) + '</span>' + CHEV + '</button>'; }).join('') + '</div>');
 }
@@ -796,8 +854,8 @@ function deleteEdit() {
 /* ───────── 声の案内（次回の5分前） ───────── */
 var VOICE = { pref: ls('pon.voice') === '1', unlocked: false };
 function jaVoice() { try { var vs = speechSynthesis.getVoices(); for (var i = 0; i < vs.length; i++) if (/^ja/i.test(vs[i].lang)) return vs[i]; } catch (e) {} return null; }
-function speak(text) {
-  try { var u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; var v = jaVoice(); if (v) u.voice = v; u.rate = 1; u.volume = 1; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {}
+function speak(text, vol) {
+  try { var u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; var v = jaVoice(); if (v) u.voice = v; u.rate = 1; u.volume = vol == null ? 1 : Math.max(0.05, Math.min(1, vol)); speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {}
 }
 function unlockVoice() { if (VOICE.unlocked) return; try { var u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); VOICE.unlocked = true; } catch (e) {} updateVoiceBtn(); }
 function updateVoiceBtn() {
@@ -809,18 +867,114 @@ function updateVoiceBtn() {
 }
 function checkAnnounce() {
   if (!VOICE.pref || !VOICE.unlocked || !S || !S.nextFeedAt) return;
-  var rem = S.nextFeedAt - Date.now();
-  if (rem > 5 * 60000 || rem < -10 * 60000) return;
-  if (ls('pon.announced') === String(S.nextFeedAt)) return;
-  ls('pon.announced', String(S.nextFeedAt));
-  beep(); setTimeout(function () { speak(S.announceText || 'もうすぐミルクの時間です'); }, 500);
+  var d = Date.now() - (S.nextFeedAt + SND.off * 60000);
+  if (d < 0 || d > 10 * 60000) return;
+  var key = S.nextFeedAt + '|' + SND.off;
+  if (ls('pon.announced') === key) return;
+  ls('pon.announced', key);
+  playAlert();
 }
-document.addEventListener('pointerdown', function () { if (VOICE.pref && !VOICE.unlocked) unlockVoice(); }, true);
+/* ───────── お知らせの音・設定 ───────── */
+var SND = { kind: ls('pon.snd.kind') || 'voice', vol: Number(ls('pon.snd.vol') || 80), off: Number(ls('pon.snd.off') || -5) };
+var AC = null;
+function audioCtx() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} return AC; }
+function playTone(kind, vol) {
+  var ac = audioCtx(); if (!ac) return;
+  var peak = Math.max(0.02, Math.min(1, vol / 100)) * 0.6, now = ac.currentTime + 0.03;
+  var note = function (freq, at, len, type) {
+    var o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq; o.connect(g); g.connect(ac.destination);
+    g.gain.setValueAtTime(0.0001, now + at); g.gain.exponentialRampToValueAtTime(peak, now + at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + at + len);
+    o.start(now + at); o.stop(now + at + len + 0.05);
+  };
+  if (kind === 'bell') { [0, 0.9].forEach(function (t) { note(1046.5, t, 1.4); note(2093, t, 0.9); note(3139, t, 0.5); }); }
+  else if (kind === 'pip') { [0, 0.16, 0.32, 0.9, 1.06, 1.22].forEach(function (t) { note(1760, t, 0.1, 'square'); }); }
+  else { [[659.3, 0], [830.6, 0.28], [987.8, 0.56], [1318.5, 0.84]].forEach(function (n) { note(n[0], n[1], 1.2); }); }
+}
+function playAlert() {
+  if (SND.kind === 'voice') {
+    var txt = (S && S.announceText) || 'もうすぐミルクの時間です';
+    if (SND.off >= 0) txt = txt.replace(/^もうすぐ/, '');
+    beep(); setTimeout(function () { speak(txt, SND.vol / 100); }, 500);
+  } else playTone(SND.kind, SND.vol);
+}
+function offTxt(m) { return m < 0 ? (-m) + '分前' : m > 0 ? m + '分後' : 'ちょうど'; }
+function openSettings() {
+  var kinds = [['voice', '声'], ['chime', 'チャイム'], ['bell', 'ベル'], ['pip', 'ピピッ']], dial = ls('pon.dial') === 'classic' ? 'classic' : 'now';
+  openSheet('<div class="ph"><h3>設定</h3><button class="x" data-close>閉じる</button></div>' +
+    '<div class="rowl"><span class="k">授乳間隔</span><button class="v" id="sIv">' + (S ? ivTxt(S.notifyMin) : '') + '　›</button></div>' +
+    '<div class="label" style="margin-top:12px">授乳時間のお知らせ（上の「音声案内」がオンのときに鳴ります）</div>' +
+    '<div class="segc" id="sKind">' + kinds.map(function (k) { return '<button data-k="' + k[0] + '" class="' + (SND.kind === k[0] ? 'on' : '') + '">' + k[1] + '</button>'; }).join('') + '</div>' +
+    '<div class="rowl"><span class="k">音量</span><input type="range" id="sVol" min="10" max="100" step="10" value="' + SND.vol + '" style="flex:1;margin-left:16px"></div>' +
+    '<div class="label" style="margin-top:8px">いつ鳴らすか（次回授乳の時刻を基準に）</div>' +
+    '<div class="stepper"><button id="sOffM">−</button><div class="val" style="font-size:26px"><span id="sOff">' + offTxt(SND.off) + '</span></div><button id="sOffP">＋</button></div>' +
+    '<div class="acts" style="margin-top:4px"><button class="btn" id="sTest">音を試す</button></div>' +
+    '<div class="label" style="margin-top:14px">時計のデザイン</div>' +
+    '<div class="segc" id="sDial"><button data-d="now" class="' + (dial === 'now' ? 'on' : '') + '">いまの（扇）</button><button data-d="classic" class="' + (dial === 'classic' ? 'on' : '') + '">最初の（丸）</button></div>' +
+    '<div class="note2">音とデザインは、この端末だけの設定です。授乳間隔は家族で共通です。</div>' +
+    '<div class="acts"><button class="btn pri" data-close>閉じる</button></div>');
+  $('sIv').onclick = openInterval;
+  $('sKind').onclick = function (ev) { var x = ev.target.closest('[data-k]'); if (!x) return; SND.kind = x.dataset.k; ls('pon.snd.kind', SND.kind); Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); };
+  $('sVol').oninput = function () { SND.vol = Number(this.value); ls('pon.snd.vol', String(SND.vol)); };
+  var setOff = function (d) { SND.off = Math.max(-30, Math.min(30, SND.off + d)); ls('pon.snd.off', String(SND.off)); $('sOff').textContent = offTxt(SND.off); };
+  $('sOffM').onclick = function () { setOff(-5); };
+  $('sOffP').onclick = function () { setOff(5); };
+  $('sTest').onclick = function () { unlockVoice(); audioCtx(); playAlert(); };
+  $('sDial').onclick = function (ev) { var x = ev.target.closest('[data-d]'); if (!x) return; ls('pon.dial', x.dataset.d); Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); if ($('tlcard').classList.contains('vclock')) renderDials(); };
+}
+/* 次回授乳を、この1回だけ手で決める */
+function openNextOnce() {
+  if (!S || !S.lastFeed) { toast('授乳の記録がまだありません'); return; }
+  var cur = nextFeedMs(), dt = new Date(cur), hh = dt.getHours(), mm = Math.round(dt.getMinutes() / 5) * 5; if (mm === 60) { mm = 0; hh = (hh + 1) % 24; }
+  openSheet('<div class="ph"><h3>次回授乳の時刻</h3><button class="x" data-close>閉じる</button></div><div class="label">この1回だけ変えます。次の授乳を記録したら、いつもの間隔（' + ivTxt(S.notifyMin) + '）に戻ります</div><div class="wheels" style="margin-top:6px"><div class="band"></div><div class="wheel" id="nH"></div><span class="colon">:</span><div class="wheel" id="nM"></div></div><div class="acts">' + (S.nextOnce ? '<button class="btn dng" id="nReset">間隔どおりに戻す</button>' : '') + '<button class="btn" data-close>キャンセル</button><button class="btn pri" id="nSave">決定</button></div>');
+  makeWheel($('nH'), range(0, 23, 1, function (v) { return v; }), hh, function (v) { hh = v; });
+  makeWheel($('nM'), range(0, 55, 5, function (v) { return pad(v); }), mm / 5, function (v) { mm = v; });
+  var send = function (time, msg) {
+    closeSheet(); toast('保存しています…');
+    call({ a: 'set', k: 'nextonce', time: time, withState: 1 }, function (r) { toast(r && r.ok ? msg : '保存できませんでした'); if (r && r.state) { S = r.state; render(); } else refresh(); });
+  };
+  $('nSave').onclick = function () {
+    var base = S.feedSessionStart || S.lastFeed.t, x = new Date(base); x.setHours(hh, mm, 0, 0);
+    var t = x.getTime(); if (t <= base) t += 86400000;
+    send(iso(t), '次回授乳を ' + hh + ':' + pad(mm) + ' にしました');
+  };
+  if (S.nextOnce) $('nReset').onclick = function () { send('', '間隔どおりに戻しました'); };
+}
+/* 過去の記録（1日ずつ） */
+var HIST = [], histTok = 0;
+function ymd(ms) { return new Date(ms + 9 * 3600000).toISOString().slice(0, 10); }
+function openHistory(dayMs) {
+  if (!S) return;
+  dayMs = dayMs || S.dayStart - 86400000;
+  var d = new Date(dayMs), lbl = (d.getMonth() + 1) + '月' + d.getDate() + '日（' + '日月火水木金土'.charAt(d.getDay()) + '）', tok = ++histTok;
+  openSheet('<div class="ph"><h3>過去の記録</h3><button class="x" data-close>閉じる</button></div><div class="daystep"><button id="hPrev">‹</button><span>' + lbl + '</span><button id="hNext"' + (dayMs >= S.dayStart ? ' disabled style="opacity:.3"' : '') + '>›</button></div><div id="hBody"><div class="note2" style="margin:14px 0">読み込み中…</div></div>', true);
+  $('hPrev').onclick = function () { openHistory(dayMs - 86400000); };
+  $('hNext').onclick = function () { if (dayMs < S.dayStart) openHistory(dayMs + 86400000); };
+  call({ a: 'history', date: ymd(dayMs) }, function (r) {
+    if (tok !== histTok || !$('hBody')) return;
+    if (!r || !r.ok) { $('hBody').innerHTML = '<div class="note2" style="margin:14px 0">読み込めませんでした</div>'; return; }
+    HIST = r.events;
+    var c = { feed: 0, ml: 0, pee: 0, poop: 0 }, prevEnd = -Infinity;
+    HIST.forEach(function (e) {
+      if (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') { if (e.t - prevEnd > 30 * 60000) c.feed++; prevEnd = Math.max(prevEnd, e.end || e.t); }
+      if (e.type === 'milk' || e.type === 'pump') c.ml += Number(e.amt) || 0;
+      if (e.type === 'pee' || e.type === 'both') c.pee++;
+      if (e.type === 'poop' || e.type === 'both') c.poop++;
+    });
+    if (!HIST.length) { $('hBody').innerHTML = '<div class="note2" style="margin:14px 0">この日の記録はありません</div>'; return; }
+    $('hBody').innerHTML = '<div class="label" style="margin:8px 0 2px">授乳 ' + c.feed + '回　ミルク・搾乳 ' + c.ml + 'ml　おしっこ ' + c.pee + '回　うんち ' + c.poop + '回</div><div class="pick">' +
+      HIST.map(function (e) { return '<button data-edit="' + e.id + '"><span><i class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:9px;background:' + (COLORS[e.type] || 'var(--grid3)') + '"></i>' + hm(e.t) + '　' + evText(e) + (e.note ? '　' + e.note : '') + '</span>' + CHEV + '</button>'; }).join('') + '</div>';
+  });
+}
+document.addEventListener('pointerdown', function () { if (VOICE.pref) { audioCtx(); if (!VOICE.unlocked) unlockVoice(); } }, true);
 
 /* ───────── イベント ───────── */
 for (var ml = 20; ml <= 200; ml += 20) {}
 document.addEventListener('click', function (ev) {
-  var b = ev.target.closest('button, #clock'); if (!b) return;
+  var b = ev.target.closest('button, #clock, #nextT'); if (!b) return;
+  if (b.id === 'nextT') { openNextOnce(); return; }
+  if (b.id === 'setBtn') { openSettings(); return; }
+  if (b.id === 'histBtn') { openHistory(); return; }
   if (b.id === 'clock') { nightOverride = !isNight(); tick(); return; }
   if (b.dataset.view) { setView(b.dataset.view); return; }
   if (b.id === 'ivBtn') { openInterval(); return; }
