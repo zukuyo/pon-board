@@ -17,7 +17,7 @@
     --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff; --win: rgba(90,200,250,.30);
     --btn: #ffffff; --btnInk: #15171c; --sheet: #ffffff; --chip: rgba(20,24,40,.06);
     --shadow: 0 1px 1px rgba(20,24,40,.04), 0 10px 28px rgba(20,24,40,.07);
-    --clk: clamp(52px, 13.5vh, 118px);
+    --clk: clamp(60px, 18vh, 160px);
   }
   body.night {
     --bg: linear-gradient(160deg, #0d0706 0%, #120907 100%); --card: rgba(30,16,13,.92); --ink: #ffb9a5; --sub: #a96b5e; --line: rgba(255,150,120,.12);
@@ -235,7 +235,7 @@
     .plot { min-height: 150px; }
   }
   @media (max-width: 700px) {
-    :root { --clk: 54px; }
+    :root { --clk: 64px; }
     .top { margin-bottom: 6px; gap: 8px; align-items: flex-start; }
     .top-r { padding-bottom: 0; align-items: flex-end; min-width: 0; }
     .tools { flex-wrap: wrap; justify-content: flex-end; }
@@ -329,7 +329,7 @@
       </div>
     </div>
     <div class="card recentcard">
-      <div class="rhead"><div class="label">さいきんの記録　<span style="font-weight:500">タップで直せます</span></div><button id="histBtn">過去</button></div>
+      <div class="rhead"><div class="label">さいきんの記録　<span style="font-weight:500">タップで直せます</span></div><span style="display:flex;gap:6px"><button id="addBtn">＋ 追加</button><button id="histBtn">過去</button></span></div>
       <ul class="list" id="recent"></ul>
       <div class="err" id="err"></div>
     </div>
@@ -976,6 +976,53 @@ function openNextOnce() {
   };
   if (S.nextOnce) $('nReset').onclick = function () { send('', '間隔どおりに戻しました'); };
 }
+/* 最近の記録に「追加」：あとから何でも、好きな時刻で入れる */
+var ADD_TYPES = [['breast', '母乳'], ['milk', 'ミルク'], ['pump', '搾乳'], ['pee', 'おしっこ'], ['poop', 'うんち'], ['both', '両方'], ['spit', '吐き戻し'], ['weight', '体重'], ['height', '身長'], ['temp', '体温'], ['memo', 'メモ']];
+function openAddAny(type, at) {
+  type = type || 'breast'; at = at || Date.now();
+  var amt = type === 'milk' || type === 'pump' ? 60 : type === 'temp' ? 36.8 : GROW[type] ? (function () { var d = (type === 'weight' ? S.growth : S.growthH) || []; return d.length ? Number(d[d.length - 1].amt) : GROW[type].def; })() : '';
+  var day = startOfDay(at) === startOfDay(Date.now()) ? '' : '（' + (new Date(at).getMonth() + 1) + '/' + new Date(at).getDate() + '）';
+  var h = '<div class="ph"><h3>記録を追加</h3><button class="x" data-close>閉じる</button></div><div class="label">種類</div><div class="quick" id="adType">' +
+    ADD_TYPES.map(function (t) { return '<button data-at="' + t[0] + '" style="min-width:22%;min-height:44px;' + (t[0] === type ? 'background:var(--ink);color:var(--card)' : '') + '"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:' + (COLORS[t[0]] || 'var(--grid3)') + '"></span>' + t[1] + '</button>'; }).join('') + '</div>';
+  if (type === 'milk' || type === 'pump' || type === 'temp' || GROW[type]) {
+    var unit = type === 'temp' ? '℃' : GROW[type] ? GROW[type].unit : 'ml', step = type === 'temp' || type === 'height' ? 0.1 : 10;
+    h += '<div class="label" style="margin-top:6px">' + (type === 'milk' || type === 'pump' ? '量' : TYPE_LABEL[type]) + '</div><div class="stepper"><button id="adM" data-s="' + step + '">−</button><div class="val"><input id="adAmt" type="number" inputmode="decimal" step="' + step + '" value="' + amt + '" style="width:130px;font:inherit;text-align:center;border:0;background:transparent;color:inherit;-webkit-user-select:text;user-select:text"><small>' + unit + '</small></div><button id="adP">＋</button></div>';
+  }
+  if (type === 'memo') h += '<textarea class="noteIn" id="adNote" rows="3" placeholder="メモ"></textarea>';
+  if (type === 'breast') h += '<div class="note2">追加したあと、左右の分数を入れる窓が開きます</div>';
+  h += '<div class="rowl"><span class="k">' + (type === 'breast' ? '開始時刻' : '時刻') + '</span><button class="v" id="adTime">' + hm(at) + day + '　›</button></div>';
+  h += '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="adSave">追加する</button></div>';
+  openSheet(h, true);
+  var keep = function () { var n = $('adNote'); return n ? n.value : ''; };
+  $('adType').onclick = function (ev) { var x = ev.target.closest('[data-at]'); if (x) openAddAny(x.dataset.at, at); };
+  if ($('adAmt')) {
+    var stp = function (d) { var v = Math.max(0, Math.round((Number($('adAmt').value || 0) + d) * 10) / 10); $('adAmt').value = step < 1 ? v.toFixed(1) : v; };
+    $('adM').onclick = function () { stp(-step); }; $('adP').onclick = function () { stp(step); };
+  }
+  $('adTime').onclick = function () {
+    var note = keep(), a0 = $('adAmt') ? $('adAmt').value : null, dt = new Date(at), hh = dt.getHours(), mm = dt.getMinutes(), base = startOfDay(at);
+    var dayLabel = function () { var x = new Date(base); return (base === startOfDay(Date.now()) ? '今日 ' : '') + (x.getMonth() + 1) + '月' + x.getDate() + '日'; };
+    openSheet('<div class="ph"><h3>時刻</h3><button class="x" data-close>閉じる</button></div><div class="daystep"><button id="tdP">‹</button><span id="tdL">' + dayLabel() + '</span><button id="tdN">›</button></div><div class="wheels"><div class="band"></div><div class="wheel" id="tdH"></div><span class="colon">:</span><div class="wheel" id="tdM"></div></div><div class="acts"><button class="btn" id="tdBack">戻る</button><button class="btn pri" id="tdOk">決定</button></div>');
+    makeWheel($('tdH'), range(0, 23, 1, function (v) { return v; }), hh, function (v) { hh = v; });
+    makeWheel($('tdM'), range(0, 59, 1, function (v) { return pad(v); }), mm, function (v) { mm = v; });
+    $('tdP').onclick = function () { base -= 86400000; $('tdL').textContent = dayLabel(); };
+    $('tdN').onclick = function () { if (base < startOfDay(Date.now())) { base += 86400000; $('tdL').textContent = dayLabel(); } };
+    var back = function (t) { openAddAny(type, t); if (note && $('adNote')) $('adNote').value = note; if (a0 != null && $('adAmt')) $('adAmt').value = a0; };
+    $('tdBack').onclick = function () { back(at); };
+    $('tdOk').onclick = function () { var x = new Date(base); x.setHours(hh, mm, 0, 0); if (x.getTime() > Date.now() + 60000) { toast('いまより先の時刻は選べません'); return; } back(x.getTime()); };
+  };
+  $('adSave').onclick = function () {
+    var p = { a: 'add', t: type, time: iso(at), withState: 1 };
+    if ($('adAmt')) { var v = Number($('adAmt').value); if (!(v > 0)) { toast('数字を入れてください'); return; } p.amt = v; }
+    if (type === 'memo') { var nt = $('adNote').value.trim(); if (!nt) { toast('メモを入れてください'); return; } p.note = nt; }
+    closeSheet(); toast('追加しています…');
+    call(p, function (r) {
+      if (r && r.state) { S = r.state; render(); } else refresh();
+      if (r && r.ok) { beep(); toast(hm(at) + ' の' + TYPE_LABEL[type] + 'を追加しました'); if (type === 'breast' && r.id) openEdit(r.id); }
+      else toast(r ? r.speech : '追加できませんでした');
+    });
+  };
+}
 /* 過去の記録（1日ずつ） */
 var HIST = [], histTok = 0;
 function ymd(ms) { return new Date(ms + 9 * 3600000).toISOString().slice(0, 10); }
@@ -1011,6 +1058,7 @@ document.addEventListener('click', function (ev) {
   if (b.id === 'nextT' || b.id === 'nextLbl') { openNextOnce(); return; }
   if (b.id === 'setBtn') { openSettings(); return; }
   if (b.id === 'histBtn') { openHistory(); return; }
+  if (b.id === 'addBtn') { openAddAny(); return; }
   if (b.id === 'clock') { nightOverride = !isNight(); tick(); return; }
   if (b.dataset.view) { setView(b.dataset.view); return; }
   if (b.id === 'ivBtn') { openInterval(); return; }
