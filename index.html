@@ -701,7 +701,8 @@ function range(a, b, step, fmt) { var o = []; for (var v = a; v <= b; v += step)
 /* 授乳間隔 */
 function openInterval() {
   var cur = S ? S.notifyMin : 180, val = cur;
-  openSheet('<div class="ph"><h3>授乳間隔</h3><button class="x" data-close>閉じる</button></div><div class="label">前の授乳の開始から、次の授乳までの間隔（10分きざみ）</div><div class="wheels" style="margin-top:6px"><div class="band"></div><div class="wheel" id="wIv" style="width:160px"></div></div><div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="ivSave">決定</button></div>');
+  openSheet('<div class="ph"><h3>授乳間隔</h3><button class="x" data-close>閉じる</button></div><div class="label">前の授乳の開始から、次の授乳までの間隔（10分きざみ）</div><div class="wheels" style="margin-top:6px"><div class="band"></div><div class="wheel" id="wIv" style="width:160px"></div></div>' + (S && S.lastFeed ? '<div class="rowl"><span class="k">次回授乳だけ時刻を変える</span><button class="v" id="ivOnce">' + hm(nextFeedMs()) + (S.nextOnce ? '（今回だけ）' : '') + '　›</button></div>' : '') + '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="ivSave">決定</button></div>');
+  if ($('ivOnce')) $('ivOnce').onclick = openNextOnce;
   var items = range(30, 360, 10, ivTxt);
   makeWheel($('wIv'), items, Math.max(0, items.findIndex(function (i) { return i.v === cur; })), function (v) { val = v; });
   $('ivSave').onclick = function () {
