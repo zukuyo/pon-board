@@ -46,7 +46,7 @@
   .top > * { pointer-events: auto; }
   .clock { font-size: var(--clk); font-weight: 600; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; line-height: 1; }
   .top-r { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-bottom: calc(var(--clk) * 0.46); }
-  .tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+  .tools { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 6px; }
   .tool { white-space: nowrap; flex: none; }
   .tool { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); font-size: 12.5px; font-weight: 600; color: var(--sub); box-shadow: var(--shadow); }
   .tool svg { width: 15px; height: 15px; }
@@ -63,17 +63,21 @@
 
   /* 前の授乳から／次回授乳 */
   .hero { position: relative; display: grid; grid-template-columns: 1.05fr 1fr; gap: 6px 18px; padding-top: calc(var(--clk) * 0.4 + 10px); padding-bottom: 12px; }
-  .blk .label { margin-bottom: 2px; }
-  .nextLbl { display: inline-flex; align-items: center; gap: 5px; margin: 0 0 4px -8px; padding: 4px 10px 4px 8px; border-radius: 10px; background: var(--chip); color: var(--sub); font-size: 13px; font-weight: 600; letter-spacing: .02em; transition: transform .12s, opacity .2s; }
+  .blk { min-width: 0; }
+  .blk .label { height: 28px; display: flex; align-items: center; margin-bottom: 6px; }
+  .nextLbl { display: inline-flex; align-items: center; gap: 5px; height: 28px; margin: 0 0 6px -10px; padding: 0 10px; border-radius: 14px; background: var(--chip); color: var(--sub); font-size: 13px; font-weight: 600; letter-spacing: .02em; transition: transform .12s, opacity .2s; }
   .nextLbl:active { transform: scale(.96); opacity: .8; }
   .nextLbl svg { width: 13px; height: 13px; flex: none; }
   .nextLbl.once { background: var(--accent); color: #fff; }
-  .since { font-size: clamp(46px, 14.5vh, 128px); font-weight: 700; letter-spacing: -0.045em; font-variant-numeric: tabular-nums; line-height: .98; }
+  .since { font-size: clamp(40px, 12vh, 108px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
   .since { white-space: nowrap; }
-  .since.long { font-size: clamp(38px, 11.5vh, 100px); }
+  .since.long { font-size: clamp(36px, 10.5vh, 92px); }
+  .since.long, .since { min-height: 1em; display: flex; align-items: baseline; }
+  .nextT { min-height: 1em; }
   .since small { font-size: .3em; font-weight: 600; letter-spacing: 0; margin: 0 5px 0 3px; color: var(--sub); }
   .nextT { cursor: pointer; font-size: clamp(40px, 12vh, 108px); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
-  .nextSub { font-size: 16px; font-weight: 600; color: var(--sub); margin-top: 4px; }
+  .nextSub, .sinceSub { font-size: 16px; font-weight: 600; color: var(--sub); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sinceSub b { color: var(--ink); font-weight: 600; }
   .hero.warn .nextT, .hero.warn .nextSub { color: var(--warn); }
   .hero.alert .nextT, .hero.alert .nextSub { color: var(--alert); }
   .meta { grid-column: 1 / -1; font-size: 14.5px; color: var(--sub); display: flex; gap: 14px; flex-wrap: wrap; }
@@ -238,7 +242,7 @@
     .since { font-size: 44px; }
     .since.long { font-size: 28px; }
     .nextT { font-size: 40px; }
-    .nextSub { font-size: 13px; }
+    .nextSub, .sinceSub { font-size: 13px; }
     .pill { top: 8px; right: 10px; height: 26px; font-size: 11.5px; padding: 0 11px; }
     .meta { text-align: left; font-size: 13px; }
     .tlhead { flex-wrap: wrap; gap: 6px; }
@@ -269,7 +273,6 @@
         <div class="tools">
           <button class="tool" id="growthBtn" aria-label="体重・身長"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8.5 9.5a4.5 4.5 0 0 1 7 0"/><path d="M12 14l1.8-3.2"/></svg>成長</button>
           <button class="tool" id="setBtn" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="18" cy="18" r="2.2"/></svg>設定</button>
-          <button class="tool" id="helpBtn" aria-label="声の例"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>声の例</button>
           <button class="tool off" id="voiceBtn" aria-label="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span id="voiceTxt">音声案内 オフ</span></button>
         </div>
         <div class="date"><div class="dd" id="date"></div><div class="da"><span id="age"></span><span class="wx" id="wx"></span></div></div>
@@ -278,9 +281,8 @@
 
     <div class="card hero" id="hero">
       <button class="pill" id="ivBtn">授乳間隔<b id="ivVal">3:00</b></button>
-      <div class="blk"><div class="label">前の授乳から</div><div class="since" id="since">--</div></div>
+      <div class="blk"><div class="label">前の授乳から</div><div class="since" id="since">--</div><div class="sinceSub" id="meta"></div></div>
       <div class="blk"><button class="nextLbl" id="nextLbl" aria-label="次回授乳の時刻を変える"><span id="nextLblTxt">次回授乳</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button><div class="nextT" id="nextT">--:--</div><div class="nextSub" id="nextSub"></div></div>
-      <div class="meta" id="meta"></div>
     </div>
 
     <div class="card tl" id="tlcard">
@@ -410,7 +412,7 @@ function renderHero() {
   if (rem <= -15 * 60000) hero.classList.add('alert'); else if (rem <= 10 * 60000) hero.classList.add('warn');
   var lf = S.lastFeed;
   var what = lf.type === 'milk' ? 'ミルク ' + lf.amt + 'ml' : lf.type === 'pump' ? '搾乳 ' + lf.amt + 'ml' : '母乳' + (S.lastSides.length ? ' ' + S.lastSides.join('→') : '');
-  $('meta').innerHTML = '<span><b>' + hm(base) + '</b> ' + what + '</span>' + (S.lastSides.length ? '<span>前回の最後 <b>' + S.lastSides[S.lastSides.length - 1] + '</b></span>' : '');
+  $('meta').innerHTML = '<b>' + hm(base) + '</b> ' + what + (S.lastSides.length ? '　最後 <b>' + S.lastSides[S.lastSides.length - 1] + '</b>' : '');
 }
 
 /* ───────── 今日の流れ ───────── */
@@ -916,9 +918,11 @@ function openSettings() {
     '<div class="acts" style="margin-top:4px"><button class="btn" id="sTest">音を試す</button></div>' +
     '<div class="label" style="margin-top:14px">時計のデザイン</div>' +
     '<div class="segc" id="sDial"><button data-d="now" class="' + (dial === 'now' ? 'on' : '') + '">いまの（扇）</button><button data-d="classic" class="' + (dial === 'classic' ? 'on' : '') + '">最初の（丸）</button></div>' +
+    '<div class="rowl" style="margin-top:12px"><span class="k">Siriに言う言葉</span><button class="v" id="sVoice">声の例　›</button></div>' +
     '<div class="note2">音とデザインは、この端末だけの設定です。授乳間隔は家族で共通です。</div>' +
     '<div class="acts"><button class="btn pri" data-close>閉じる</button></div>');
   $('sIv').onclick = openInterval;
+  $('sVoice').onclick = openVoiceHelp;
   $('sKind').onclick = function (ev) { var x = ev.target.closest('[data-k]'); if (!x) return; SND.kind = x.dataset.k; ls('pon.snd.kind', SND.kind); Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); };
   $('sVol').oninput = function () { SND.vol = Number(this.value); ls('pon.snd.vol', String(SND.vol)); };
   var setOff = function (d) { SND.off = Math.max(-30, Math.min(30, SND.off + d)); ls('pon.snd.off', String(SND.off)); $('sOff').textContent = offTxt(SND.off); };
