@@ -812,7 +812,7 @@ function openEdit(id, focus) {
 }
 function SIDE_REV(s) { return s === '左' ? 'L' : s === '右' ? 'R' : ''; }
 function drawContent() {
-  var d = ED, types = [['breast', '母乳'], ['milk', 'ミルク'], ['pump', '搾乳'], ['pee', 'おしっこ'], ['poop', 'うんち'], ['both', '両方']];
+  var d = ED, types = [['breast', '母乳'], ['milk', 'ミルク'], ['pump', '搾乳'], ['pee', 'おしっこ'], ['poop', 'うんち'], ['both', '両方'], ['spit', '吐き戻し']];
   var h = '<div class="ph"><h3>記録を直す</h3><button class="x" data-close>閉じる</button></div>';
   if (d.type === 'memo') {
     h += '<input class="noteIn" id="noteIn" value="" placeholder="メモ">';
