@@ -302,7 +302,7 @@
 
     <div class="card tl" id="tlcard">
       <div class="tlhead"><div style="display:flex;align-items:center"><div class="label">今日の流れ</div><div class="vsw" id="vsw"><button data-view="bar" class="on">帯</button><button data-view="clock">時計</button></div></div>
-        <div class="legend"><span><i style="background:var(--breast)"></i>母乳</span><span><i style="background:var(--milk)"></i>ミルク</span><span><i style="background:var(--pump)"></i>搾乳</span><span><i style="background:var(--pee)"></i>おしっこ</span><span><i style="background:var(--poop)"></i>うんち</span></div>
+        <div class="legend"><span><i style="background:var(--breast)"></i>母乳</span><span><i style="background:var(--milk)"></i>ミルク</span><span><i style="background:var(--pump)"></i>搾乳</span><span><i style="background:var(--pee)"></i>おしっこ</span><span><i style="background:var(--poop)"></i>うんち</span><span><i style="background:var(--spit)"></i>吐き戻し</span></div>
       </div>
       <div class="plot" id="plot">
         <div class="axis" id="axis"></div>
@@ -452,7 +452,7 @@ function renderTimeline() {
   var feed = '', dia = '';
   S.timeline.forEach(function (e) {
     if ((e.end || e.t) < S.dayStart) return;
-    var lane = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 'f' : (e.type === 'pee' || e.type === 'poop' || e.type === 'both') ? 'd' : null;
+    var lane = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 'f' : (e.type === 'pee' || e.type === 'poop' || e.type === 'both' || e.type === 'spit') ? 'd' : null;
     if (!lane) return;
     var html;
     if (lane === 'f') html = '<div class="seg" style="left:' + xPct(e.t) + '%;width:' + Math.max(e.type === 'breast' ? 1 : 1.2, e.end ? xPct(e.end) - xPct(e.t) : 0) + '%;background:' + COLORS[e.type] + '"></div>';
@@ -500,7 +500,7 @@ function dialSvg(half) {
   S.timeline.forEach(function (e) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
-    if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both') return;
+    if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both' && e.type !== 'spit') return;
     var c = pt(70, (hrs - half * 12) * 30 - 90);
     o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="9" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--sheet)" stroke-width="2"/>';
     if (e.type === 'both') o += '<path d="M' + (c[0] - 8).toFixed(1) + ' ' + c[1].toFixed(1) + ' a8 8 0 0 1 16 0z" style="fill:var(--pee)"/>';
@@ -531,7 +531,7 @@ function dialSvgClassic(half) {
   S.timeline.forEach(function (e) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
-    var ring = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 70 : (e.type === 'pee' || e.type === 'poop' || e.type === 'both') ? 50 : 0;
+    var ring = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 70 : (e.type === 'pee' || e.type === 'poop' || e.type === 'both' || e.type === 'spit') ? 50 : 0;
     if (!ring) return;
     var d0 = (hrs - half * 12) * 30 - 90;
     if (e.type === 'breast' && e.end) {
@@ -567,7 +567,7 @@ $('dials').addEventListener('click', function (ev) {
   var half = Number(svg.dataset.half), r0 = svg.getBoundingClientRect(), sc = 200 / Math.min(r0.width, r0.height);
   var x = (ev.clientX - r0.left - r0.width / 2) * sc, y = (ev.clientY - r0.top - r0.height / 2) * sc, r = Math.sqrt(x * x + y * y);
   if (r < 32 || r > 98) return;
-  var FEED = ['breast', 'milk', 'pump'], DIA = ['pee', 'poop', 'both'];
+  var FEED = ['breast', 'milk', 'pump'], DIA = ['pee', 'poop', 'both', 'spit'];
   var a = (Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360, t = S.dayStart + (half * 12 + a / 30) * 3600000;
   var tol = (12 / r) / (2 * Math.PI) * 12 * 3600000;
   var ch = a / 30, tolH = tol / 3600000;
@@ -628,6 +628,12 @@ function renderRecent() {
   }).join('');
   ul.scrollTop = keep;  // 30秒ごとの更新で、見ている位置が先頭に戻らないようにする
 }
+// さいきんの記録：下へ送って15秒さわらなければ、先頭（いちばん新しい記録）へ戻す
+(function () {
+  var ul = document.getElementById('recent'), tm = null;
+  var arm = function () { clearTimeout(tm); if (ul.scrollTop > 0) tm = setTimeout(function () { if (!$('sheet').classList.contains('show')) ul.scrollTo({ top: 0, behavior: 'smooth' }); else arm(); }, 15000); };
+  ['scroll', 'touchstart', 'pointerdown', 'wheel'].forEach(function (ev) { ul.addEventListener(ev, arm, { passive: true }); });
+})();
 function render() { renderHero(); renderTimeline(); renderStats(); renderRecent(); renderMemo(); if ($('tlcard').classList.contains('vclock')) renderDials(); }
 
 /* ───────── 記録ボタン ───────── */
@@ -1197,7 +1203,7 @@ function openMemo() {
   };
   if (ms.length) $('memoDel').onclick = function () { save('', ''); };
 }
-laneClick('laneFeed', ['breast', 'milk', 'pump', 'pee', 'poop', 'both']);
+laneClick('laneFeed', ['breast', 'milk', 'pump', 'pee', 'poop', 'both', 'spit']);
 try { speechSynthesis.getVoices(); } catch (e) {}
 updateVoiceBtn();
 setView(ls('pon.view') === 'clock' ? 'clock' : 'bar');
