@@ -318,11 +318,11 @@
         <button class="b low" data-open="other">その他</button>
       </div>
       <div class="agoRow">
-        <span class="label">時刻</span>
-        <button class="chip on" data-ago="0">いま</button>
+        <span class="label">時刻 いま</span>
+        <button class="chip" data-ago="5">5分前</button>
         <button class="chip" data-ago="10">10分前</button>
-        <button class="chip" data-ago="30">30分前</button>
-        <button class="chip" data-ago="60">1時間前</button>
+        <button class="chip" data-ago="15">15分前</button>
+        <button class="chip" id="agoPick">時刻を選ぶ</button>
       </div>
     </div>
     <div class="card recentcard">
@@ -637,7 +637,7 @@ function toastAct(msg, label, fn) {
   toastTimer = setTimeout(function () { el.classList.remove('show', 'act'); }, 8000);
 }
 function act(params, openAfter) {
-  if (ago > 0) params.ago = ago;
+  if (agoAt) params.time = iso(agoAt); else if (ago > 0) params.ago = ago;
   params.withState = 1;
   toast('記録中…');
   call(params, function (r) {
@@ -649,7 +649,29 @@ function act(params, openAfter) {
     setAgo(0);
   });
 }
-function setAgo(v) { ago = v; Array.prototype.forEach.call(document.querySelectorAll('[data-ago]'), function (b) { b.classList.toggle('on', Number(b.dataset.ago) === v); }); }
+// 何も選んでいないとき＝いま。選んだボタンをもう一度押すと「いま」に戻る。「時刻を選ぶ」で決めた時刻はボタンに表示する
+var agoAt = null;
+function setAgo(v, at) {
+  ago = v; agoAt = at || null;
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ago]'), function (b) { b.classList.toggle('on', !agoAt && v > 0 && Number(b.dataset.ago) === v); });
+  var pk = $('agoPick'); pk.classList.toggle('on', !!agoAt); pk.textContent = agoAt ? hm(agoAt) + '　×' : '時刻を選ぶ';
+  var lb = document.querySelector('.agoRow .label'); if (lb) lb.textContent = v > 0 ? '時刻' : '時刻 いま';
+}
+function openAgoPick() {
+  var now = new Date(), base = startOfDay(now), hh = now.getHours(), mm = now.getMinutes();
+  var dayLabel = function () { var x = new Date(base); return (base === startOfDay(Date.now()) ? '今日 ' : '') + (x.getMonth() + 1) + '月' + x.getDate() + '日'; };
+  openSheet('<div class="ph"><h3>記録する時刻</h3><button class="x" data-close>閉じる</button></div><div class="label">次に押すボタンを、この時刻で記録します</div><div class="daystep"><button id="aPrev">‹</button><span id="aLbl">' + dayLabel() + '</span><button id="aNext">›</button></div><div class="wheels"><div class="band"></div><div class="wheel" id="aH"></div><span class="colon">:</span><div class="wheel" id="aM"></div></div><div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="aSave">決定</button></div>');
+  makeWheel($('aH'), range(0, 23, 1, function (v) { return v; }), hh, function (v) { hh = v; });
+  makeWheel($('aM'), range(0, 59, 1, function (v) { return pad(v); }), mm, function (v) { mm = v; });
+  $('aPrev').onclick = function () { base -= 86400000; $('aLbl').textContent = dayLabel(); };
+  $('aNext').onclick = function () { if (base < startOfDay(Date.now())) { base += 86400000; $('aLbl').textContent = dayLabel(); } };
+  $('aSave').onclick = function () {
+    var x = new Date(base); x.setHours(hh, mm, 0, 0);
+    var m = Math.round((Date.now() - x.getTime()) / 60000);
+    if (m < 1) { toast('いまより前の時刻を選んでください'); return; }
+    closeSheet(); setAgo(m, x.getTime()); toast(hm(x.getTime()) + ' で記録します。ボタンを押してください');
+  };
+}
 
 /* ───────── シート共通 ───────── */
 function openSheet(html, wide) { $('panel').className = 'panel' + (wide ? ' wide' : ''); $('panel').innerHTML = html; $('sheet').classList.add('show'); }
@@ -996,7 +1018,8 @@ document.addEventListener('click', function (ev) {
     if (VOICE.pref) { VOICE.unlocked = false; unlockVoice(); speak('音声案内をオンにしました'); } updateVoiceBtn(); return;
   }
   if (b.dataset.close !== undefined) { closeSheet(); return; }
-  if (b.dataset.ago !== undefined) { setAgo(Number(b.dataset.ago)); return; }
+  if (b.dataset.ago !== undefined) { var v = Number(b.dataset.ago); setAgo(!agoAt && ago === v ? 0 : v); return; }
+  if (b.id === 'agoPick') { if (agoAt) setAgo(0); else openAgoPick(); return; }
   if (b.dataset.open === 'milk') { openMilk('milk'); return; }
   if (b.dataset.open === 'pump') { openMilk('pump'); return; }
   if (b.dataset.open === 'breast') { act({ a: 'add', t: 'breast' }, true); return; }
