@@ -406,7 +406,7 @@ function renderHero() {
   if (!S.lastFeed) { $('since').innerHTML = '--'; $('nextT').textContent = '--:--'; $('nextSub').textContent = ''; $('meta').textContent = 'まだ記録がありません'; return; }
   var base = S.feedSessionStart || S.lastFeed.t, mAll = Math.max(0, Math.floor((now - base) / 60000));
   $('since').classList.toggle('long', mAll >= 60);
-  $('since').innerHTML = mAll >= 60 ? Math.floor(mAll / 60) + '<small>時間</small>' + pad(mAll % 60) + '<small>分</small>' : mAll + '<small>分</small>';
+  $('since').innerHTML = '<span>' + (mAll >= 60 ? Math.floor(mAll / 60) + '<small>時間</small>' + pad(mAll % 60) + '<small>分</small>' : mAll + '<small>分</small>') + '</span>';
   var next = nextFeedMs(), rem = next - now;
   $('nextT').textContent = hm(next);
   $('nextSub').textContent = (rem > 0 ? 'あと ' + durJa(rem) : durJa(-rem) + ' 過ぎています');
