@@ -272,6 +272,23 @@
   @media (orientation: portrait) {
     .dials { flex: none; height: 190px; }
   }
+
+  .ptile { flex: none; align-self: center; width: clamp(84px, 15vh, 128px); height: clamp(84px, 15vh, 128px); margin: 0 auto; border-radius: 18px; overflow: hidden; background: var(--chip) center/cover no-repeat; box-shadow: var(--shadow); border: 1px solid var(--line); pointer-events: auto !important; display: none; }
+  .ptile.show { display: block; }
+  .top > .ptile { pointer-events: auto; }
+  .pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+  .pgrid .ph1 { aspect-ratio: 1; border-radius: 12px; background: var(--chip) center/cover no-repeat; border: 0; padding: 0; }
+  .pbig { width: 100%; aspect-ratio: 4/3; border-radius: 16px; background: var(--chip) center/contain no-repeat; margin-top: 8px; }
+  .mlist { margin: 6px 0 0; padding: 0; list-style: none; }
+  .mlist li { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: flex-start; }
+  .mlist .mth { flex: none; width: 64px; height: 64px; border-radius: 12px; background: var(--chip) center/cover no-repeat; }
+  .mlist .md { font-size: 12.5px; color: var(--sub); font-weight: 600; }
+  .mlist .mt { font-size: 16px; line-height: 1.4; margin-top: 2px; word-break: break-word; }
+  .like { display: block; width: 100%; text-align: left; margin: 6px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--chip); font-size: 14.5px; line-height: 1.5; color: var(--ink); }
+  .like b { font-variant-numeric: tabular-nums; }
+  .like small { color: var(--sub); font-weight: 500; }
+  .timeRow { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+  .timeRow input { flex: 1; font: inherit; font-size: 17px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); }
 </style>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -286,8 +303,10 @@
   <div class="colL">
     <div class="top">
       <div class="clock" id="clock" title="タップで夜モード切り替え">--:--</div>
+      <button class="ptile" id="ptile" aria-label="アルバムを開く"></button>
       <div class="top-r">
         <div class="tools">
+          <button class="tool" id="albumBtn" aria-label="アルバム"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 3.5 3L16 12l4 4"/></svg>アルバム</button>
           <button class="tool" id="growthBtn" aria-label="体重・身長"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8.5 9.5a4.5 4.5 0 0 1 7 0"/><path d="M12 14l1.8-3.2"/></svg>成長</button>
           <button class="tool" id="setBtn" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="18" cy="18" r="2.2"/></svg>設定</button>
           <button class="tool off" id="voiceBtn" aria-label="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span id="voiceTxt">音声案内 オフ</span></button>
@@ -360,7 +379,7 @@ var KEY = HASH.key || SAVED.key || '';
 var EXEC = HASH.exec || SAVED.exec || '';
 var S = null, ago = 0, nightOverride = null, ED = null;
 var $ = function (id) { return document.getElementById(id); };
-var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ', weight: '体重', height: '身長', spit: '吐き戻し', temp: '体温' };
+var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ', moment: 'できごと', weight: '体重', height: '身長', spit: '吐き戻し', temp: '体温' };
 var GROW = { weight: { label: '体重', unit: 'g', step: 10, big: 100, def: 3000, dec: 0 }, height: { label: '身長', unit: 'cm', step: 0.1, big: 1, def: 50, dec: 1 } };
 var SIDE = { L: '左', R: '右' };
 var COLORS = { breast: 'var(--breast)', milk: 'var(--milk)', pump: 'var(--pump)', spit: 'var(--spit)', pee: 'var(--pee)', poop: 'var(--poop)', both: 'linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)' };
@@ -412,6 +431,7 @@ function tick() {
   if (S && S.child) $('age').textContent = S.child.name + ' 生後' + Math.floor((startOfDay(now) - startOfDay(new Date(S.child.birth))) / 86400000) + '日';
   document.body.classList.toggle('night', isNight());
   if (S) { renderHero(); placeNow(); checkAnnounce(); }
+  camTick(now);
 }
 function renderHero() {
   var now = Date.now(), hero = $('hero');
@@ -771,11 +791,12 @@ function openGrowth(kind) {
   var hist = data.slice().reverse().slice(0, 6).map(function (e) { return '<button data-edit="' + e.id + '"><span>' + md(e.t) + '　' + hm(e.t) + '　' + fmtG(kind, e.amt) + '</span>' + CHEV + '</button>'; }).join('');
   openSheet('<div class="ph"><h3>成長の記録</h3><button class="x" data-close>閉じる</button></div>' +
     '<div class="segc"><button id="gk1" class="' + (kind === 'weight' ? 'on' : '') + '">体重</button><button id="gk2" class="' + (kind === 'height' ? 'on' : '') + '">身長</button></div>' +
-    sum + growthChart(data, kind) +
+    sum + likeHtml(kind, data) + growthChart(data, kind) +
     '<div class="label" style="margin-top:6px">いま測った' + g.label + '</div><div class="stepper"><button id="gMinus">−</button><div class="val"><input id="gIn" type="number" inputmode="decimal" step="' + g.step + '" value="' + val + '" style="width:130px;font:inherit;text-align:center;border:0;background:transparent;color:inherit;-webkit-user-select:text;user-select:text"><small>' + g.unit + '</small></div><button id="gPlus">＋</button></div>' +
     '<div class="quick"><button id="gM2">−' + g.big + '</button><button id="gP2">＋' + g.big + '</button></div>' +
     '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="gSave">記録する</button></div>' +
     (hist ? '<div class="label" style="margin-top:12px">これまで　<span style="font-weight:500">タップで直せます</span></div><div class="pick">' + hist + '</div>' : ''));
+  bindLike(kind, data);
   var inp = $('gIn');
   var step = function (d) { var v = Math.max(0, Math.round((Number(inp.value || 0) + d) * 10) / 10); inp.value = v; };
   $('gMinus').onclick = function () { step(-g.step); };
@@ -834,7 +855,7 @@ function SIDE_REV(s) { return s === '左' ? 'L' : s === '右' ? 'R' : ''; }
 function drawContent() {
   var d = ED, types = [['breast', '母乳'], ['milk', 'ミルク'], ['pump', '搾乳'], ['pee', 'おしっこ'], ['poop', 'うんち'], ['both', '両方'], ['spit', '吐き戻し']];
   var h = '<div class="ph"><h3>記録を直す</h3><button class="x" data-close>閉じる</button></div>';
-  if (d.type === 'memo') {
+  if (d.type === 'memo' || d.type === 'moment') {
     h += '<input class="noteIn" id="noteIn" value="" placeholder="メモ">';
   } else if (GROW[d.type]) {
     var gw = GROW[d.type];
@@ -854,7 +875,7 @@ function drawContent() {
   h += '<div class="rowl"><span class="k">' + (d.type === 'breast' ? '開始時刻' : '時刻') + '</span><button class="v" id="timeRow">' + hm(d.t) + (startOfDay(d.t) !== startOfDay(Date.now()) ? '（' + (new Date(d.t).getMonth() + 1) + '/' + new Date(d.t).getDate() + '）' : '') + '　›</button></div>';
   h += '<div class="acts"><button class="btn dng" id="edDel">消す</button><button class="btn" data-close>キャンセル</button><button class="btn pri" id="edSave">保存</button></div>';
   openSheet(h, d.type === 'breast');
-  if (d.type === 'memo') $('noteIn').value = d.note;
+  if (d.type === 'memo' || d.type === 'moment') $('noteIn').value = d.note;
   if (d.type === 'breast') {
     var items = range(0, 60, 1, function (v) { return v ? v + '分' : 'なし'; });
     makeWheel($('wL'), items, d.l, function (v) { d.l = v; }, 52);
@@ -892,7 +913,7 @@ function saveEdit(timeOnly) {
     }
     if (d.type === 'milk' || d.type === 'pump') { p.amt = d.amt; patch.amt = d.amt; patch.unit = 'ml'; }
     if (GROW[d.type]) { p.amt = d.amt; patch.amt = d.amt; patch.unit = GROW[d.type].unit; }
-    if (d.type === 'memo') { d.note = $('noteIn').value; p.note = d.note; patch.note = d.note; }
+    if (d.type === 'memo' || d.type === 'moment') { d.note = $('noteIn').value; p.note = d.note; patch.note = d.note; }
     if (d.type === 'spit' && d.note !== (o.note || '')) { p.note = d.note; patch.note = d.note; }
   }
   var id = d.id; closeSheet();
@@ -971,9 +992,11 @@ function openSettings() {
     '<div class="label" style="margin-top:14px">時計のデザイン</div>' +
     '<div class="segc" id="sDial"><button data-d="now" class="' + (dial === 'now' ? 'on' : '') + '">いまの（扇）</button><button data-d="classic" class="' + (dial === 'classic' ? 'on' : '') + '">最初の（丸）</button></div>' +
     '<div class="rowl" style="margin-top:12px"><span class="k">Siriに言う言葉</span><button class="v" id="sVoice">声の例　›</button></div>' +
+    '<div class="rowl"><span class="k">インカメで自動撮影</span><button class="v" id="sCam">' + (camCfg().on ? 'オン' : 'オフ') + '　›</button></div>' +
     '<div class="rowl"><span class="k">画面の更新</span><button class="v" id="sReload">最新にする　›</button></div>' +
     '<div class="note2">音とデザインは、この端末だけの設定です。授乳間隔は家族で共通です。</div>' +
     '<div class="acts"><button class="btn pri" data-close>閉じる</button></div>');
+  $('sCam').onclick = openCamSettings;
   $('sReload').onclick = function () { this.textContent = '更新しています…'; location.reload(); };
   $('sIv').onclick = openInterval;
   $('sVoice').onclick = openVoiceHelp;
@@ -1087,6 +1110,7 @@ document.addEventListener('click', function (ev) {
   var b = ev.target.closest('button, #clock, #nextT'); if (!b) return;
   if (b.id === 'nextT' || b.id === 'nextLbl') { openNextOnce(); return; }
   if (b.id === 'setBtn') { openSettings(); return; }
+  if (b.id === 'albumBtn' || b.id === 'ptile') { openAlbum(); return; }
   if (b.id === 'histBtn') { openHistory(); return; }
   if (b.id === 'addBtn') { openAddAny(); return; }
   if (b.id === 'clock') { nightOverride = !isNight(); tick(); return; }
@@ -1148,10 +1172,157 @@ function openSpit() {
   openSheet('<div class="ph"><h3>吐き戻し</h3><button class="x" data-close>閉じる</button></div><div class="label">どのくらい？</div><div class="quick" style="margin-top:10px">' +
     SPIT_LV.map(function (v) { return '<button data-spadd="' + v + '" style="min-height:64px;font-size:19px">' + v + '</button>'; }).join('') + '</div>');
 }
+
+/* ───────── 体重・身長のたとえ ───────── */
+var LIKE = {
+  weight: [['たまご（Mサイズ）', 60, '個'], ['みかん', 100, '個'], ['りんご', 300, '個'], ['ペットボトル（500ml）', 500, '本'], ['牛乳パック（1L）', 1030, '本'], ['お米（1kg袋）', 1000, '袋'], ['お米（2kg袋）', 2000, '袋']],
+  height: [['缶ジュース（350ml・約12cm）', 12.2, '本'], ['ボールペン（約14cm）', 14, '本'], ['1万円札（よこ16cm）', 16, '枚'], ['ペットボトル（500ml・約21cm）', 21, '本'], ['A4用紙（たて29.7cm）', 29.7, '枚']]
+};
+function likeIdx(kind, v) {
+  var saved = ls('pon.like.' + kind), list = LIKE[kind];
+  if (saved !== null && saved !== '' && list[Number(saved)]) return Number(saved);
+  for (var i = 0; i < list.length; i++) { var n = v / list[i][1]; if (n >= 2.5 && n <= 12) return i; }
+  return list.length - 1;
+}
+function likeN(v, size) { var n = v / size; return n >= 10 ? String(Math.round(n)) : n.toFixed(1).replace(/\.0$/, ''); }
+function likeHtml(kind, data) {
+  if (!data.length) return '';
+  var last = Number(data[data.length - 1].amt), first = Number(data[0].amt), o = LIKE[kind][likeIdx(kind, last)], g = GROW[kind];
+  var h = '<button class="like" id="likeBtn">いまの' + g.label + ' ＝ <b>' + o[0] + ' ' + likeN(last, o[1]) + o[2] + '</b>ぶん';
+  if (data.length > 1 && last > first) h += '<br>生まれてから ＋' + (g.dec ? (last - first).toFixed(g.dec) : Math.round(last - first)) + g.unit + ' ＝ <b>' + likeN(last - first, o[1]) + o[2] + '</b>ぶん増えました';
+  return h + '<br><small>タップで、ほかのたとえに変わります</small></button>';
+}
+function bindLike(kind, data) {
+  var b = $('likeBtn'); if (!b) return;
+  b.onclick = function () { var cur = likeIdx(kind, Number(data[data.length - 1].amt)); ls('pon.like.' + kind, String((cur + 1) % LIKE[kind].length)); openGrowth(kind); };
+}
+
+/* ───────── 写真 ───────── */
+function post(params, cb) {
+  params.key = KEY; params.dev = params.dev || '壁の画面';
+  fetch(EXEC, { method: 'POST', body: JSON.stringify(params), redirect: 'follow' }).then(function (r) { return r.json(); }).then(cb).catch(function () { cb(null); });
+}
+/** 画像（File か video/canvas）を長辺maxPxのJPEGにして、base64文字列を返す */
+function toJpeg(src, maxPx, cb) {
+  var draw = function (el, w, h) {
+    var sc = Math.min(1, maxPx / Math.max(w, h)), c = document.createElement('canvas'); c.width = Math.round(w * sc); c.height = Math.round(h * sc);
+    c.getContext('2d').drawImage(el, 0, 0, c.width, c.height); cb(c.toDataURL('image/jpeg', 0.78).split(',')[1], c.toDataURL('image/jpeg', 0.78));
+  };
+  if (src instanceof Blob) {
+    var url = URL.createObjectURL(src), im = new Image();
+    im.onload = function () { draw(im, im.naturalWidth, im.naturalHeight); URL.revokeObjectURL(url); };
+    im.onerror = function () { cb(null); };
+    im.src = url;
+  } else draw(src, src.videoWidth, src.videoHeight);
+}
+function uploadPhoto(b64, kind, cb) { post({ a: 'photoup', kind: kind, b64: b64 }, function (r) { cb(r && r.ok ? r.id : null); }); }
+var PHOTO_MEM = {};
+function fetchPhoto(id, sz, cb) {
+  var k = id + '_' + sz; if (PHOTO_MEM[k]) { cb(PHOTO_MEM[k]); return; }
+  call({ a: 'photo', id: id, sz: sz }, function (r) { if (r && r.ok) { PHOTO_MEM[k] = r.data; cb(r.data); } else cb(null); });
+}
+function setBg(el, id, sz) { fetchPhoto(id, sz, function (d) { if (d) el.style.backgroundImage = 'url(' + d + ')'; }); }
+function pickPhoto(cb, capture) {
+  var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; if (capture) inp.setAttribute('capture', 'environment');
+  inp.onchange = function () { if (inp.files && inp.files[0]) cb(inp.files[0]); };
+  inp.click();
+}
+/* 今日の1枚（上の小さな写真） */
+var POOL = null;
+function loadTile() {
+  call({ a: 'photos', n: 1 }, function (r) {
+    var t = $('ptile'); if (!r || !r.ok || !r.today) { t.classList.remove('show'); return; }
+    t.classList.add('show'); setBg(t, r.today, 400);
+  });
+}
+/* できごと */
+function openMoment() {
+  var photoB64 = null;
+  openSheet('<div class="ph"><h3>今日のできごと</h3><button class="x" data-close>閉じる</button></div><div class="label">初めて笑った、手をぎゅっと握った、など</div><textarea class="noteIn" id="mvText" rows="3" placeholder="できごと"></textarea><div class="rowl"><span class="k">写真</span><button class="v" id="mvPhoto">写真を選ぶ　›</button></div><div class="pbig" id="mvPrev" style="display:none"></div><div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="mvSave">残す</button></div>', true);
+  $('mvPhoto').onclick = function () {
+    pickPhoto(function (f) { toJpeg(f, 1400, function (b, full) { if (!b) { toast('写真を読めませんでした'); return; } photoB64 = b; var pv = $('mvPrev'); pv.style.display = 'block'; pv.style.backgroundImage = 'url(' + full + ')'; $('mvPhoto').textContent = '選び直す　›'; }); });
+  };
+  $('mvSave').onclick = function () {
+    var note = $('mvText').value.trim();
+    if (!note && !photoB64) { toast('文か写真を入れてください'); return; }
+    var btn = this; btn.disabled = true; btn.textContent = '保存しています…';
+    var fin = function (pid) { closeSheet(); act({ a: 'add', t: 'moment', note: note, photo: pid || '' }); };
+    if (photoB64) uploadPhoto(photoB64, 'moment', function (id) { if (!id) { btn.disabled = false; btn.textContent = '残す'; toast('写真を保存できませんでした'); return; } fin(id); });
+    else fin('');
+  };
+}
+/* アルバム */
+function openAlbum(tab) {
+  tab = tab || 'photos';
+  openSheet('<div class="ph"><h3>アルバム</h3><button class="x" data-close>閉じる</button></div><div class="segc" id="alTabs"><button data-t="photos" class="' + (tab === 'photos' ? 'on' : '') + '">写真</button><button data-t="moments" class="' + (tab === 'moments' ? 'on' : '') + '">できごと</button><button data-t="auto" class="' + (tab === 'auto' ? 'on' : '') + '">インカメ</button></div><div id="alBody"><div class="label">読み込んでいます…</div></div>', true);
+  $('alTabs').onclick = function (ev) { var x = ev.target.closest('[data-t]'); if (x) openAlbum(x.dataset.t); };
+  var body = $('alBody');
+  var big = function (id) {
+    openSheet('<div class="ph"><h3>写真</h3><button class="x" data-close>閉じる</button></div><div class="pbig" id="bigPh"></div><div class="acts"><button class="btn pri" id="bigBack">もどる</button></div>', true);
+    setBg($('bigPh'), id, 1200); $('bigBack').onclick = function () { openAlbum(tab); };
+  };
+  if (tab === 'moments') {
+    call({ a: 'moments', n: 60 }, function (r) {
+      if (!r || !r.ok) { body.innerHTML = '<div class="label">読み込めませんでした</div>'; return; }
+      var W = '日月火水木金土';
+      body.innerHTML = '<div class="acts"><button class="btn pri" id="alNew">できごとを書く</button></div>' + (r.moments.length ? '<ul class="mlist">' + r.moments.map(function (m, i) { var d = new Date(m.t); return '<li>' + (m.photo ? '<button class="mth" data-ph="' + m.photo + '"></button>' : '') + '<div><div class="md">' + (d.getMonth() + 1) + '/' + d.getDate() + '（' + W.charAt(d.getDay()) + '）' + hm(m.t) + '</div><div class="mt">' + (m.note ? m.note.replace(/</g, '&lt;') : '') + '</div></div></li>'; }).join('') + '</ul>' : '<div class="note2">まだありません。「できごとを書く」から残せます。</div>');
+      $('alNew').onclick = openMoment;
+      Array.prototype.forEach.call(body.querySelectorAll('[data-ph]'), function (b) { setBg(b, b.dataset.ph, 200); b.onclick = function () { big(b.dataset.ph); }; });
+    });
+    return;
+  }
+  call({ a: 'photos', n: 60, kind: tab === 'auto' ? 'auto' : '' }, function (r) {
+    if (!r || !r.ok) { body.innerHTML = '<div class="label">読み込めませんでした</div>'; return; }
+    var head = tab === 'photos' ? '<div class="acts"><button class="btn pri" id="alAdd">写真を足す</button></div>' : '<div class="note2">インカメで自動撮影した写真です（設定でオンにしたときだけ増えます）。</div>';
+    body.innerHTML = head + (r.photos.length ? '<div class="pgrid">' + r.photos.map(function (x) { return '<button class="ph1" data-ph="' + x.id + '"></button>'; }).join('') + '</div>' : '<div class="note2">まだ写真がありません。' + (tab === 'photos' ? '「写真を足す」から入れられます。iPhoneの写真アプリやみてねから足すときは、写真を保存してから選んでください。' : '') + '</div>');
+    Array.prototype.forEach.call(body.querySelectorAll('[data-ph]'), function (b) { setBg(b, b.dataset.ph, 240); b.onclick = function () { big(b.dataset.ph); }; });
+    if ($('alAdd')) $('alAdd').onclick = function () {
+      pickPhoto(function (f) { toast('写真を保存しています…'); toJpeg(f, 1600, function (b) { if (!b) { toast('写真を読めませんでした'); return; } uploadPhoto(b, 'album', function (id) { toast(id ? '写真を足しました' : '保存できませんでした'); if (id) { loadTile(); openAlbum('photos'); } }); }); });
+    };
+  });
+}
+
+/* ───────── インカメの自動撮影（この端末だけの設定） ───────── */
+function camCfg() { var c = {}; try { c = JSON.parse(ls('pon.cam') || '{}'); } catch (e) {} return { on: !!c.on, times: (c.times && c.times.length ? c.times : ['08:00', '12:00', '16:00', '20:00']) }; }
+function camSave(c) { ls('pon.cam', JSON.stringify(c)); }
+var camBusy = false;
+function camShot(cb) {
+  if (camBusy) return; camBusy = true;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { camBusy = false; cb(null, 'この画面ではカメラが使えません'); return; }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false }).then(function (st) {
+    var v = document.createElement('video'); v.setAttribute('playsinline', ''); v.muted = true; v.srcObject = st; v.style.cssText = 'position:fixed;left:-9999px;width:2px;height:2px';
+    document.body.appendChild(v);
+    var done = function (b, err) { try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} v.remove(); camBusy = false; cb(b, err); };
+    v.play().then(function () { setTimeout(function () { try { toJpeg(v, 960, function (b, full) { done(b, b ? null : '撮れませんでした'); if (b && camShot.onfull) camShot.onfull(full); }); } catch (e) { done(null, '撮れませんでした'); } }, 1500); }).catch(function () { done(null, '撮れませんでした'); });
+  }).catch(function () { camBusy = false; cb(null, 'カメラの許可がありません'); });
+}
+function camTick(now) {
+  var c = camCfg(); if (!c.on || camBusy) return;
+  var hh = pad(now.getHours()) + ':' + pad(now.getMinutes()), day = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+  if (c.times.indexOf(hh) < 0 || $('sheet').classList.contains('show')) return;
+  var key = day + ' ' + hh; if (ls('pon.cam.done') === key) return; ls('pon.cam.done', key);
+  camShot(function (b, err) { if (!b) { toast(err || '撮れませんでした'); return; } uploadPhoto(b, 'auto', function () {}); });
+}
+function openCamSettings() {
+  var c = camCfg();
+  openSheet('<div class="ph"><h3>インカメで自動撮影</h3><button class="x" data-close>閉じる</button></div><div class="rowl"><span class="k">自動撮影</span><button class="v" id="cOn">' + (c.on ? 'オン' : 'オフ') + '</button></div><div class="label" style="margin-top:8px">撮る時刻（毎日）</div>' + c.times.map(function (t, i) { return '<div class="timeRow"><input type="time" data-i="' + i + '" value="' + t + '"><button class="chip" data-rm="' + i + '">消す</button></div>'; }).join('') + '<div class="acts" style="margin-top:4px"><button class="btn" id="cAdd">時刻を足す</button><button class="btn" id="cTest">試し撮り</button></div><div class="note2">この画面が開いている間だけ撮れます（壁のiPad用）。最初にカメラの許可が出ます。撮った写真は、アルバムの「インカメ」に入り、家族以外には見えません。「試し撮り」は撮れるかの確認で、保存しません。</div><div class="acts"><button class="btn pri" data-close>閉じる</button></div>');
+  var save = function () { var ts = Array.prototype.map.call(document.querySelectorAll('.timeRow input'), function (i) { return i.value; }).filter(function (v) { return /^\d\d:\d\d$/.test(v); }); camSave({ on: c.on, times: ts }); };
+  $('cOn').onclick = function () { c.on = !c.on; camSave({ on: c.on, times: c.times }); this.textContent = c.on ? 'オン' : 'オフ'; if (c.on) toast('設定したカメラの許可が出たら「許可」を押してください。「試し撮り」で確認できます'); };
+  Array.prototype.forEach.call(document.querySelectorAll('.timeRow input'), function (i) { i.onchange = function () { save(); }; });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-rm]'), function (b) { b.onclick = function () { c.times.splice(Number(b.dataset.rm), 1); camSave({ on: c.on, times: c.times }); openCamSettings(); }; });
+  $('cAdd').onclick = function () { save(); c = camCfg(); c.times.push('12:00'); camSave(c); openCamSettings(); };
+  $('cTest').onclick = function () {
+    var b = this; b.textContent = '撮っています…';
+    camShot.onfull = function (full) { openSheet('<div class="ph"><h3>試し撮り（保存していません）</h3><button class="x" data-close>閉じる</button></div><div class="pbig" style="background-image:url(' + full + ')"></div><div class="acts"><button class="btn pri" id="ctBack">もどる</button></div>'); $('ctBack').onclick = openCamSettings; };
+    camShot(function (bb, err) { camShot.onfull = null; if (!bb) { b.textContent = '試し撮り'; toast(err || '撮れませんでした'); } });
+  };
+}
+
 /* その他（たまに使う記録） */
 function openOther() {
   openSheet('<div class="ph"><h3>その他の記録</h3><button class="x" data-close>閉じる</button></div><div class="pick">' +
-    '<button id="oGrow"><span>体重・身長</span>' + CHEV + '</button><button id="oTemp"><span>体温</span>' + CHEV + '</button><button id="oMemo"><span>メモ（記録に残す）</span>' + CHEV + '</button></div>');
+    '<button id="oMoment"><span>今日のできごと（写真つき）</span>' + CHEV + '</button><button id="oGrow"><span>体重・身長</span>' + CHEV + '</button><button id="oTemp"><span>体温</span>' + CHEV + '</button><button id="oMemo"><span>メモ（記録に残す）</span>' + CHEV + '</button></div>');
+  $('oMoment').onclick = function () { openMoment(); };
   $('oGrow').onclick = function () { openGrowth('weight'); };
   $('oTemp').onclick = function () {
     openSheet('<div class="ph"><h3>体温</h3><button class="x" data-close>閉じる</button></div><div class="stepper"><button id="tM">−</button><div class="val"><input id="tIn" type="number" inputmode="decimal" step="0.1" value="36.8" style="width:130px;font:inherit;text-align:center;border:0;background:transparent;color:inherit;-webkit-user-select:text;user-select:text"><small>℃</small></div><button id="tP">＋</button></div><div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="tSaveT">記録する</button></div>');
@@ -1233,6 +1404,7 @@ if (!KEY || !EXEC) { openSetup(); } else {
   tick(); refresh();
   setInterval(tick, 1000);
   setInterval(refresh, 30000);
+  loadTile(); setInterval(loadTile, 3600000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
 }
 </script>
