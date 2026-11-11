@@ -1258,8 +1258,12 @@ function openAlbum(tab) {
   $('alTabs').onclick = function (ev) { var x = ev.target.closest('[data-t]'); if (x) openAlbum(x.dataset.t); };
   var body = $('alBody');
   var big = function (id) {
-    openSheet('<div class="ph"><h3>写真</h3><button class="x" data-close>閉じる</button></div><div class="pbig" id="bigPh"></div><div class="acts"><button class="btn pri" id="bigBack">もどる</button></div>', true);
+    openSheet('<div class="ph"><h3>写真</h3><button class="x" data-close>閉じる</button></div><div class="pbig" id="bigPh"></div><div class="acts"><button class="btn dng" id="bigDel">この写真を消す</button><button class="btn pri" id="bigBack">もどる</button></div>', true);
     setBg($('bigPh'), id, 1200); $('bigBack').onclick = function () { openAlbum(tab); };
+    $('bigDel').onclick = function () {
+      if (!this.classList.contains('sure')) { this.classList.add('sure'); this.textContent = 'もう一度押すと消えます'; return; }
+      call({ a: 'photodel', id: id }, function (r) { toast(r && r.ok ? '写真を消しました' : '消せませんでした'); loadTile(); openAlbum(tab); });
+    };
   };
   if (tab === 'moments') {
     call({ a: 'moments', n: 60 }, function (r) {
