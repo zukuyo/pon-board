@@ -407,7 +407,6 @@
         <button class="chip" id="agoPick">時刻を選ぶ</button>
       </div>
     </div>
-    <button class="card pstrip" id="ptile" aria-label="アルバムを開く"><div class="pimg"></div><div class="pimg"></div><div class="pdots" id="pdots"></div></button>
     <div class="card recentcard">
       <div class="rhead"><div class="label">さいきんの記録　<span style="font-weight:500">タップで直せます</span></div><span style="display:flex;gap:6px"><button id="addBtn">＋ 追加</button><button id="histBtn">過去</button></span></div>
       <ul class="list" id="recent"></ul>
@@ -1357,6 +1356,7 @@ function pickPhoto(cb, capture) {
 var POOL = null;
 var PT = { ids: [], i: 0, layer: 0, timer: null };
 function loadTile() {
+  if (!$("ptile")) return; // 写真の帯は 2026-11-13 にやめた
   call({ a: 'photos', n: 12 }, function (r) {
     var t = $('ptile'); if (!r || !r.ok || !r.photos || !r.photos.length) { t.classList.remove('show'); return; }
     var ids = r.photos.map(function (x) { return x.id; });
