@@ -289,6 +289,22 @@
   .like small { color: var(--sub); font-weight: 500; }
   .timeRow { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
   .timeRow input { flex: 1; font: inherit; font-size: 17px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); }
+
+  /* 起動時の読み込み画面：データが届いた瞬間に消す（アニメの終わりは待たない） */
+  #boot { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; background: var(--bg); transition: opacity .28s ease; }
+  #boot.gone { opacity: 0; pointer-events: none; }
+  #boot svg { width: min(34vmin, 180px); height: auto; overflow: visible; }
+  #boot .ring { fill: none; stroke: var(--grid1); }
+  #boot .spin { transform-origin: 50px 50px; transform-box: view-box; }
+  #boot .a1 { animation: bootSpin 1.6s cubic-bezier(.55,.15,.45,.85) infinite; }
+  #boot .a2 { animation: bootSpin 2.4s linear infinite reverse; }
+  #boot .a3 { animation: bootSpin 3.2s linear infinite; }
+  #boot .core { transform-origin: 50px 50px; transform-box: view-box; animation: bootPulse 1.6s ease-in-out infinite; }
+  #boot .bl { color: var(--sub); font-size: 15px; font-weight: 600; letter-spacing: .08em; animation: bootFade 1.6s ease-in-out infinite; }
+  @keyframes bootSpin { to { transform: rotate(360deg); } }
+  @keyframes bootPulse { 0%, 100% { transform: scale(.7); opacity: .55; } 50% { transform: scale(1.15); opacity: 1; } }
+  @keyframes bootFade { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { #boot .a1, #boot .a2, #boot .a3 { animation-duration: 6s; } }
 </style>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -299,6 +315,18 @@
 <meta name="theme-color" content="#1c1a72">
 </head>
 <body>
+<script>(function () { var h = new Date().getHours(); if (h >= 20 || h < 7) document.body.classList.add('night'); })();</script>
+<div id="boot" aria-live="polite" aria-label="読み込み中">
+  <svg viewBox="0 0 100 100" aria-hidden="true">
+    <circle class="ring" cx="50" cy="50" r="40" stroke-width="7"/>
+    <circle class="ring" cx="50" cy="50" r="25" stroke-width="7"/>
+    <g class="spin a1"><path d="M50 10 A40 40 0 0 1 86 67" fill="none" stroke="var(--feed)" stroke-width="7" stroke-linecap="round"/></g>
+    <g class="spin a2"><path d="M25 50 A25 25 0 0 0 44 74" fill="none" stroke="var(--breast)" stroke-width="7" stroke-linecap="round"/></g>
+    <g class="spin a3"><circle cx="34" cy="78" r="4" fill="var(--pee)"/><circle cx="40" cy="27" r="3.4" fill="var(--pee)"/></g>
+    <circle class="core" cx="50" cy="50" r="4" fill="var(--feed)"/>
+  </svg>
+  <div class="bl">PONログ</div>
+</div>
 <div class="wrap">
   <div class="colL">
     <div class="top">
@@ -394,7 +422,9 @@ function call(params, cb) {
     else showErr(e);
   });
 }
-function showErr(e) { $('err').textContent = '通信できませんでした（' + (e && e.message || e) + '）'; }
+function showErr(e) { hideBoot(); $('err').textContent = '通信できませんでした（' + (e && e.message || e) + '）'; }
+function hideBoot() { var b = $('boot'); if (!b || b.classList.contains('gone')) return; b.classList.add('gone'); setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 400); }
+setTimeout(hideBoot, 15000);
 function showWx(o) { $('wx').innerHTML = '最高 <b class="hi">' + o.hi + '°</b> 最低 <b class="lo">' + o.lo + '°</b>'; }
 function loadWx() {
   var t = new Date(), ds = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate()), c = null;
@@ -405,7 +435,7 @@ function loadWx() {
     .then(function (j) { var o = { d: ds, hi: Math.round(j.daily.temperature_2m_max[0]), lo: Math.round(j.daily.temperature_2m_min[0]), at: Date.now() }; ls('pon.wx', JSON.stringify(o)); showWx(o); })
     .catch(function () {});
 }
-function refresh() { loadWx(); call({ a: 'state' }, function (r) { if (r && r.ok) { S = r; render(); } }); }
+function refresh() { loadWx(); call({ a: 'state' }, function (r) { if (r && r.ok) { S = r; render(); } hideBoot(); }); }
 
 /* ───────── 表示用の道具 ───────── */
 function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -1418,7 +1448,7 @@ function openSetup() {
     location.hash = '#key=' + encodeURIComponent(h.key) + '&exec=' + encodeURIComponent(h.exec); location.reload();
   };
 }
-if (!KEY || !EXEC) { openSetup(); } else {
+if (!KEY || !EXEC) { hideBoot(); openSetup(); } else {
   tick(); refresh();
   setInterval(tick, 1000);
   setInterval(refresh, 30000);
