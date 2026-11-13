@@ -242,6 +242,50 @@
   .pick svg { width: 14px; height: 14px; color: var(--sub); flex: none; }
   .pick button { display: flex; align-items: center; width: 100%; justify-content: space-between; padding: 14px 4px; border-bottom: 1px solid var(--line); font-size: 17px; font-weight: 600; text-align: left; }
 
+
+  /* 押しやすさ（iPad mini向け。2026-11-14） */
+  .tool { height: 40px; padding: 0 15px; border-radius: 20px; font-size: 14px; }
+  .tool svg { width: 17px; height: 17px; }
+  .nextLbl { height: 34px; font-size: 14px; padding: 0 13px; border-radius: 17px; }
+  .pill { height: 38px; padding: 0 16px; border-radius: 19px; font-size: 14px; }
+  .vsw button { padding: 8px 16px; font-size: 14px; }
+  .rhead button { font-size: 14.5px; padding: 9px 16px; border-radius: 12px; }
+  .chip { min-height: 46px; font-size: 15.5px; }
+  .list .t, .list .n { padding: 12px 0; }
+  .ph .x { font-size: 17px; padding: 10px 6px; }
+  .acts .btn { min-height: 58px; font-size: 18px; border-radius: 16px; }
+  .rowl { padding: 15px 2px; }
+  .rowl button.v { padding: 6px 0 6px 12px; }
+  .segc button { min-height: 50px; font-size: 16px; }
+  .segc.gr button { min-height: 40px !important; font-size: 14px !important; }
+  .quick button { min-height: 48px; font-size: 16px; }
+  .stepper button { width: 64px; height: 64px; border-radius: 32px; }
+  .daystep button { width: 56px; height: 48px; border-radius: 12px; font-size: 22px; }
+  .pick button { padding: 17px 4px; }
+  /* スクロール窓：光っている帯の横幅いっぱい、どこからでもスクロールできる。数字も大きく */
+  .wheels .wheel { flex: 1 1 0; width: auto !important; min-width: 0; }
+  .wheels .wc { flex: 1 1 0; min-width: 0; }
+  .wheels .wc .wheel { width: 100% !important; flex: none; }
+  .wheel { height: 260px; }
+  .wheel .pad { height: 104px; }
+  .wheel .it { height: 52px; font-size: 30px; }
+  .band { top: 104px; height: 52px; border-radius: 14px; }
+  .wheel.big { height: 300px; }
+  .wheel.big .pad { height: 120px; }
+  .wheel.big .it { height: 60px; font-size: 36px; }
+  .bandc { top: 146px; height: 60px; border-radius: 16px; }
+  .wheel.ivw { height: 360px; }
+  .wheel.ivw .pad { height: 144px; }
+  .wheel.ivw .it { height: 72px; font-size: 42px; }
+  .wheel.ivw .it small { font-size: 24px; }
+  .band.ivw { top: 144px; height: 72px; border-radius: 18px; }
+  .wheel.huge { height: 400px; }
+  .wheel.huge .pad { height: 160px; }
+  .wheel.huge .it { height: 80px; font-size: 56px; font-weight: 700; }
+  .wheel.huge .it small { font-size: 26px !important; font-weight: 600; color: var(--sub); margin-left: 6px; }
+  .band.huge { top: 160px; height: 80px; border-radius: 20px; }
+  .wheels .unitl { font-size: 26px; font-weight: 700; color: var(--sub); padding: 0 2px; flex: none; }
+
   /* 壁掛け（横向き）：スクロールなしで全部収める */
   @media (orientation: landscape) and (min-width: 800px) {
     html, body { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
@@ -784,7 +828,7 @@ function closeSheet() { $('sheet').classList.remove('show'); ED = null; }
 $('sheet').addEventListener('click', function (e) { if (e.target === this) closeSheet(); });
 
 function makeWheel(el, items, selIdx, onChange, H) {
-  H = H || 44;
+  H = H || 52;
   var pad88 = '<div class="pad"></div>';
   el.innerHTML = pad88 + items.map(function (it, i) { return '<div class="it" data-i="' + i + '">' + it.label + '</div>'; }).join('') + pad88;
   var timer;
@@ -910,21 +954,32 @@ function openGrowth(kind) {
   openSheet('<div class="ph"><h3>成長の記録</h3><button class="x" data-close>閉じる</button></div>' +
     '<div class="segc"><button id="gk1" class="' + (kind === 'weight' ? 'on' : '') + '">体重</button><button id="gk2" class="' + (kind === 'height' ? 'on' : '') + '">身長</button></div>' +
     sum + likeHtml(kind, data) + growthBlock(kind) +
-    '<div class="label" style="margin-top:6px">いま測った' + g.label + '</div><div class="stepper"><button id="gMinus">−</button><div class="val"><input id="gIn" type="number" inputmode="decimal" step="' + g.step + '" value="' + val + '" style="width:130px;font:inherit;text-align:center;border:0;background:transparent;color:inherit;-webkit-user-select:text;user-select:text"><small>' + g.unit + '</small></div><button id="gPlus">＋</button></div>' +
-    '<div class="quick"><button id="gM2">−' + g.big + '</button><button id="gP2">＋' + g.big + '</button></div>' +
-    '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="gSave">記録する</button></div>' +
+    '<div class="acts" style="margin-top:10px"><button class="btn pri" id="gSave">いま測った' + g.label + 'を記録する</button></div>' +
     (hist ? '<div class="label" style="margin-top:12px">これまで　<span style="font-weight:500">タップで直せます</span></div><div class="pick">' + hist + '</div>' : ''));
   bindLike(kind, data); bindGrowthRange(kind);
-  var inp = $('gIn');
-  var step = function (d) { var v = Math.max(0, Math.round((Number(inp.value || 0) + d) * 10) / 10); inp.value = v; };
-  $('gMinus').onclick = function () { step(-g.step); };
-  $('gPlus').onclick = function () { step(g.step); };
-  $('gM2').onclick = function () { step(-g.big); };
-  $('gP2').onclick = function () { step(g.big); };
   $('gk1').onclick = function () { openGrowth('weight'); };
   $('gk2').onclick = function () { openGrowth('height'); };
-  $('gSave').onclick = function () {
-    var v = Number(inp.value);
+  $('gSave').onclick = function () { openGrowthInput(kind, val); };
+}
+/* 体重・身長の入力：大きいスクロール窓2つ（体重は kg と g、身長は cm と 小数）。2026-11-14 */
+function openGrowthInput(kind, cur) {
+  var g = GROW[kind], a, b, ia, ib, A, B;
+  if (kind === 'weight') {
+    cur = Math.round(cur / 10) * 10; a = Math.floor(cur / 1000); b = cur % 1000;
+    A = range(1, 15, 1); B = range(0, 990, 10, function (v) { return ('00' + v).slice(-3); });
+  } else {
+    cur = Math.round(cur * 10) / 10; a = Math.floor(cur); b = Math.round((cur - a) * 10);
+    A = range(35, 120, 1); B = range(0, 9, 1);
+  }
+  ia = Math.max(0, A.findIndex(function (x) { return x.v === a; })); ib = Math.max(0, B.findIndex(function (x) { return x.v === b; }));
+  a = A[ia].v; b = B[ib].v;
+  var mid = kind === 'weight' ? '<span class="unitl">kg</span>' : '<span class="unitl">.</span>', tail = kind === 'weight' ? '<span class="unitl">g</span>' : '<span class="unitl">cm</span>';
+  openSheet('<div class="ph"><h3>いま測った' + g.label + '</h3><button class="x" id="giBack">戻る</button></div><div class="label">上下にスクロールして選ぶ（いまは ' + fmtG(kind, cur) + '）</div><div class="wheels" style="margin-top:6px"><div class="band huge"></div><div class="wheel huge" id="giA"></div>' + mid + '<div class="wheel huge" id="giB"></div>' + tail + '</div><div class="acts"><button class="btn" id="giCancel">キャンセル</button><button class="btn pri" id="giSave">記録する</button></div>');
+  makeWheel($('giA'), A, ia, function (v) { a = v; }, 80);
+  makeWheel($('giB'), B, ib, function (v) { b = v; }, 80);
+  $('giBack').onclick = $('giCancel').onclick = function () { openGrowth(kind); };
+  $('giSave').onclick = function () {
+    var v = kind === 'weight' ? a * 1000 + b : Math.round((a + b / 10) * 10) / 10;
     if (!(v > 0)) { toast('数字を入れてください'); return; }
     closeSheet(); act({ a: 'add', t: kind, amt: v });
   };
@@ -997,8 +1052,8 @@ function drawContent() {
   if (d.type === 'memo' || d.type === 'moment') $('noteIn').value = d.note;
   if (d.type === 'breast') {
     var items = range(0, 60, 1, function (v) { return v ? v + '分' : 'なし'; });
-    makeWheel($('wL'), items, d.l, function (v) { d.l = v; }, 52);
-    makeWheel($('wR'), items, d.r, function (v) { d.r = v; }, 52);
+    makeWheel($('wL'), items, d.l, function (v) { d.l = v; }, 60);
+    makeWheel($('wR'), items, d.r, function (v) { d.r = v; }, 60);
   }
 }
 function drawTime() {
@@ -1152,7 +1207,7 @@ function openNextOnce() {
   var items = range(30, 360, 10, function (v) { return ivTxt(v) + '<small>（' + hm(base + v * 60000) + '）</small>'; });
   var idx = Math.max(0, items.findIndex(function (i) { return i.v === cur; })), val = items[idx].v;
   openSheet('<div class="ph"><h3>次回授乳だけ間隔を変える</h3><button class="x" data-close>閉じる</button></div><div class="label">前の授乳の開始（' + hm(base) + '）からの間隔。この1回だけ変えます。次の授乳を記録したら、いつもの間隔（' + ivTxt(S.notifyMin) + '）に戻ります</div><div class="wheels" style="margin-top:6px"><div class="band ivw"></div><div class="wheel ivw" id="nIv"></div></div><div class="acts">' + (S.nextOnce ? '<button class="btn dng" id="nReset">間隔どおりに戻す</button>' : '') + '<button class="btn" data-close>キャンセル</button><button class="btn pri" id="nSave">決定</button></div>');
-  makeWheel($('nIv'), items, idx, function (v) { val = v; }, 60);
+  makeWheel($('nIv'), items, idx, function (v) { val = v; }, 72);
   var send = function (time, msg) {
     closeSheet(); toast('保存しています…');
     call({ a: 'set', k: 'nextonce', time: time, withState: 1 }, function (r) { toast(r && r.ok ? msg : '保存できませんでした'); if (r && r.state) { S = r.state; render(); } else refresh(); });
@@ -1302,10 +1357,10 @@ function openMilk(kind) {
   kind = kind === 'pump' ? 'pump' : 'milk';
   // 大きいホイールで選ぶ（2026-11-14 ボタンの並びから変更）。最初は前回の同じ種類の量
   var last = null; (S && S.recent || []).some(function (e) { if (e.type === kind && Number(e.amt) > 0) { last = Number(e.amt); return true; } return false; });
-  var items = range(10, 300, 10, function (v) { return v + '<small style="font-size:22px;margin-left:4px">ml</small>'; });
+  var items = range(10, 300, 10, function (v) { return v + '<small>ml</small>'; });
   var idx = Math.max(0, items.findIndex(function (i) { return i.v === (last || 60); })), val = items[idx].v;
   openSheet('<div class="ph"><h3>' + (kind === 'pump' ? '搾乳の量' : 'ミルクの量') + '</h3><button class="x" data-close>閉じる</button></div><div class="label">上下にスクロールして選ぶ' + (last ? '（前回 ' + last + 'ml）' : '') + '</div><div class="wheels" style="margin-top:6px"><div class="band huge"></div><div class="wheel huge" id="mlW"></div></div><div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="mlSave" style="min-height:58px;font-size:19px">記録する</button></div>');
-  makeWheel($('mlW'), items, idx, function (v) { val = v; }, 60);
+  makeWheel($('mlW'), items, idx, function (v) { val = v; }, 80);
   $('mlSave').onclick = function () { closeSheet(); act({ a: 'add', t: kind, amt: String(val) }); };
 }
 /* 吐き戻し：量を3つから選ぶ（記録のメモ欄に入る） */
