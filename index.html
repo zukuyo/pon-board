@@ -13,7 +13,7 @@
   :root {
     --bg: linear-gradient(160deg, #f5f7fb 0%, #e9edf6 100%); --card: rgba(255,255,255,.88); --ink: #15171c; --sub: #6a7080; --line: rgba(20,24,40,.09);
     --grid3: rgba(20,24,40,.16); --grid1: rgba(20,24,40,.06); --lane: rgba(20,24,40,.045);
-    --feed: #1a46d0; --breast: #8ea6d0; --milk: #c39bc9; --pump: #8487d6; --spit: #9db8a0; --pee: #e6b66e; --poop: #a88566; --winS: #c4d9e6; --band: #e6e4ee;
+    --feed: #1a46d0; --breast: #8ea6d0; --milk: #c39bc9; --pump: #8487d6; --spit: #9db8a0; --bath: #7fbfc4; --pee: #e6b66e; --poop: #a88566; --winS: #c4d9e6; --band: #e6e4ee;
     --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff; --win: rgba(90,200,250,.30);
     --btn: #ffffff; --btnInk: #15171c; --sheet: #ffffff; --chip: rgba(20,24,40,.06);
     --shadow: 0 1px 1px rgba(20,24,40,.04), 0 10px 28px rgba(20,24,40,.07);
@@ -22,7 +22,7 @@
   body.night {
     --bg: linear-gradient(160deg, #0d0706 0%, #120907 100%); --card: rgba(30,16,13,.92); --ink: #ffb9a5; --sub: #a96b5e; --line: rgba(255,150,120,.12);
     --grid3: rgba(255,150,120,.20); --grid1: rgba(255,150,120,.07); --lane: rgba(255,150,120,.05);
-    --feed: #ff7a5c; --breast: #6f86c0; --milk: #c98b7d; --pump: #8a84c8; --spit: #93a585; --pee: #d3ab6f; --poop: #a88470; --winS: #3d4d5a; --band: #2a1c19;
+    --feed: #ff7a5c; --breast: #6f86c0; --milk: #c98b7d; --pump: #8a84c8; --spit: #93a585; --bath: #5f9a9e; --pee: #d3ab6f; --poop: #a88470; --winS: #3d4d5a; --band: #2a1c19;
     --warn: #ffa050; --alert: #ff5040; --ok: #c98a68; --accent: #ff7a5c; --win: rgba(110,200,230,.20);
     --btn: #231310; --btnInk: #ffb9a5; --sheet: #1e100d; --chip: rgba(255,150,120,.10);
     --shadow: none;
@@ -93,10 +93,10 @@
   /* 今日の流れ */
   .tl { padding-bottom: 10px; display: flex; flex-direction: column; min-height: 0; }
   .tlhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 9px; font-size: 11px; color: var(--sub); min-width: 0; }
+  .legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 5px; font-size: 10px; letter-spacing: -.02em; color: var(--sub); min-width: 0; }
   .legend span { white-space: nowrap; }
   .tlhead > div:first-child { flex: none; white-space: nowrap; }
-  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
+  .legend i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 2px; vertical-align: 0; }
   .plot { flex: 1 1 auto; min-height: 120px; display: grid; grid-template-columns: 42px 1fr; grid-template-rows: 30px 1fr; column-gap: 4px; row-gap: 6px; margin-top: 6px; position: relative; }
   .axis { position: relative; grid-column: 2; grid-row: 1; }
   .tk { position: absolute; bottom: 4px; transform: translateX(-50%); font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; }
@@ -133,6 +133,8 @@
   .b:active { transform: scale(.96); opacity: .8; }
   .b .sw { width: 9px; height: 9px; border-radius: 50%; flex: none; }
   .b.low { min-height: clamp(40px, 6vh, 52px); font-size: 14.5px; grid-column: span 2; color: var(--sub); }
+  .b.low.one { grid-column: span 1; }
+  .b.low.bath { color: var(--btnInk); }
   .memo { display: flex; flex-direction: column; justify-content: center; width: 100%; height: 96px; margin-bottom: 8px; padding: 4px 0; border-radius: 12px; background: #14151a; overflow: hidden; position: relative; font-family: 'DotGothic16', 'Hiragino Maru Gothic ProN', monospace; white-space: nowrap; text-align: left; }
   .memo .mline { flex: 1; display: flex; align-items: center; overflow: hidden; min-height: 0; }
   .memo .mline span { display: inline-block; padding-left: 100%; will-change: transform; animation: marquee var(--mdur, 14s) linear infinite; }
@@ -192,6 +194,10 @@
   .rowl button.v { font-weight: 700; color: var(--accent); font-size: 17px; font-variant-numeric: tabular-nums; }
   .segc { display: flex; background: var(--chip); border-radius: 12px; padding: 3px; gap: 2px; margin: 8px 0; }
   .segc button { flex: 1; min-height: 40px; padding: 6px 10px; border-radius: 10px; font-size: 14.5px; font-weight: 600; color: var(--sub); }
+  .glg { display: flex; gap: 12px; font-size: 12px; font-weight: 600; color: var(--sub); }
+  .glg i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+  .segc.gr { margin: 0; flex: none; }
+  .segc.gr button { min-height: 32px !important; font-size: 13px !important; padding: 4px 12px; white-space: nowrap; flex: none; }
   .segc button.on { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
   .stepper { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; }
   .stepper .val { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 120px; text-align: center; }
@@ -243,6 +249,7 @@
     .stats { grid-template-columns: repeat(3, 1fr); row-gap: 10px; }
     .btns { grid-template-columns: repeat(2, 1fr); }
     .b.low { grid-column: span 1; }
+    .b.low.bath { grid-column: span 2; }
     .hero { grid-template-columns: 1fr; }
     .plot { min-height: 150px; }
   }
@@ -351,7 +358,7 @@
 
     <div class="card tl" id="tlcard">
       <div class="tlhead"><div style="display:flex;align-items:center"><div class="label">今日の流れ</div><div class="vsw" id="vsw"><button data-view="bar" class="on">帯</button><button data-view="clock">時計</button></div></div>
-        <div class="legend"><span><i style="background:var(--breast)"></i>母乳</span><span><i style="background:var(--milk)"></i>ミルク</span><span><i style="background:var(--pump)"></i>搾乳</span><span><i style="background:var(--pee)"></i>おしっこ</span><span><i style="background:var(--poop)"></i>うんち</span><span><i style="background:var(--spit)"></i>吐き戻し</span></div>
+        <div class="legend"><span><i style="background:var(--breast)"></i>母乳</span><span><i style="background:var(--milk)"></i>ミルク</span><span><i style="background:var(--pump)"></i>搾乳</span><span><i style="background:var(--pee)"></i>おしっこ</span><span><i style="background:var(--poop)"></i>うんち</span><span><i style="background:var(--spit)"></i>吐き戻し</span><span><i style="background:var(--bath)"></i>お風呂</span></div>
       </div>
       <div class="plot" id="plot">
         <div class="axis" id="axis"></div>
@@ -376,8 +383,9 @@
         <button class="b" data-open="poop"><span class="sw" style="background:var(--poop)"></span>うんち</button>
         <button class="b" data-open="both"><span class="sw" style="background:linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)"></span>両方</button>
         <button class="b" data-open="spit"><span class="sw" style="background:var(--spit)"></span>吐き戻し</button>
-        <button class="b low" data-a="undo">取り消し</button>
-        <button class="b low" data-open="other">その他</button>
+        <button class="b low bath" data-a="add" data-t="bath"><span class="sw" style="background:var(--bath)"></span>お風呂</button>
+        <button class="b low one" data-a="undo">取り消し</button>
+        <button class="b low one" data-open="other">その他</button>
       </div>
       <div class="agoRow">
         <span class="label">時刻 いま</span>
@@ -407,10 +415,10 @@ var KEY = HASH.key || SAVED.key || '';
 var EXEC = HASH.exec || SAVED.exec || '';
 var S = null, ago = 0, nightOverride = null, ED = null;
 var $ = function (id) { return document.getElementById(id); };
-var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ', moment: 'できごと', weight: '体重', height: '身長', spit: '吐き戻し', temp: '体温' };
+var TYPE_LABEL = { breast: '母乳', milk: 'ミルク', pump: '搾乳', pee: 'おしっこ', poop: 'うんち', both: '両方', memo: 'メモ', moment: 'できごと', weight: '体重', height: '身長', spit: '吐き戻し', temp: '体温', bath: 'お風呂' };
 var GROW = { weight: { label: '体重', unit: 'g', step: 10, big: 100, def: 3000, dec: 0 }, height: { label: '身長', unit: 'cm', step: 0.1, big: 1, def: 50, dec: 1 } };
 var SIDE = { L: '左', R: '右' };
-var COLORS = { breast: 'var(--breast)', milk: 'var(--milk)', pump: 'var(--pump)', spit: 'var(--spit)', pee: 'var(--pee)', poop: 'var(--poop)', both: 'linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)' };
+var COLORS = { breast: 'var(--breast)', milk: 'var(--milk)', pump: 'var(--pump)', spit: 'var(--spit)', bath: 'var(--bath)', pee: 'var(--pee)', poop: 'var(--poop)', both: 'linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)' };
 function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
 
 /* ───────── 通信 ───────── */
@@ -504,7 +512,7 @@ function renderTimeline() {
   var feed = '', dia = '';
   S.timeline.forEach(function (e) {
     if ((e.end || e.t) < S.dayStart) return;
-    var lane = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 'f' : (e.type === 'pee' || e.type === 'poop' || e.type === 'both' || e.type === 'spit') ? 'd' : null;
+    var lane = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 'f' : (e.type === 'pee' || e.type === 'poop' || e.type === 'both' || e.type === 'spit' || e.type === 'bath') ? 'd' : null;
     if (!lane) return;
     var html;
     if (lane === 'f') html = '<div class="seg" style="left:' + xPct(e.t) + '%;width:' + Math.max(e.type === 'breast' ? 1 : 1.2, e.end ? xPct(e.end) - xPct(e.t) : 0) + '%;background:' + COLORS[e.type] + '"></div>';
@@ -544,15 +552,18 @@ function dialSvg(half) {
     if (s1 <= s0) return;
     o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, COLORS[e.type]);
   });
+  // 真ん中の円（扇の内側 r38 に触れない大きさ）
+  o += '<circle cx="100" cy="100" r="33" style="fill:var(--card);stroke:var(--grid3)" stroke-width="1"/>';
+  o += '<circle cx="100" cy="100" r="28" fill="none" style="stroke:var(--grid1)" stroke-width="1"/>';
   for (var i = 0; i < 12; i++) {
     var major = i % 3 === 0, tp = pt(87, i * 30 - 90);
     o += '<text x="' + tp[0].toFixed(1) + '" y="' + (tp[1] + (major ? 5 : 4)).toFixed(1) + '" text-anchor="middle" style="fill:' + (major ? 'var(--ink)' : 'var(--sub)') + '" font-size="' + (major ? 13 : 10) + '" font-weight="' + (major ? 700 : 500) + '" opacity="' + (major ? 1 : .75) + '">' + (i === 0 ? 12 : i) + '</text>';
   }
-  o += '<text x="100" y="131" text-anchor="middle" style="fill:var(--sub)" font-size="' + (half < 0 ? 10.5 : 13) + '" font-weight="600">' + (half < 0 ? '昨日の午後' : half ? '午後' : '午前') + '</text>';
+  o += '<text x="100" y="' + (half < 0 ? 119 : 121) + '" text-anchor="middle" style="fill:var(--sub)" font-size="' + (half < 0 ? 8.5 : 11) + '" font-weight="600">' + (half < 0 ? '昨日の午後' : half ? '午後' : '午前') + '</text>';
   S.timeline.forEach(function (e) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
-    if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both' && e.type !== 'spit') return;
+    if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both' && e.type !== 'spit' && e.type !== 'bath') return;
     var c = pt(70, (hrs - half * 12) * 30 - 90);
     o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="9" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--sheet)" stroke-width="2"/>';
     if (e.type === 'both') o += '<path d="M' + (c[0] - 8).toFixed(1) + ' ' + c[1].toFixed(1) + ' a8 8 0 0 1 16 0z" style="fill:var(--pee)"/>';
@@ -583,7 +594,7 @@ function dialSvgClassic(half) {
   S.timeline.forEach(function (e) {
     var hrs = (e.t - S.dayStart) / 3600000;
     if (Math.floor(hrs / 12) !== half) return;
-    var ring = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 70 : (e.type === 'pee' || e.type === 'poop' || e.type === 'both' || e.type === 'spit') ? 50 : 0;
+    var ring = (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') ? 70 : (e.type === 'pee' || e.type === 'poop' || e.type === 'both' || e.type === 'spit' || e.type === 'bath') ? 50 : 0;
     if (!ring) return;
     var d0 = (hrs - half * 12) * 30 - 90;
     if (e.type === 'breast' && e.end) {
@@ -619,7 +630,7 @@ $('dials').addEventListener('click', function (ev) {
   var half = Number(svg.dataset.half), r0 = svg.getBoundingClientRect(), sc = 200 / Math.min(r0.width, r0.height);
   var x = (ev.clientX - r0.left - r0.width / 2) * sc, y = (ev.clientY - r0.top - r0.height / 2) * sc, r = Math.sqrt(x * x + y * y);
   if (r < 32 || r > 98) return;
-  var FEED = ['breast', 'milk', 'pump'], DIA = ['pee', 'poop', 'both', 'spit'];
+  var FEED = ['breast', 'milk', 'pump'], DIA = ['pee', 'poop', 'both', 'spit', 'bath'];
   var a = (Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360, t = S.dayStart + (half * 12 + a / 30) * 3600000;
   var tol = (12 / r) / (2 * Math.PI) * 12 * 3600000;
   var ch = a / 30, tolH = tol / 3600000;
@@ -813,6 +824,64 @@ function growthChart(data, kind) {
   });
   return o + '</svg>';
 }
+/* 体重と身長を1つのグラフに重ねる（左の目盛り＝体重、右＝身長）。range: m＝直近1か月、y＝生まれてから1年 */
+function growthDual(kind, range) {
+  var W = 340, H = 196, L = 44, Rr = 40, T = 26, B = 30, now = Date.now(), DAY = 86400000;
+  var birth = S && S.child ? S.child.birth : now - 30 * DAY;
+  var t0, t1, ticks = [];
+  if (range === 'y') {
+    t0 = birth; t1 = birth + 365 * DAY;
+    for (var mo = 0; mo <= 12; mo += 2) { var d = new Date(birth); d.setMonth(d.getMonth() + mo); ticks.push([d.getTime(), mo === 0 ? '誕生' : mo + 'か月']); }
+  } else {
+    t1 = now + DAY; t0 = Math.max(birth - DAY, t1 - 31 * DAY);
+    for (var tt = t1 - DAY; tt >= t0; tt -= 7 * DAY) ticks.push([tt, md(tt)]);
+  }
+  var pick = function (arr) { return (arr || []).filter(function (e) { return e.t >= t0 && e.t <= t1; }).sort(function (a, b) { return a.t - b.t; }); };
+  var series = [
+    { k: 'weight', data: pick(S && S.growth), color: 'var(--breast)', side: 'L' },
+    { k: 'height', data: pick(S && S.growthH), color: 'var(--pee)', side: 'R' }
+  ];
+  if (!series[0].data.length && !series[1].data.length) return '<div class="note2" style="margin:10px 0">この期間の記録はまだありません</div>';
+  var X = function (t) { return L + (t - t0) / (t1 - t0) * (W - L - Rr); };
+  var o = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block;margin:6px 0 2px">';
+  o += '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - Rr) + '" y2="' + (H - B) + '" style="stroke:var(--grid3)" stroke-width="1"/>';
+  ticks.forEach(function (tk, i) {
+    var x = X(tk[0]); if (x < L - 1 || x > W - Rr + 1) return;
+    o += '<line x1="' + x.toFixed(1) + '" y1="' + T + '" x2="' + x.toFixed(1) + '" y2="' + (H - B + 4) + '" style="stroke:var(--grid1)" stroke-width="1"/>';
+    o += '<text x="' + x.toFixed(1) + '" y="' + (H - B + 16) + '" font-size="10" text-anchor="middle" style="fill:var(--sub)">' + tk[1] + '</text>';
+  });
+  if (range === 'y' && now > t0 && now < t1) { var xn = X(now); o += '<line x1="' + xn.toFixed(1) + '" y1="' + (T - 6) + '" x2="' + xn.toFixed(1) + '" y2="' + (H - B) + '" stroke="var(--alert)" stroke-width="1.2" stroke-dasharray="3 3" opacity=".7"/><text x="' + xn.toFixed(1) + '" y="' + (T - 9) + '" font-size="9.5" text-anchor="middle" style="fill:var(--alert)">いま</text>'; }
+  // 先に「選んでいない方」、上に「選んでいる方」を描く
+  series.sort(function (a, b) { return (a.k === kind) - (b.k === kind); }).forEach(function (sr) {
+    if (!sr.data.length) return;
+    var g = GROW[sr.k], vs = sr.data.map(function (e) { return Number(e.amt); }), mn = Math.min.apply(null, vs), mx = Math.max.apply(null, vs);
+    var sp = Math.max(mx - mn, sr.k === 'weight' ? 200 : 2); mn -= sp * 0.2; mx += sp * 0.2;
+    var Y = function (v) { return T + (mx - v) / (mx - mn) * (H - T - B); };
+    var on = sr.k === kind, num = function (v) { return g.dec ? Number(v).toFixed(g.dec) : String(Math.round(v)).replace(/\B(?=(\d{3})+$)/g, ','); };
+    for (var q = 0; q < 3; q++) {
+      var gv = mn + (mx - mn) * (0.15 + 0.35 * q), gy = Y(gv), lbl = num(g.dec ? gv : Math.round(gv / 50) * 50);
+      if (on) o += '<line x1="' + L + '" y1="' + gy.toFixed(1) + '" x2="' + (W - Rr) + '" y2="' + gy.toFixed(1) + '" style="stroke:var(--line)" stroke-width="1"/>';
+      o += '<text x="' + (sr.side === 'L' ? L - 5 : W - Rr + 5) + '" y="' + (gy + 3.5).toFixed(1) + '" font-size="9.5" text-anchor="' + (sr.side === 'L' ? 'end' : 'start') + '" style="fill:' + sr.color + '" font-weight="600" opacity="' + (on ? 1 : .7) + '">' + lbl + '</text>';
+    }
+    var pts = sr.data.map(function (e) { return X(e.t).toFixed(1) + ',' + Y(Number(e.amt)).toFixed(1); }).join(' ');
+    if (sr.data.length > 1) o += '<polyline points="' + pts + '" fill="none" style="stroke:' + sr.color + '" stroke-width="' + (on ? 2.6 : 1.8) + '" opacity="' + (on ? 1 : .6) + '" stroke-linecap="round" stroke-linejoin="round"/>';
+    sr.data.forEach(function (e, i) {
+      var x = X(e.t), y = Y(Number(e.amt)), last = i === sr.data.length - 1;
+      o += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (last ? 3.8 : on ? 2.8 : 2.2) + '" style="fill:' + sr.color + ';stroke:var(--sheet)" stroke-width="1.4" opacity="' + (on || last ? 1 : .7) + '"/>';
+      if (last) o += '<text x="' + x.toFixed(1) + '" y="' + (on ? y - 8 : y + 16).toFixed(1) + '" font-size="' + (on ? 11.5 : 10) + '" font-weight="700" text-anchor="' + (x > W - Rr - 24 ? 'end' : 'middle') + '" style="fill:' + (on ? 'var(--ink)' : 'var(--sub)') + '">' + num(e.amt) + g.unit + '</text>';
+    });
+  });
+  return o + '</svg>';
+}
+function growthBlock(kind) {
+  var rg = ls('pon.grange') === 'y' ? 'y' : 'm';
+  return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px"><div class="glg"><span><i style="background:var(--breast)"></i>体重（左）</span><span><i style="background:var(--pee)"></i>身長（右）</span></div><div class="segc gr" id="gRange"><button data-gr="m" class="' + (rg === 'm' ? 'on' : '') + '">1か月</button><button data-gr="y" class="' + (rg === 'y' ? 'on' : '') + '">1年</button></div></div><div id="gChart">' + growthDual(kind, rg) + '</div>';
+}
+function bindGrowthRange(kind) {
+  Array.prototype.forEach.call(document.querySelectorAll('#gRange [data-gr]'), function (b) {
+    b.onclick = function () { ls('pon.grange', b.dataset.gr); Array.prototype.forEach.call(document.querySelectorAll('#gRange [data-gr]'), function (x) { x.classList.toggle('on', x === b); }); $('gChart').innerHTML = growthDual(kind, b.dataset.gr); };
+  });
+}
 function openGrowth(kind) {
   var g = GROW[kind], data = ((kind === 'weight' ? S && S.growth : S && S.growthH) || []).slice().sort(function (a, b) { return a.t - b.t; });
   var last = data.length ? data[data.length - 1] : null, prev = data.length > 1 ? data[data.length - 2] : null;
@@ -821,12 +890,12 @@ function openGrowth(kind) {
   var hist = data.slice().reverse().slice(0, 6).map(function (e) { return '<button data-edit="' + e.id + '"><span>' + md(e.t) + '　' + hm(e.t) + '　' + fmtG(kind, e.amt) + '</span>' + CHEV + '</button>'; }).join('');
   openSheet('<div class="ph"><h3>成長の記録</h3><button class="x" data-close>閉じる</button></div>' +
     '<div class="segc"><button id="gk1" class="' + (kind === 'weight' ? 'on' : '') + '">体重</button><button id="gk2" class="' + (kind === 'height' ? 'on' : '') + '">身長</button></div>' +
-    sum + likeHtml(kind, data) + growthChart(data, kind) +
+    sum + likeHtml(kind, data) + growthBlock(kind) +
     '<div class="label" style="margin-top:6px">いま測った' + g.label + '</div><div class="stepper"><button id="gMinus">−</button><div class="val"><input id="gIn" type="number" inputmode="decimal" step="' + g.step + '" value="' + val + '" style="width:130px;font:inherit;text-align:center;border:0;background:transparent;color:inherit;-webkit-user-select:text;user-select:text"><small>' + g.unit + '</small></div><button id="gPlus">＋</button></div>' +
     '<div class="quick"><button id="gM2">−' + g.big + '</button><button id="gP2">＋' + g.big + '</button></div>' +
     '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="gSave">記録する</button></div>' +
     (hist ? '<div class="label" style="margin-top:12px">これまで　<span style="font-weight:500">タップで直せます</span></div><div class="pick">' + hist + '</div>' : ''));
-  bindLike(kind, data);
+  bindLike(kind, data); bindGrowthRange(kind);
   var inp = $('gIn');
   var step = function (d) { var v = Math.max(0, Math.round((Number(inp.value || 0) + d) * 10) / 10); inp.value = v; };
   $('gMinus').onclick = function () { step(-g.step); };
@@ -883,7 +952,7 @@ function openEdit(id, focus) {
 }
 function SIDE_REV(s) { return s === '左' ? 'L' : s === '右' ? 'R' : ''; }
 function drawContent() {
-  var d = ED, types = [['breast', '母乳'], ['milk', 'ミルク'], ['pump', '搾乳'], ['pee', 'おしっこ'], ['poop', 'うんち'], ['both', '両方'], ['spit', '吐き戻し']];
+  var d = ED, types = [['breast', '母乳'], ['milk', 'ミルク'], ['pump', '搾乳'], ['pee', 'おしっこ'], ['poop', 'うんち'], ['both', '両方'], ['spit', '吐き戻し'], ['bath', 'お風呂']];
   var h = '<div class="ph"><h3>記録を直す</h3><button class="x" data-close>閉じる</button></div>';
   if (d.type === 'memo' || d.type === 'moment') {
     h += '<input class="noteIn" id="noteIn" value="" placeholder="メモ">';
@@ -1058,7 +1127,7 @@ function openNextOnce() {
   if (S.nextOnce) $('nReset').onclick = function () { send('', '間隔どおりに戻しました'); };
 }
 /* 最近の記録に「追加」：あとから何でも、好きな時刻で入れる */
-var ADD_TYPES = [['breast', '母乳'], ['milk', 'ミルク'], ['pump', '搾乳'], ['pee', 'おしっこ'], ['poop', 'うんち'], ['both', '両方'], ['spit', '吐き戻し'], ['weight', '体重'], ['height', '身長'], ['temp', '体温'], ['memo', 'メモ']];
+var ADD_TYPES = [['breast', '母乳'], ['milk', 'ミルク'], ['pump', '搾乳'], ['pee', 'おしっこ'], ['poop', 'うんち'], ['both', '両方'], ['spit', '吐き戻し'], ['bath', 'お風呂'], ['weight', '体重'], ['height', '身長'], ['temp', '体温'], ['memo', 'メモ']];
 function openAddAny(type, at) {
   type = type || 'breast'; at = at || Date.now();
   var amt = type === 'milk' || type === 'pump' ? 60 : type === 'temp' ? 36.8 : GROW[type] ? (function () { var d = (type === 'weight' ? S.growth : S.growthH) || []; return d.length ? Number(d[d.length - 1].amt) : GROW[type].def; })() : '';
@@ -1433,7 +1502,7 @@ function openMemo() {
     };
   });
 }
-laneClick('laneFeed', ['breast', 'milk', 'pump', 'pee', 'poop', 'both', 'spit']);
+laneClick('laneFeed', ['breast', 'milk', 'pump', 'pee', 'poop', 'both', 'spit', 'bath']);
 try { speechSynthesis.getVoices(); } catch (e) {}
 updateVoiceBtn();
 setView(ls('pon.view') === 'clock' ? 'clock' : 'bar');
