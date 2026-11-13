@@ -135,6 +135,15 @@
   .b.low { min-height: clamp(52px, 8.5vh, 72px); font-size: 17px; grid-column: span 2; color: var(--sub); }
   .b.low.one { grid-column: span 1; }
   .b.low.bath { color: var(--btnInk); }
+  .b.low.ago { flex-direction: column; gap: 0; line-height: 1.15; }
+  .b.low.ago .agoK { font-size: 12px; font-weight: 600; color: var(--sub); }
+  .b.low.ago #agoV { font-size: 17px; font-weight: 700; color: var(--btnInk); font-variant-numeric: tabular-nums; }
+  .b.low.ago.on { background: var(--accent); border-color: var(--accent); }
+  .b.low.ago.on .agoK, .b.low.ago.on #agoV { color: #fff; }
+  .agoGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0 4px; }
+  .agoGrid button { min-height: 70px; border-radius: 16px; background: var(--chip); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .agoGrid button.on { background: var(--accent); color: #fff; }
+  .agoGrid button.wide { grid-column: span 3; font-size: 19px; min-height: 60px; }
   .memo { display: flex; flex-direction: column; justify-content: center; width: 100%; height: 96px; margin-bottom: 8px; padding: 4px 0; border-radius: 12px; background: #14151a; overflow: hidden; position: relative; font-family: 'DotGothic16', 'Hiragino Maru Gothic ProN', monospace; white-space: nowrap; text-align: left; }
   .memo .mline { flex: 1; display: flex; align-items: center; overflow: hidden; min-height: 0; }
   .memo .mline span { display: inline-block; padding-left: 100%; will-change: transform; animation: marquee var(--mdur, 14s) linear infinite; }
@@ -154,7 +163,6 @@
   .chip { flex: 1; min-height: 38px; border-radius: 12px; background: var(--chip); font-size: 14px; font-weight: 600; color: var(--sub); padding: 8px 10px; }
   .chip.on { background: var(--ink); color: var(--card); }
   .chip { white-space: nowrap; }
-  #agoPick { flex: 1.35; }
   .agoRow .label { min-width: 4.6em; }
   .recentcard { display: flex; flex-direction: column; min-height: 0; }
   .list { list-style: none; margin: 4px 0 0; padding: 0; }
@@ -304,7 +312,7 @@
     .stats { grid-template-columns: repeat(3, 1fr); row-gap: 10px; }
     .btns { grid-template-columns: repeat(2, 1fr); }
     .b.low { grid-column: span 1; }
-    .b.low.bath { grid-column: span 2; }
+    .b.low.bath { grid-column: span 1; }
     .hero { grid-template-columns: 1fr; }
     .plot { min-height: 150px; }
   }
@@ -450,16 +458,10 @@
         <button class="b" data-open="poop"><span class="sw" style="background:var(--poop)"></span>うんち</button>
         <button class="b" data-open="both"><span class="sw" style="background:linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)"></span>両方</button>
         <button class="b" data-open="spit"><span class="sw" style="background:var(--spit)"></span>吐き戻し</button>
-        <button class="b low bath" data-a="add" data-t="bath"><span class="sw" style="background:var(--bath)"></span>お風呂</button>
+        <button class="b low one bath" data-a="add" data-t="bath"><span class="sw" style="background:var(--bath)"></span>お風呂</button>
+        <button class="b low one ago" id="agoBtn"><span class="agoK">時刻</span><span id="agoV">いま</span></button>
         <button class="b low one" data-a="undo">取り消し</button>
         <button class="b low one" data-open="other">その他</button>
-      </div>
-      <div class="agoRow">
-        <span class="label">時刻 いま</span>
-        <button class="chip" data-ago="5">5分前</button>
-        <button class="chip" data-ago="10">10分前</button>
-        <button class="chip" data-ago="15">15分前</button>
-        <button class="chip" id="agoPick">時刻を選ぶ</button>
       </div>
     </div>
     <div class="card recentcard">
@@ -804,9 +806,19 @@ function act(params, openAfter) {
 var agoAt = null;
 function setAgo(v, at) {
   ago = v; agoAt = at || null;
-  Array.prototype.forEach.call(document.querySelectorAll('[data-ago]'), function (b) { b.classList.toggle('on', !agoAt && v > 0 && Number(b.dataset.ago) === v); });
-  var pk = $('agoPick'); pk.classList.toggle('on', !!agoAt); pk.textContent = agoAt ? hm(agoAt) + '　×' : '時刻を選ぶ';
-  var lb = document.querySelector('.agoRow .label'); if (lb) lb.textContent = v > 0 ? '時刻' : '時刻 いま';
+  // 時刻ボタン（お風呂の隣）。記録すると「いま」に戻る（act の最後で setAgo(0)）。2026-11-14
+  $('agoBtn').classList.toggle('on', v > 0);
+  $('agoV').textContent = agoAt ? hm(agoAt) : v > 0 ? v + '分前' : 'いま';
+}
+var AGO_CHOICES = [5, 10, 15, 20, 30, 45, 60, 90, 120];
+function openAgoMenu() {
+  var h = '<div class="ph"><h3>記録する時刻</h3><button class="x" data-close>閉じる</button></div><div class="label">次に押すボタンを、何分前で記録するか。記録したら「いま」に戻ります</div><div class="agoGrid">';
+  h += '<button class="wide' + (!(ago > 0) ? ' on' : '') + '" data-agom="0">いま</button>';
+  AGO_CHOICES.forEach(function (m) { h += '<button class="' + (!agoAt && ago === m ? 'on' : '') + '" data-agom="' + m + '">' + (m >= 60 && m % 60 === 0 ? (m / 60) + '時間前' : m >= 60 ? '1時間' + (m - 60) + '分前' : m + '分前') + '</button>'; });
+  h += '<button class="wide' + (agoAt ? ' on' : '') + '" id="agoPick">' + (agoAt ? hm(agoAt) + '（時刻を選び直す）' : '時刻を選ぶ…') + '</button></div>';
+  openSheet(h);
+  Array.prototype.forEach.call(document.querySelectorAll('[data-agom]'), function (b) { b.onclick = function () { var m = Number(b.dataset.agom); closeSheet(); setAgo(m); if (m > 0) toast(b.textContent + ' で記録します。ボタンを押してください'); }; });
+  $('agoPick').onclick = openAgoPick;
 }
 function openAgoPick() {
   var now = new Date(), base = startOfDay(now), hh = now.getHours(), mm = now.getMinutes();
@@ -1317,8 +1329,7 @@ document.addEventListener('click', function (ev) {
     if (VOICE.pref) { VOICE.unlocked = false; unlockVoice(); audioCtx(); playClip('音声案内をオンにしました', SND.vol / 100); } updateVoiceBtn(); return;
   }
   if (b.dataset.close !== undefined) { closeSheet(); return; }
-  if (b.dataset.ago !== undefined) { var v = Number(b.dataset.ago); setAgo(!agoAt && ago === v ? 0 : v); return; }
-  if (b.id === 'agoPick') { if (agoAt) setAgo(0); else openAgoPick(); return; }
+  if (b.id === 'agoBtn') { openAgoMenu(); return; }
   if (b.dataset.open === 'milk') { openMilk('milk'); return; }
   if (b.dataset.open === 'pump') { openMilk('pump'); return; }
   if (b.dataset.open === 'breast') { act({ a: 'add', t: 'breast' }, true); return; }
