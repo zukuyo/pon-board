@@ -13,7 +13,7 @@
   :root {
     --bg: linear-gradient(160deg, #f5f7fb 0%, #e9edf6 100%); --card: rgba(255,255,255,.88); --ink: #15171c; --sub: #6a7080; --line: rgba(20,24,40,.09);
     --grid3: rgba(20,24,40,.16); --grid1: rgba(20,24,40,.06); --lane: rgba(20,24,40,.045);
-    --feed: #1a46d0; --breast: #8ea6d0; --milk: #c39bc9; --pump: #8487d6; --spit: #9db8a0; --bath: #7fbfc4; --pee: #e6b66e; --poop: #a88566; --winS: #c4d9e6; --band: #e6e4ee;
+    --feed: #1a46d0; --breast: #8ea6d0; --milk: #ffffff; --milkEdge: rgba(20,24,40,.28); --pump: #8487d6; --spit: #9db8a0; --bath: #7fbfc4; --pee: #e6b66e; --poop: #a88566; --winS: #c4d9e6; --band: #e6e4ee;
     --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff; --win: rgba(90,200,250,.30);
     --btn: #ffffff; --btnInk: #15171c; --sheet: #ffffff; --chip: rgba(20,24,40,.06);
     --shadow: 0 1px 1px rgba(20,24,40,.04), 0 10px 28px rgba(20,24,40,.07);
@@ -22,7 +22,7 @@
   body.night {
     --bg: linear-gradient(160deg, #0d0706 0%, #120907 100%); --card: rgba(30,16,13,.92); --ink: #ffb9a5; --sub: #a96b5e; --line: rgba(255,150,120,.12);
     --grid3: rgba(255,150,120,.20); --grid1: rgba(255,150,120,.07); --lane: rgba(255,150,120,.05);
-    --feed: #ff7a5c; --breast: #6f86c0; --milk: #c98b7d; --pump: #8a84c8; --spit: #93a585; --bath: #5f9a9e; --pee: #d3ab6f; --poop: #a88470; --winS: #3d4d5a; --band: #2a1c19;
+    --feed: #ff7a5c; --breast: #6f86c0; --milk: #eadcd3; --milkEdge: transparent; --pump: #8a84c8; --spit: #93a585; --bath: #5f9a9e; --pee: #d3ab6f; --poop: #a88470; --winS: #3d4d5a; --band: #2a1c19;
     --warn: #ffa050; --alert: #ff5040; --ok: #c98a68; --accent: #ff7a5c; --win: rgba(110,200,230,.20);
     --btn: #231310; --btnInk: #ffb9a5; --sheet: #1e100d; --chip: rgba(255,150,120,.10);
     --shadow: none;
@@ -252,7 +252,19 @@
 
 
   /* 押しやすさ（iPad mini向け。2026-11-14） */
-  .b { font-size: clamp(16px, 1.7vw, 20px); padding: 8px 4px; }
+  .b { font-size: clamp(17px, 1.95vw, 23px); padding: 8px 4px; }
+  .b.low { font-size: clamp(16px, 1.65vw, 20px); }
+  .b.low.ago { background: color-mix(in srgb, var(--accent) 13%, var(--btn)); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .b.low.ago .agoK { font-size: 13px; }
+  .b.low.ago #agoV { font-size: clamp(17px, 1.75vw, 21px); }
+  /* ミルクは白。昼はうすい縁どりで見えるように（2026-11-14） */
+  [style*="background:var(--milk)"] { box-shadow: 0 0 0 1px var(--milkEdge); }
+  .dials svg [style*="fill:var(--milk)"]:not([style*="stroke"]) { stroke: var(--milkEdge); stroke-width: 1; }
+  /* うんち・両方・吐き戻しの量のボタン */
+  .bigpick { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0 6px; }
+  .bigpick.three { grid-template-columns: repeat(3, 1fr); }
+  .bigpick button { min-height: 120px; border-radius: 20px; background: var(--chip); font-size: 30px; font-weight: 700; color: var(--ink); }
+  .bigpick button:active { transform: scale(.97); opacity: .8; }
   .tool { height: 40px; padding: 0 15px; border-radius: 20px; font-size: 14px; }
   .tool svg { width: 17px; height: 17px; }
   .nextLbl { height: 34px; font-size: 14px; padding: 0 13px; border-radius: 17px; }
@@ -599,7 +611,9 @@ function dialSvg(half) {
     var rr = 2, ri = 38 + rr, ro = 96 - rr, inset = rr / 67 * 180 / Math.PI;
     d0 += inset; d1 -= inset; if (d1 - d0 < 0.5) { var m = (d0 + d1) / 2; d0 = m - 0.25; d1 = m + 0.25; }
     var p1 = pt(ro, d0), p2 = pt(ro, d1), p3 = pt(ri, d1), p4 = pt(ri, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
-    return '<path d="M' + f(p1) + ' A' + ro + ' ' + ro + ' 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A' + ri + ' ' + ri + ' 0 0 0 ' + f(p4) + ' Z" style="fill:' + color + ';stroke:' + color + '" stroke-width="' + (rr * 2) + '" stroke-linejoin="round"/>';
+    var dd = 'M' + f(p1) + ' A' + ro + ' ' + ro + ' 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A' + ri + ' ' + ri + ' 0 0 0 ' + f(p4) + ' Z';
+    var edge = color === 'var(--milk)' ? '<path d="' + dd + '" style="fill:var(--milkEdge);stroke:var(--milkEdge)" stroke-width="' + (rr * 2 + 2) + '" stroke-linejoin="round"/>' : '';
+    return edge + '<path d="' + dd + '" style="fill:' + color + ';stroke:' + color + '" stroke-width="' + (rr * 2) + '" stroke-linejoin="round"/>';
   };
   var o = '<svg viewBox="0 0 200 200" data-half="' + half + '" preserveAspectRatio="xMidYMid meet">';
   o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
@@ -1380,16 +1394,16 @@ function openMilk(kind) {
 var SPIT_LV = ['ちょっと', 'そこそこ', 'まるっと'];
 function spitSeg(cur, id) { return '<div class="segc" id="' + id + '">' + SPIT_LV.map(function (v) { return '<button data-sp="' + v + '" class="' + (cur === v ? 'on' : '') + '">' + v + '</button>'; }).join('') + '</div>'; }
 function openSpit() {
-  openSheet('<div class="ph"><h3>吐き戻し</h3><button class="x" data-close>閉じる</button></div><div class="label">どのくらい？</div><div class="quick" style="margin-top:10px">' +
-    SPIT_LV.map(function (v) { return '<button data-spadd="' + v + '" style="min-height:64px;font-size:19px">' + v + '</button>'; }).join('') + '</div>');
+  openSheet('<div class="ph"><h3>吐き戻し</h3><button class="x" data-close>閉じる</button></div><div class="label">どのくらい？</div><div class="bigpick three">' +
+    SPIT_LV.map(function (v) { return '<button data-spadd="' + v + '">' + v + '</button>'; }).join('') + '</div>');
 }
 
 /* うんち・両方：うんちの量を4つから選ぶ（記録のメモ欄に入る） */
 var POOP_LV = ['てん', 'ちょっと', 'ふつう', 'たっぷり'];
 function poopSeg(cur, id) { return '<div class="segc" id="' + id + '">' + POOP_LV.map(function (v) { return '<button data-sp="' + v + '" class="' + (cur === v ? 'on' : '') + '">' + v + '</button>'; }).join('') + '</div>'; }
 function openPoop(t) {
-  openSheet('<div class="ph"><h3>' + (t === 'both' ? '両方（おしっことうんち）' : 'うんち') + '</h3><button class="x" data-close>閉じる</button></div><div class="label">うんちの量は？</div><div class="quick" style="margin-top:10px">' +
-    POOP_LV.map(function (v) { return '<button data-ppadd="' + v + '" data-ppt="' + t + '" style="min-height:64px;font-size:19px;min-width:22%">' + v + '</button>'; }).join('') + '</div>');
+  openSheet('<div class="ph"><h3>' + (t === 'both' ? '両方（おしっことうんち）' : 'うんち') + '</h3><button class="x" data-close>閉じる</button></div><div class="label">うんちの量は？</div><div class="bigpick">' +
+    POOP_LV.map(function (v) { return '<button data-ppadd="' + v + '" data-ppt="' + t + '">' + v + '</button>'; }).join('') + '</div>');
 }
 
 /* ───────── 体重・身長のたとえ ───────── */
