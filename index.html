@@ -221,6 +221,15 @@
   .panel.wide .acts .btn { min-height: 58px; font-size: 18px; }
   .panel.wide .segc button { min-height: 46px; font-size: 16px; }
   .band { position: absolute; left: 6px; right: 6px; top: 88px; height: 44px; border-radius: 12px; background: var(--chip); pointer-events: none; z-index: -1; }
+  .wheel.huge { height: 330px; width: 230px; }
+  .wheel.huge .pad { height: 135px; }
+  .wheel.huge .it { height: 60px; font-size: 40px; font-weight: 700; }
+  .band.huge { top: 135px; height: 60px; border-radius: 16px; }
+  .wheel.ivw { height: 300px; width: 300px; }
+  .wheel.ivw .pad { height: 120px; }
+  .wheel.ivw .it { height: 60px; font-size: 32px; font-weight: 700; }
+  .wheel.ivw .it small { font-size: 20px; font-weight: 600; color: var(--sub); margin-left: 4px; }
+  .band.ivw { top: 120px; height: 60px; border-radius: 16px; }
   .wheels .colon { font-size: 26px; font-weight: 700; padding-bottom: 2px; }
   .daystep { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 6px 0 2px; font-weight: 600; font-size: 15px; }
   .daystep button { width: 40px; height: 36px; border-radius: 10px; background: var(--chip); font-size: 18px; }
@@ -791,7 +800,7 @@ function range(a, b, step, fmt) { var o = []; for (var v = a; v <= b; v += step)
 /* 授乳間隔 */
 function openInterval() {
   var cur = S ? S.notifyMin : 180, val = cur;
-  openSheet('<div class="ph"><h3>授乳間隔</h3><button class="x" data-close>閉じる</button></div><div class="label">前の授乳の開始から、次の授乳までの間隔（10分きざみ）</div><div class="wheels" style="margin-top:6px"><div class="band"></div><div class="wheel" id="wIv" style="width:160px"></div></div>' + (S && S.lastFeed ? '<div class="rowl"><span class="k">次回授乳だけ時刻を変える</span><button class="v" id="ivOnce">' + hm(nextFeedMs()) + (S.nextOnce ? '（今回だけ）' : '') + '　›</button></div>' : '') + '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="ivSave">決定</button></div>');
+  openSheet('<div class="ph"><h3>授乳間隔</h3><button class="x" data-close>閉じる</button></div><div class="label">前の授乳の開始から、次の授乳までの間隔（10分きざみ）</div><div class="wheels" style="margin-top:6px"><div class="band"></div><div class="wheel" id="wIv" style="width:160px"></div></div>' + (S && S.lastFeed ? '<div class="rowl"><span class="k">次回授乳だけ間隔を変える</span><button class="v" id="ivOnce">' + ivTxt(Math.round((nextFeedMs() - (S.feedSessionStart || S.lastFeed.t)) / 60000)) + '（' + hm(nextFeedMs()) + '）' + (S.nextOnce ? '今回だけ' : '') + '　›</button></div>' : '') + '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="ivSave">決定</button></div>');
   if ($('ivOnce')) $('ivOnce').onclick = openNextOnce;
   var items = range(30, 360, 10, ivTxt);
   makeWheel($('wIv'), items, Math.max(0, items.findIndex(function (i) { return i.v === cur; })), function (v) { val = v; });
@@ -1138,19 +1147,17 @@ function openSettings() {
 /* 次回授乳を、この1回だけ手で決める */
 function openNextOnce() {
   if (!S || !S.lastFeed) { toast('授乳の記録がまだありません'); return; }
-  var cur = nextFeedMs(), dt = new Date(cur), hh = dt.getHours(), mm = Math.round(dt.getMinutes() / 5) * 5; if (mm === 60) { mm = 0; hh = (hh + 1) % 24; }
-  openSheet('<div class="ph"><h3>次回授乳の時刻</h3><button class="x" data-close>閉じる</button></div><div class="label">この1回だけ変えます。次の授乳を記録したら、いつもの間隔（' + ivTxt(S.notifyMin) + '）に戻ります</div><div class="wheels" style="margin-top:6px"><div class="band"></div><div class="wheel" id="nH"></div><span class="colon">:</span><div class="wheel" id="nM"></div></div><div class="acts">' + (S.nextOnce ? '<button class="btn dng" id="nReset">間隔どおりに戻す</button>' : '') + '<button class="btn" data-close>キャンセル</button><button class="btn pri" id="nSave">決定</button></div>');
-  makeWheel($('nH'), range(0, 23, 1, function (v) { return v; }), hh, function (v) { hh = v; });
-  makeWheel($('nM'), range(0, 55, 5, function (v) { return pad(v); }), mm / 5, function (v) { mm = v; });
+  // この1回だけ、前の授乳の開始からの間隔を選ぶ（かっこに実際の時刻）。2026-11-14 時刻の指定から変更
+  var base = S.feedSessionStart || S.lastFeed.t, cur = Math.round((nextFeedMs() - base) / 600000) * 10;
+  var items = range(30, 360, 10, function (v) { return ivTxt(v) + '<small>（' + hm(base + v * 60000) + '）</small>'; });
+  var idx = Math.max(0, items.findIndex(function (i) { return i.v === cur; })), val = items[idx].v;
+  openSheet('<div class="ph"><h3>次回授乳だけ間隔を変える</h3><button class="x" data-close>閉じる</button></div><div class="label">前の授乳の開始（' + hm(base) + '）からの間隔。この1回だけ変えます。次の授乳を記録したら、いつもの間隔（' + ivTxt(S.notifyMin) + '）に戻ります</div><div class="wheels" style="margin-top:6px"><div class="band ivw"></div><div class="wheel ivw" id="nIv"></div></div><div class="acts">' + (S.nextOnce ? '<button class="btn dng" id="nReset">間隔どおりに戻す</button>' : '') + '<button class="btn" data-close>キャンセル</button><button class="btn pri" id="nSave">決定</button></div>');
+  makeWheel($('nIv'), items, idx, function (v) { val = v; }, 60);
   var send = function (time, msg) {
     closeSheet(); toast('保存しています…');
     call({ a: 'set', k: 'nextonce', time: time, withState: 1 }, function (r) { toast(r && r.ok ? msg : '保存できませんでした'); if (r && r.state) { S = r.state; render(); } else refresh(); });
   };
-  $('nSave').onclick = function () {
-    var base = S.feedSessionStart || S.lastFeed.t, x = new Date(base); x.setHours(hh, mm, 0, 0);
-    var t = x.getTime(); if (t <= base) t += 86400000;
-    send(iso(t), '次回授乳を ' + hh + ':' + pad(mm) + ' にしました');
-  };
+  $('nSave').onclick = function () { var t = base + val * 60000; send(iso(t), '次回授乳を ' + ivTxt(val) + ' 後（' + hm(t) + '）にしました'); };
   if (S.nextOnce) $('nReset').onclick = function () { send('', '間隔どおりに戻しました'); };
 }
 /* 最近の記録に「追加」：あとから何でも、好きな時刻で入れる */
@@ -1293,9 +1300,13 @@ document.addEventListener('click', function (ev) {
 });
 function openMilk(kind) {
   kind = kind === 'pump' ? 'pump' : 'milk';
-  var h = '<div class="ph"><h3>' + (kind === 'pump' ? '搾乳の量' : 'ミルクの量') + '</h3><button class="x" data-close>閉じる</button></div><div class="label">何ミリリットル？</div><div class="quick" style="margin-top:10px">';
-  for (var m = 10; m <= 200; m += 10) h += '<button data-ml="' + m + '" data-mt="' + kind + '" style="min-height:52px;font-size:18px;min-width:18%">' + m + '</button>';
-  openSheet(h + '</div>');
+  // 大きいホイールで選ぶ（2026-11-14 ボタンの並びから変更）。最初は前回の同じ種類の量
+  var last = null; (S && S.recent || []).some(function (e) { if (e.type === kind && Number(e.amt) > 0) { last = Number(e.amt); return true; } return false; });
+  var items = range(10, 300, 10, function (v) { return v + '<small style="font-size:22px;margin-left:4px">ml</small>'; });
+  var idx = Math.max(0, items.findIndex(function (i) { return i.v === (last || 60); })), val = items[idx].v;
+  openSheet('<div class="ph"><h3>' + (kind === 'pump' ? '搾乳の量' : 'ミルクの量') + '</h3><button class="x" data-close>閉じる</button></div><div class="label">上下にスクロールして選ぶ' + (last ? '（前回 ' + last + 'ml）' : '') + '</div><div class="wheels" style="margin-top:6px"><div class="band huge"></div><div class="wheel huge" id="mlW"></div></div><div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="mlSave" style="min-height:58px;font-size:19px">記録する</button></div>');
+  makeWheel($('mlW'), items, idx, function (v) { val = v; }, 60);
+  $('mlSave').onclick = function () { closeSheet(); act({ a: 'add', t: kind, amt: String(val) }); };
 }
 /* 吐き戻し：量を3つから選ぶ（記録のメモ欄に入る） */
 var SPIT_LV = ['ちょっと', 'そこそこ', 'まるっと'];
