@@ -285,13 +285,16 @@
   /* 写真の帯（右の列、さいきんの記録の上）。20秒ごとにふわっと切り替え、ゆっくり寄る */
   .pstrip { display: none; position: relative; flex: none; width: 100%; height: clamp(96px, 14vh, 130px); padding: 0; overflow: hidden; }
   .pstrip.show { display: block; }
-  .pimg { position: absolute; inset: 0; background: var(--chip) center/cover no-repeat; opacity: 0; transform: scale(1.0); transition: opacity 1.4s ease, transform 22s linear; }
-  .pimg.on { opacity: 1; transform: scale(1.06); }
+  .pimg { position: absolute; inset: 0; overflow: hidden; isolation: isolate; opacity: 0; transition: opacity 1.4s ease; }
+  .pimg.on { opacity: 1; }
+  .pimg::before { content: ''; position: absolute; inset: -24px; z-index: -1; background: var(--img) center/cover no-repeat; filter: blur(18px) brightness(.85) saturate(1.1); }
+  .pimg::after { content: ''; position: absolute; inset: 0; background: var(--img) center/contain no-repeat; transform: scale(1); transition: transform 22s linear; }
+  .pimg.on::after { transform: scale(1.05); }
   .pdots { position: absolute; right: 12px; bottom: 9px; display: flex; gap: 5px; }
   .pdots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.55); box-shadow: 0 0 2px rgba(0,0,0,.35); }
   .pdots i.on { background: #fff; }
   body.night .pimg { filter: brightness(.72); }
-  @media (prefers-reduced-motion: reduce) { .pimg, .pimg.on { transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .pimg::after, .pimg.on::after { transform: none; } }
   .top > .ptile { pointer-events: auto; }
   .pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
   .pgrid .ph1 { aspect-ratio: 1; border-radius: 12px; background: var(--chip) center/cover no-repeat; border: 0; padding: 0; }
@@ -1369,7 +1372,7 @@ function showPhoto(i) {
   fetchPhoto(id, 800, function (d) {
     if (!d) return;
     var ly = $('ptile').querySelectorAll('.pimg'), nl = 1 - PT.layer, el = ly[nl], old = ly[PT.layer];
-    el.style.backgroundImage = 'url(' + d + ')'; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); old.classList.remove('on');
+    el.style.setProperty('--img', 'url(' + d + ')'); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); old.classList.remove('on');
     PT.layer = nl; PT.i = i;
     $('pdots').innerHTML = PT.ids.length > 1 ? PT.ids.map(function (x, k) { return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('') : '';
     if (PT.ids.length > 1) fetchPhoto(PT.ids[(i + 1) % PT.ids.length], 800, function () {});
