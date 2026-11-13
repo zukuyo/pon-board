@@ -548,13 +548,10 @@ function dialSvg(half) {
   o += '<circle cx="100" cy="100" r="98" style="fill:var(--lane);stroke:var(--line)" stroke-width="1"/>';
   o += '<circle cx="100" cy="100" r="70" fill="none" style="stroke:var(--band)" stroke-width="16"/>';
   var nf = nextFeedMs();
-  if (nf !== null) {
-    var w0 = (nf - S.dayStart) / 3600000, w1 = w0 + 0.5, h0 = half * 12;
-    // 日をまたぐ次回授乳：24時台は午後の時計の12時の先へはみ出して表示、1時以降は翌日の時刻として午前の時計に出す
-    if (w0 >= 25) { w0 -= 24; w1 -= 24; }
-    var hiEnd = h0 + 12; if (half === 1 && w1 > 24 && w0 < 25) hiEnd = 25;
-    var s0 = Math.max(w0, h0), s1 = Math.min(w1, hiEnd);
-    if (s1 > s0) o += cap((s0 - h0) * 30 - 90, (s1 - h0) * 30 - 90, 'var(--winS)');
+  // 次回授乳の扇は、午前・午後や日付をまたいでも右（今の時計）に、文字盤の位置で出す（2026-11-13）
+  if (nf !== null && half === nowHalf()) {
+    var nd = (((nf - S.dayStart) / 3600000) % 12 + 12) % 12 * 30 - 90;
+    o += cap(nd, nd + 15, 'var(--winS)');
   }
   S.timeline.forEach(function (e) {
     if (e.type !== 'breast' && e.type !== 'milk' && e.type !== 'pump') return;
@@ -591,10 +588,10 @@ function dialSvgClassic(half) {
   o += '<circle cx="100" cy="100" r="70" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
   o += '<circle cx="100" cy="100" r="50" fill="none" style="stroke:var(--card)" stroke-width="16"/>';
   var nf = nextFeedMs();
-  if (nf !== null) {
-    var w0 = (nf - S.dayStart) / 3600000, w1 = w0 + 0.5, h0 = half * 12, s0 = Math.max(w0, h0), s1 = Math.min(w1, h0 + 12);
-    if (s1 > s0) {
-      var d0 = (s0 - h0) * 30 - 90, d1 = (s1 - h0) * 30 - 90, p1 = pt(96, d0), p2 = pt(96, d1), p3 = pt(38, d1), p4 = pt(38, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+  if (nf !== null && half === nowHalf()) {
+    var nd = (((nf - S.dayStart) / 3600000) % 12 + 12) % 12 * 30 - 90;
+    {
+      var d0 = nd, d1 = nd + 15, p1 = pt(96, d0), p2 = pt(96, d1), p3 = pt(38, d1), p4 = pt(38, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
       o += '<path d="M' + f(p1) + ' A96 96 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A38 38 0 0 0 ' + f(p4) + ' Z" style="fill:var(--win)"/>';
     }
   }
@@ -624,6 +621,7 @@ function dialSvgClassic(half) {
   return o;
 }
 // 右＝いまの12時間、左＝そのひとつ前の12時間（午前中は「昨日の午後」）
+function nowHalf() { return (Date.now() - S.dayStart) / 3600000 >= 12 ? 1 : 0; }
 function dialHalves() { var h = (Date.now() - S.dayStart) / 3600000; return h >= 12 ? [0, 1] : [-1, 0]; }
 function renderDials() { if (!S) return; var f = ls('pon.dial') === 'classic' ? dialSvgClassic : dialSvg, hv = dialHalves(); $('dials').innerHTML = f(hv[0]) + f(hv[1]); updateHands(); }
 function updateHands() {
