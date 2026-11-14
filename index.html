@@ -1205,12 +1205,23 @@ function checkAnnounce() {
 var SND = { kind: ls('pon.snd.kind') || 'voice', vol: Number(ls('pon.snd.vol') || 80), off: Number(ls('pon.snd.off') || -5) };
 var AC = null;
 function audioCtx() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} return AC; }
+// 大きい音のときは、音を3倍に持ち上げてから圧縮して、割れずにいちばん大きく聞こえるようにする（2026-11-14）
+var LOUD = false, BOOST = null;
+function outTo(ac) {
+  if (!LOUD) return ac.destination;
+  if (!BOOST) {
+    var g = ac.createGain(), c = ac.createDynamicsCompressor();
+    g.gain.value = 3.2; c.threshold.value = -26; c.knee.value = 4; c.ratio.value = 20; c.attack.value = 0.002; c.release.value = 0.2;
+    g.connect(c); c.connect(ac.destination); BOOST = g;
+  }
+  return BOOST;
+}
 function playTone(kind, vol) {
   var ac = audioCtx(); if (!ac) return;
   var peak = Math.max(0.02, Math.min(1, vol / 100)) * 0.6, now = ac.currentTime + 0.03;
   var note = function (freq, at, len, type) {
     var o = ac.createOscillator(), g = ac.createGain();
-    o.type = type || 'sine'; o.frequency.value = freq; o.connect(g); g.connect(ac.destination);
+    o.type = type || 'sine'; o.frequency.value = freq; o.connect(g); g.connect(outTo(ac));
     g.gain.setValueAtTime(0.0001, now + at); g.gain.exponentialRampToValueAtTime(peak, now + at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + at + len);
     o.start(now + at); o.stop(now + at + len + 0.05);
   };
@@ -1223,7 +1234,7 @@ var VCLIP = { 'ミルクの時間を5分過ぎています': 'SUQzBAAAAAAAIlRTU0
 function playClip(text, vol) {
   var b64 = VCLIP[text], ac = audioCtx();
   if (!b64 || !ac) { speak(text, vol); return; }
-  var go = function (buf) { var src = ac.createBufferSource(), g = ac.createGain(); g.gain.value = Math.max(0.03, Math.min(1, vol)); src.buffer = buf; src.connect(g); g.connect(ac.destination); src.start(); };
+  var go = function (buf) { var src = ac.createBufferSource(), g = ac.createGain(); g.gain.value = Math.max(0.03, Math.min(1, vol)); src.buffer = buf; src.connect(g); g.connect(outTo(ac)); src.start(); };
   if (VBUF[text]) { go(VBUF[text]); return; }
   try {
     var bin = atob(b64), u8 = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
@@ -1232,7 +1243,7 @@ function playClip(text, vol) {
 }
 function alertPing(vol) {
   var ac = audioCtx(); if (!ac) return; var pk = 0.25 * Math.max(0.03, Math.min(1, vol));
-  [880, 1320].forEach(function (f, i) { var o = ac.createOscillator(), g = ac.createGain(), t0 = ac.currentTime + 0.03 + i * 0.12; o.frequency.value = f; o.connect(g); g.connect(ac.destination); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(pk, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.25); o.start(t0); o.stop(t0 + 0.3); });
+  [880, 1320].forEach(function (f, i) { var o = ac.createOscillator(), g = ac.createGain(), t0 = ac.currentTime + 0.03 + i * 0.12; o.frequency.value = f; o.connect(g); g.connect(outTo(ac)); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(pk, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.25); o.start(t0); o.stop(t0 + 0.3); });
 }
 function playAlert(al) {
   al = al || alarms()[0];
@@ -1242,6 +1253,7 @@ function playAlert(al) {
     else playTone(SND.kind, al.loud ? 100 : SND.vol);
   };
   if (!al.loud) { once(); return; }
+  LOUD = true; clearTimeout(playAlert.t); playAlert.t = setTimeout(function () { LOUD = false; }, 17000);
   // 大きい音：いちばん大きい音で、ピピッのあとに声（または音）を3回くり返す
   var rep = function (k) { if (k >= 3) return; playTone('pip', 100); setTimeout(once, 1700); setTimeout(function () { rep(k + 1); }, 5200); };
   rep(0);
