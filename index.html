@@ -13,7 +13,7 @@
   :root {
     --bg: linear-gradient(160deg, #f5f7fb 0%, #e9edf6 100%); --card: rgba(255,255,255,.88); --ink: #15171c; --sub: #6a7080; --line: rgba(20,24,40,.09);
     --grid3: rgba(20,24,40,.16); --grid1: rgba(20,24,40,.06); --lane: rgba(20,24,40,.045);
-    --feed: #1a46d0; --breast: #8ea6d0; --milk: #ffffff; --milkEdge: rgba(20,24,40,.28); --pump: #8487d6; --spit: #9db8a0; --bath: #7fbfc4; --pee: #e6b66e; --poop: #a88566; --winS: #c4d9e6; --band: #e6e4ee;
+    --feed: #1a46d0; --breast: #8ea6d0; --milk: #ffffff; --milkEdge: rgba(20,24,40,.28); --milkLine: #c9ced8; --pump: #8487d6; --spit: #9db8a0; --bath: #7fbfc4; --pee: #e6b66e; --poop: #a88566; --winS: #c4d9e6; --band: #e6e4ee;
     --warn: #f59e0b; --alert: #ef4444; --ok: #22a06b; --accent: #2f7bff; --win: rgba(90,200,250,.30);
     --btn: #ffffff; --btnInk: #15171c; --sheet: #ffffff; --chip: rgba(20,24,40,.06);
     --shadow: 0 1px 1px rgba(20,24,40,.04), 0 10px 28px rgba(20,24,40,.07);
@@ -22,7 +22,7 @@
   body.night {
     --bg: linear-gradient(160deg, #0d0706 0%, #120907 100%); --card: rgba(30,16,13,.92); --ink: #ffb9a5; --sub: #a96b5e; --line: rgba(255,150,120,.12);
     --grid3: rgba(255,150,120,.20); --grid1: rgba(255,150,120,.07); --lane: rgba(255,150,120,.05);
-    --feed: #ff7a5c; --breast: #6f86c0; --milk: #eadcd3; --milkEdge: transparent; --pump: #8a84c8; --spit: #93a585; --bath: #5f9a9e; --pee: #d3ab6f; --poop: #a88470; --winS: #3d4d5a; --band: #2a1c19;
+    --feed: #ff7a5c; --breast: #6f86c0; --milk: #eadcd3; --milkEdge: transparent; --milkLine: #eadcd3; --pump: #8a84c8; --spit: #93a585; --bath: #5f9a9e; --pee: #d3ab6f; --poop: #a88470; --winS: #3d4d5a; --band: #2a1c19;
     --warn: #ffa050; --alert: #ff5040; --ok: #c98a68; --accent: #ff7a5c; --win: rgba(110,200,230,.20);
     --btn: #231310; --btnInk: #ffb9a5; --sheet: #1e100d; --chip: rgba(255,150,120,.10);
     --shadow: none;
@@ -276,9 +276,12 @@
   .alrow .alt { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .alrow .alsp { width: 100px; }
   /* 上のボタンはアイコンだけで大きく（2026-11-14）。高さが増えた分は上下の余白で吸収して、時計の位置は動かさない */
-  .tools { gap: 10px; margin: -8px 0 -8px; }
-  .tool { width: 48px; height: 48px; padding: 0; justify-content: center; border-radius: 24px; }
-  .tool svg { width: 25px; height: 25px; }
+  /* 上のボタンは、日付のすぐ横（右の列のいちばん上、引き継ぎメモの左）に大きく並べる（2026-11-14） */
+  .memorow { display: flex; align-items: stretch; gap: 8px; margin-bottom: 8px; }
+  .memorow .memo { flex: 1; min-width: 0; margin-bottom: 0; }
+  .memorow .tools { display: grid; grid-template-columns: repeat(4, 64px); gap: 6px; align-items: center; }
+  .tool { width: 64px; height: 64px; padding: 0; justify-content: center; border-radius: 18px; }
+  .tool svg { width: 32px; height: 32px; }
   .tool .vx, .tool .vl { display: none; }
   .tool.off .vw { display: none; } .tool.off .vx { display: inline; }
   .tool.lock .vw { display: none; } .tool.lock .vl { display: inline; }
@@ -287,7 +290,7 @@
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   /* 記録ボタンの背景に、うすい透かしのアイコン（2026-11-14） */
   .btns .b:not(.low) { position: relative; overflow: hidden; }
-  .btns .b:not(.low)::after { content: ''; position: absolute; right: -8px; bottom: -10px; width: 62px; height: 62px; background: currentColor; opacity: .09; pointer-events: none; -webkit-mask: var(--wm) center/contain no-repeat; mask: var(--wm) center/contain no-repeat; }
+  .btns .b:not(.low)::after { content: ''; position: absolute; inset: 6px 8px; background: currentColor; opacity: .075; pointer-events: none; -webkit-mask: var(--wm) center/contain no-repeat; mask: var(--wm) center/contain no-repeat; }
   .btns .b[data-open="breast"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z'/></svg>"); }
   .btns .b[data-open="milk"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3.5c3.2 4.2 5.5 7 5.5 10a5.5 5.5 0 0 1-11 0c0-3 2.3-5.8 5.5-10z'/></svg>"); }
   .btns .b[data-open="pump"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M8 5c1.8 2.4 3 4 3 5.6a3 3 0 0 1-6 0C5 9 6.2 7.4 8 5z'/><path d='M16 11c1.8 2.4 3 4 3 5.6a3 3 0 0 1-6 0c0-1.6 1.2-3.2 3-5.6z'/></svg>"); }
@@ -296,6 +299,16 @@
   .btns .b[data-open="poop"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 19h10a3 3 0 0 0 .6-5.9A3.5 3.5 0 0 0 14 9a3 3 0 0 0-5.6 1.4A3.5 3.5 0 0 0 7 19z'/></svg>"); }
   .btns .b[data-open="both"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='9' cy='12' r='5'/><circle cx='15' cy='12' r='5'/></svg>"); }
   .btns .b[data-open="spit"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0'/><path d='M3 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0'/></svg>"); }
+  /* 色の丸はやめて、ボタンのふちをその色に（2026-11-14） */
+  .btns .b:not(.low) .sw { display: none; }
+  .btns .b[data-open="breast"] { border: 2.5px solid var(--breast); }
+  .btns .b[data-open="milk"] { border: 2.5px solid var(--milkLine); }
+  .btns .b[data-open="pump"] { border: 2.5px solid var(--pump); }
+  .btns .b[data-t="pee"] { border: 2.5px solid var(--pee); }
+  .btns .b[data-open="poop"] { border: 2.5px solid var(--poop); }
+  .btns .b[data-open="both"] { border: 2.5px solid; border-color: var(--pee) var(--poop) var(--poop) var(--pee); }
+  .btns .b[data-open="spit"] { border: 2.5px solid var(--spit); }
+  .btns .b.bath { border: 2.5px solid var(--bath); }
   /* ミルクは白。昼はうすい縁どりで見えるように（2026-11-14） */
   [style*="background:var(--milk)"] { box-shadow: 0 0 0 1px var(--milkEdge); }
   .dials svg [style*="fill:var(--milk)"]:not([style*="stroke"]) { stroke: var(--milkEdge); stroke-width: 1; }
@@ -462,12 +475,6 @@
     <div class="top">
       <div class="clock" id="clock" title="タップで夜モード切り替え">--:--</div>
       <div class="top-r">
-        <div class="tools">
-          <button class="tool" id="albumBtn" aria-label="アルバム" title="アルバム"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 3.5 3L16 12l4 4"/></svg></button>
-          <button class="tool" id="growthBtn" aria-label="体重・身長" title="成長"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V13M10 20V8M15 20v-5M20 20V5"/></svg></button>
-          <button class="tool" id="setBtn" aria-label="設定" title="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="18" cy="18" r="2.2"/></svg></button>
-          <button class="tool off" id="voiceBtn" aria-label="音声案内" title="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path class="vw" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="vw" d="M18.5 5.5a9 9 0 0 1 0 13"/><path class="vx" d="M16 9l5 6M21 9l-5 6"/><path class="vl" d="M18.5 7v6M18.5 16.6v.4"/></svg><span id="voiceTxt" class="sr-only">音声案内 オフ</span></button>
-        </div>
         <div class="date"><div class="dd" id="date"></div><div class="da"><span id="age"></span><span class="wx" id="wx"></span></div></div>
       </div>
     </div>
@@ -495,7 +502,15 @@
 
   <div class="colR">
     <div class="card controls">
-      <button class="memo empty" id="memoBtn" aria-label="引き継ぎメモ"><span>引き継ぎメモ（タップで書く）</span></button>
+      <div class="memorow">
+          <div class="tools">
+            <button class="tool" id="albumBtn" aria-label="アルバム" title="アルバム"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 3.5 3L16 12l4 4"/></svg></button>
+            <button class="tool" id="growthBtn" aria-label="体重・身長" title="成長"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V13M10 20V8M15 20v-5M20 20V5"/></svg></button>
+            <button class="tool" id="setBtn" aria-label="設定" title="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="18" cy="18" r="2.2"/></svg></button>
+            <button class="tool off" id="voiceBtn" aria-label="音声案内" title="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path class="vw" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="vw" d="M18.5 5.5a9 9 0 0 1 0 13"/><path class="vx" d="M16 9l5 6M21 9l-5 6"/><path class="vl" d="M18.5 7v6M18.5 16.6v.4"/></svg><span id="voiceTxt" class="sr-only">音声案内 オフ</span></button>
+          </div>
+        <button class="memo empty" id="memoBtn" aria-label="引き継ぎメモ"><span>引き継ぎメモ（タップで書く）</span></button>
+      </div>
       <div class="btns">
         <button class="b" data-open="breast"><span class="sw" style="background:var(--breast)"></span>母乳</button>
         <button class="b" data-open="milk"><span class="sw" style="background:var(--milk)"></span>ミルク</button>
