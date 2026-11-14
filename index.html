@@ -85,6 +85,7 @@
   .sinceSub b { color: var(--ink); font-weight: 600; }
   .hero.warn .nextT, .hero.warn .nextSub { color: var(--warn); }
   .hero.alert .nextT, .hero.alert .nextSub { color: var(--alert); }
+  .hero.alert .nextT { animation: statblink 1.2s ease-in-out infinite; }
   .meta { grid-column: 1 / -1; font-size: 14.5px; color: var(--sub); display: flex; gap: 14px; flex-wrap: wrap; }
   .meta b { color: var(--ink); font-weight: 600; }
   .pill { position: absolute; top: 10px; right: 12px; height: 30px; padding: 0 14px; border-radius: 15px; background: var(--chip); font-size: 12.5px; font-weight: 600; color: var(--sub); }
@@ -671,10 +672,9 @@ function tick() {
 }
 function renderHero() {
   var now = Date.now(), hero = $('hero');
-  hero.classList.remove('warn', 'alert');
-  if (!S) return;
+  if (!S) { hero.classList.remove('warn', 'alert'); return; }
   $('ivVal').textContent = ivTxt(S.notifyMin);
-  if (!S.lastFeed) { $('since').innerHTML = '--'; $('nextT').textContent = '--:--'; $('nextSub').textContent = ''; $('meta').textContent = 'まだ記録がありません'; return; }
+  if (!S.lastFeed) { hero.classList.remove('warn', 'alert'); $('since').innerHTML = '--'; $('nextT').textContent = '--:--'; $('nextSub').textContent = ''; $('meta').textContent = 'まだ記録がありません'; return; }
   var base = S.feedSessionStart || S.lastFeed.t, mAll = Math.max(0, Math.floor((now - base) / 60000));
   $('since').classList.toggle('long', mAll >= 60);
   $('since').innerHTML = '<span>' + (mAll >= 60 ? Math.floor(mAll / 60) + '<small>時間</small>' + pad(mAll % 60) + '<small>分</small>' : mAll + '<small>分</small>') + '</span>';
@@ -682,7 +682,9 @@ function renderHero() {
   $('nextT').textContent = hm(next);
   $('nextSub').textContent = (rem > 0 ? 'あと ' + durJa(rem) : durJa(-rem) + ' 過ぎています');
   $('nextLbl').classList.toggle('once', !!S.nextOnce); $('nextLblTxt').textContent = S.nextOnce ? '次回授乳（今回だけ）' : S.bathShortActive ? '次回授乳（お風呂 −' + S.bathShortActive + '分）' : '次回授乳';
-  if (rem <= -15 * 60000) hero.classList.add('alert'); else if (rem <= 10 * 60000) hero.classList.add('warn');
+  // 予定から10分過ぎても授乳していなければ赤く点滅（毎秒つけ外しすると点滅が途切れるので、変わるときだけ切り替える）2026-11-14
+  var late = rem <= -10 * 60000;
+  hero.classList.toggle('alert', late); hero.classList.toggle('warn', !late && rem <= 10 * 60000);
   var lf = S.lastFeed;
   var what = lf.type === 'milk' ? 'ミルク ' + lf.amt + 'ml' : lf.type === 'pump' ? '搾乳 ' + lf.amt + 'ml' : '母乳' + (S.lastSides.length ? ' ' + S.lastSides.join('→') : '');
   $('meta').innerHTML = '<b>' + hm(base) + '</b> ' + what + (S.lastSides.length ? '　最後 <b>' + S.lastSides[S.lastSides.length - 1] + '</b>' : '');
