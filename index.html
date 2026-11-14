@@ -278,6 +278,7 @@
   /* 上のボタンはアイコンだけで大きく（2026-11-14）。高さが増えた分は上下の余白で吸収して、時計の位置は動かさない */
   /* 上のボタンは、日付のすぐ横（右の列のいちばん上、引き継ぎメモの左）に大きく並べる（2026-11-14） */
   .memorow { display: flex; align-items: stretch; gap: 8px; margin-bottom: 8px; }
+  .top { padding-top: calc(var(--clk) * 0.18); }  /* ボタンを右の列へ移した分、時計の高さを前と同じに保つ */
   .memorow .memo { flex: 1; min-width: 0; margin-bottom: 0; }
   .memorow .tools { display: grid; grid-template-columns: repeat(4, 64px); gap: 6px; align-items: center; }
   .tool { width: 64px; height: 64px; padding: 0; justify-content: center; border-radius: 18px; }
