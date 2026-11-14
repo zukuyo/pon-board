@@ -257,6 +257,12 @@
   .b.low.ago { background: color-mix(in srgb, var(--accent) 13%, var(--btn)); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
   .b.low.ago .agoK { font-size: 13px; }
   .b.low.ago #agoV { font-size: clamp(17px, 1.75vw, 21px); }
+  /* お風呂は温泉マーク（案A）。色の丸の代わりに、同じ色で形を抜く（2026-11-14） */
+  [style*="background:var(--bath)"] { -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M4 12.5a8 6.5 0 0 0 16 0' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'/><path d='M7.5 10.5c-1.6-1.8 1.6-3 0-5.2M12 10.5c-1.6-1.8 1.6-3 0-5.2M16.5 10.5c-1.6-1.8 1.6-3 0-5.2' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round'/></svg>") center/contain no-repeat; mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M4 12.5a8 6.5 0 0 0 16 0' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'/><path d='M7.5 10.5c-1.6-1.8 1.6-3 0-5.2M12 10.5c-1.6-1.8 1.6-3 0-5.2M16.5 10.5c-1.6-1.8 1.6-3 0-5.2' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round'/></svg>") center/contain no-repeat; border-radius: 0 !important; box-shadow: none !important; }
+  .b .sw[style*="background:var(--bath)"] { width: 17px; height: 17px; }
+  .legend i[style*="background:var(--bath)"] { width: 10px; height: 10px; vertical-align: -1px; }
+  .list .dot[style*="background:var(--bath)"] { width: 16px; height: 16px; margin-right: 8px; vertical-align: -3px; }
+  .pt[style*="background:var(--bath)"] { width: 22px; height: 22px; margin: -11px 0 0 -11px; }
   /* ミルクは白。昼はうすい縁どりで見えるように（2026-11-14） */
   [style*="background:var(--milk)"] { box-shadow: 0 0 0 1px var(--milkEdge); }
   .dials svg [style*="fill:var(--milk)"]:not([style*="stroke"]) { stroke: var(--milkEdge); stroke-width: 1; }
@@ -600,6 +606,9 @@ function renderTimeline() {
   renderWindow();
   placeNow();
 }
+function bathMark(cx, cy, ink) { // 時計の上のお風呂：色の丸の上に温泉マーク
+  return '<g transform="translate(' + (cx - 6.5).toFixed(1) + ' ' + (cy - 6.8).toFixed(1) + ') scale(' + (13 / 24) + ')" fill="none" stroke-linecap="round" style="stroke:' + ink + '"><path d="M4 12.5a8 6.5 0 0 0 16 0" stroke-width="2.6"/><path d="M7.5 10.5c-1.6-1.8 1.6-3 0-5.2M12 10.5c-1.6-1.8 1.6-3 0-5.2M16.5 10.5c-1.6-1.8 1.6-3 0-5.2" stroke-width="2.5"/></g>';
+}
 function dialSvg(half) {
   var pt = function (r, deg) { var a = deg * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
   // 角度d0〜d1（度）の扇形（内側r=38〜外側r=96）。不透明。角は同じ色の縁取りで少し丸める
@@ -642,6 +651,7 @@ function dialSvg(half) {
     if (e.type !== 'pee' && e.type !== 'poop' && e.type !== 'both' && e.type !== 'spit' && e.type !== 'bath') return;
     var c = pt(70, (hrs - half * 12) * 30 - 90);
     o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="9" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type]) + ';stroke:var(--sheet)" stroke-width="2"/>';
+    if (e.type === 'bath') o += bathMark(c[0], c[1], 'var(--sheet)');
     if (e.type === 'both') o += '<path d="M' + (c[0] - 8).toFixed(1) + ' ' + c[1].toFixed(1) + ' a8 8 0 0 1 16 0z" style="fill:var(--pee)"/>';
   });
   o += '<line data-hand="' + half + '" x1="100" y1="100" x2="100" y2="14" stroke="var(--alert)" stroke-width="2.2" stroke-linecap="round" style="display:none"/>';
@@ -680,6 +690,7 @@ function dialSvgClassic(half) {
     } else {
       var c = pt(ring, d0);
       o += '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="9" style="fill:' + (e.type === 'both' ? 'var(--poop)' : COLORS[e.type].indexOf('gradient') < 0 ? COLORS[e.type] : 'var(--poop)') + ';stroke:var(--card)" stroke-width="2"/>';
+      if (e.type === 'bath') o += bathMark(c[0], c[1], 'var(--card)');
       if (e.type === 'both') o += '<path d="M' + (c[0] - 8).toFixed(1) + ' ' + c[1].toFixed(1) + ' a8 8 0 0 1 16 0z" style="fill:var(--pee)"/>';
     }
   });
