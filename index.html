@@ -283,6 +283,8 @@
   .top-r { flex-direction: row; align-items: center; gap: 16px; }
   .tools.intop { display: grid; grid-template-columns: repeat(4, var(--ts)); gap: 8px; }
   .tools.intop.two { grid-template-columns: repeat(2, var(--ts)); }
+  .tools.inhero { position: absolute; right: 14px; z-index: 4; }
+  .hero.toolsin .pill { top: auto; bottom: 12px; right: 14px; }
   .tools.intop .tool { width: var(--ts); height: var(--ts); border-radius: calc(var(--ts) * .28); }
   .tools.intop .tool svg { width: calc(var(--ts) * .5); height: calc(var(--ts) * .5); }  /* ボタンを右の列へ移した分、時計の高さを前と同じに保つ */
   .memorow .memo { flex: 1; min-width: 0; margin-bottom: 0; }
@@ -615,13 +617,24 @@ function placeTools() {
   var t = $('tools'), tr = document.querySelector('.top-r'), mr = document.querySelector('.memorow'), ck = $('clock'), dt = document.querySelector('.top-r .date');
   if (!t || !tr || !mr || !ck || !dt) return;
   if (t.parentNode !== mr) mr.insertBefore(t, mr.firstChild);
-  t.classList.remove('intop', 'two'); t.style.removeProperty('--ts');
+  t.classList.remove('intop', 'two', 'inhero'); t.style.removeProperty('--ts'); t.style.removeProperty('top');
+  var hero = $('hero'); if (hero) hero.classList.remove('toolsin');
   if (!window.matchMedia('(min-width: 701px)').matches) return;
   var cr = ck.getBoundingClientRect(), gap = dt.getBoundingClientRect().left - cr.right - 16 - 16, hi = cr.height;
   var s1 = Math.min(64, Math.floor((gap - 24) / 4)), s2 = Math.min(64, Math.floor((gap - 8) / 2), Math.floor((hi - 8) / 2));
   if (s1 >= 44) { t.style.setProperty('--ts', s1 + 'px'); t.classList.add('intop'); }
   else if (s2 >= 40) { t.style.setProperty('--ts', s2 + 'px'); t.classList.add('intop', 'two'); }
-  else return;
+  else {
+    // 時計と日付の間に入らないとき（iPad miniの横向きなど）：日付の下、前の授乳の枠の右上に2段で置き、授乳間隔のボタンは枠の右下へ下げる
+    var nt = $('nextT'), hr = hero && hero.getBoundingClientRect(), db = dt.getBoundingClientRect();
+    if (!hr || !nt) return;
+    var aw = hr.right - 14 - (cr.right + 14), ah = nt.getBoundingClientRect().top - 6 - (db.bottom + 8);
+    var s3 = Math.min(64, Math.floor((aw - 8) / 2), Math.floor((ah - 8) / 2));
+    if (s3 < 44) return;
+    t.style.setProperty('--ts', s3 + 'px'); t.classList.add('intop', 'two', 'inhero');
+    t.style.top = Math.round(db.bottom + 8 - hr.top) + 'px';
+    hero.classList.add('toolsin'); hero.appendChild(t); return;
+  }
   tr.insertBefore(t, tr.firstChild);
 }
 window.addEventListener('resize', placeTools);
