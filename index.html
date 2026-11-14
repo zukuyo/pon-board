@@ -1205,13 +1205,13 @@ function checkAnnounce() {
 var SND = { kind: ls('pon.snd.kind') || 'voice', vol: Number(ls('pon.snd.vol') || 80), off: Number(ls('pon.snd.off') || -5) };
 var AC = null;
 function audioCtx() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} return AC; }
-// 大きい音のときは、音を3倍に持ち上げてから圧縮して、割れずにいちばん大きく聞こえるようにする（2026-11-14）
+// 大きい音のときは、音を2倍に持ち上げてから圧縮して、割れずにいちばん大きく聞こえるようにする（2026-11-14）
 var LOUD = false, BOOST = null;
 function outTo(ac) {
   if (!LOUD) return ac.destination;
   if (!BOOST) {
     var g = ac.createGain(), c = ac.createDynamicsCompressor();
-    g.gain.value = 3.2; c.threshold.value = -26; c.knee.value = 4; c.ratio.value = 20; c.attack.value = 0.002; c.release.value = 0.2;
+    g.gain.value = 2; c.threshold.value = -6; c.knee.value = 0; c.ratio.value = 20; c.attack.value = 0; c.release.value = 0.05;  // 試算でふつうより約7dB大きい（割れない範囲）
     g.connect(c); c.connect(ac.destination); BOOST = g;
   }
   return BOOST;
