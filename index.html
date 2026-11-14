@@ -124,6 +124,8 @@
   .tl.vclock .dials { display: grid; }
   .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 10px 12px; }
   .stat { text-align: center; min-width: 0; }
+  .stat.alert .v, .stat.alert .k { color: var(--alert); animation: statblink 1.2s ease-in-out infinite; }
+  @keyframes statblink { 50% { opacity: .25; } }
   .stat .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; height: 26px; line-height: 26px; white-space: nowrap; }
   .stat .k { font-size: 11px; color: var(--sub); margin-top: 3px; font-weight: 500; height: 15px; line-height: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -664,7 +666,7 @@ function tick() {
   $('date').textContent = (now.getMonth() + 1) + '/' + now.getDate() + '（' + '日月火水木金土'.charAt(now.getDay()) + '）';
   if (S && S.child) $('age').textContent = S.child.name + ' 生後' + Math.floor((startOfDay(now) - startOfDay(new Date(S.child.birth))) / 86400000) + '日';
   document.body.classList.toggle('night', isNight());
-  if (S) { renderHero(); placeNow(); checkAnnounce(); }
+  if (S) { renderHero(); placeNow(); checkAnnounce(); renderStats(); }
   camTick(now);
 }
 function renderHero() {
@@ -869,13 +871,21 @@ function laneClick(laneId, types) {
 
 /* ───────── 集計・最近の記録 ───────── */
 function renderStats() {
-  var d = S.today, now = Date.now();
+  // 直近24時間の回数（今日の0時からではなく）。前のおしっこ・うんちからの時間はそのまま（2026-11-14）
+  var now = Date.now(), from = now - 24 * 3600000, feeds = 0, ml = 0, pee = 0, poop = 0, prevEnd = -Infinity;
+  (S.recent || []).filter(function (e) { return e.t >= from && e.t <= now; }).sort(function (a, b) { return a.t - b.t; }).forEach(function (e) {
+    if (e.type === 'breast' || e.type === 'milk' || e.type === 'pump') { if (e.t - prevEnd > 30 * 60000) feeds++; prevEnd = Math.max(prevEnd, e.end || e.t); }
+    if (e.type === 'milk' || e.type === 'pump') ml += Number(e.amt) || 0;
+    if (e.type === 'pee' || e.type === 'both') pee++;
+    if (e.type === 'poop' || e.type === 'both') poop++;
+  });
   var since = function (e) { if (!e) return '--'; var m = Math.floor((now - e.t) / 60000); return Math.floor(m / 60) + ':' + pad(m % 60); };
+  var noPoop = !S.lastPoop || now - S.lastPoop.t >= 12 * 3600000;  // 12時間うんちが出ていなければ点滅
   var items = [
-    [d.feeds + '回', '授乳（今日）'], [(d.milkMl + d.pumpMl) + 'ml', 'ミルク・搾乳'], [d.pee + '回', 'おしっこ'], [d.poop + '回', 'うんち'],
+    [feeds + '回', '授乳（24時間）'], [ml + 'ml', 'ミルク・搾乳'], [pee + '回', 'おしっこ'], [poop + '回', 'うんち', noPoop],
     [since(S.lastPee), '前のおしっこから'], [since(S.lastPoop), '前のうんちから']
   ];
-  $('stats').innerHTML = items.map(function (i) { return '<div class="stat"><div class="v">' + i[0] + '</div><div class="k">' + i[1] + '</div></div>'; }).join('');
+  $('stats').innerHTML = items.map(function (i) { return '<div class="stat' + (i[2] ? ' alert' : '') + '"><div class="v">' + i[0] + '</div><div class="k">' + i[1] + '</div></div>'; }).join('');
 }
 var CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
 function renderRecent() {
