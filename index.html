@@ -317,15 +317,15 @@
   .btns .b[data-open="spit"] { border: 2.5px solid var(--spit); }
   .btns .b.bath { border: 2.5px solid var(--bath); }
   /* 母乳ボタンの長押し：左右の選択 */
-  .btns .b[data-open="breast"] { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-  .btns .b[data-open="breast"] .flr { position: absolute; left: 0; right: 0; bottom: 5px; font-size: 11px; font-weight: 600; opacity: .45; pointer-events: none; }
+  .btns .b[data-open="breast"], .btns .b[data-open="poop"], .btns .b[data-open="both"] { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .btns .b .flr { position: absolute; left: 0; right: 0; bottom: 5px; font-size: 11px; font-weight: 600; opacity: .45; pointer-events: none; }
   .btns .b.lp { transform: scale(.97); }
   .lrpop { position: fixed; z-index: 80; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; pointer-events: none; animation: lrin .12s ease-out; }
   @keyframes lrin { from { opacity: 0; transform: scale(.94); } }
-  .lrpop > div { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 18px; font-weight: 750; font-size: 22px; background: var(--btn); color: var(--btnInk); border: 2.5px solid var(--breast); box-shadow: var(--shadow); }
+  .lrpop > div { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 18px; font-weight: 750; font-size: 20px; white-space: nowrap; background: var(--btn); color: var(--btnInk); border: 2.5px solid var(--lc, var(--breast)); box-shadow: var(--shadow); }
   .lrpop .lrc { font-size: 17px; opacity: .9; border-style: dashed; }
   .lrpop .lrc small { font-size: 11px; font-weight: 600; color: var(--sub); margin-top: 2px; }
-  .lrpop .lrz.on { background: var(--breast); color: #fff; transform: scale(1.04); }
+  .lrpop .lrz.on { background: var(--lc, var(--breast)); color: #fff; transform: scale(1.04); }
   /* ミルクは白。昼はうすい縁どりで見えるように（2026-11-14） */
   [style*="background:var(--milk)"] { box-shadow: 0 0 0 1px var(--milkEdge); }
   .dials svg [style*="fill:var(--milk)"]:not([style*="stroke"]) { stroke: var(--milkEdge); stroke-width: 1; }
@@ -534,8 +534,8 @@
         <button class="b" data-open="pump"><span class="sw" style="background:var(--pump)"></span>搾乳</button>
         <button class="b" data-a="end" data-t="breast">おっぱい<br>終わり</button>
         <button class="b" data-a="add" data-t="pee"><span class="sw" style="background:var(--pee)"></span>おしっこ</button>
-        <button class="b" data-open="poop"><span class="sw" style="background:var(--poop)"></span>うんち</button>
-        <button class="b" data-open="both"><span class="sw" style="background:linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)"></span>両方</button>
+        <button class="b" data-open="poop"><span class="sw" style="background:var(--poop)"></span>うんち<span class="flr">長押しで量</span></button>
+        <button class="b" data-open="both"><span class="sw" style="background:linear-gradient(135deg,var(--pee) 50%,var(--poop) 50%)"></span>両方<span class="flr">長押しで量</span></button>
         <button class="b" data-open="spit"><span class="sw" style="background:var(--spit)"></span>吐き戻し</button>
         <button class="b low one bath" data-a="add" data-t="bath"><span class="sw" style="background:var(--bath)"></span>お風呂</button>
         <button class="b low one ago" id="agoBtn"><span class="agoK">時刻</span><span id="agoV">いま</span></button>
@@ -893,26 +893,36 @@ function toastAct(msg, label, fn) {
   el.classList.add('show', 'act'); clearTimeout(toastTimer);
   toastTimer = setTimeout(function () { el.classList.remove('show', 'act'); }, 8000);
 }
-/* 母乳ボタン：長押しすると左右に「左」「右」が出る。押したまま左か右へ動かして離すと、その側で記録。
-   真ん中（左右40pxずつ）は遊びで、そこで離すとやめる。ふつうに押すと今までどおり（2026-11-14） */
+/* 長押しで選ぶ：長押しするとボタンの横に選択肢が並ぶ。押したまま指を選択肢の上へ動かして離すと決定。
+   真ん中（長押しした所）は遊びで、そこで離すとやめる。ふつうに押すと今までどおり（2026-11-14）
+   母乳＝左・右、うんち・両方＝量（てん・ちょっと・ふつう・たっぷり） */
 var FLICK_AT = 0;
-(function () {
-  var b = document.querySelector('.btns [data-open="breast"]'); if (!b) return;
-  var sx = null, sy = 0, timer = null, pop = null, sel = '', DZ = 40;
-  var close = function () { clearTimeout(timer); timer = null; if (pop) { pop.remove(); pop = null; } b.classList.remove('lp'); sx = null; sel = ''; };
+function longPick(b, opts) {
+  if (!b) return;
+  var sx = null, sy = 0, timer = null, pop = null, sel = null;
+  var close = function () { clearTimeout(timer); timer = null; if (pop) { pop.remove(); pop = null; } b.classList.remove('lp'); sx = null; sel = null; };
   var open = function () {
-    var r = b.getBoundingClientRect(), w = r.width;
+    var r = b.getBoundingClientRect(), cw = opts.cell || r.width, cc = opts.center || r.width, half = opts.items.length / 2;
+    var W = cw * opts.items.length + cc + 6 * opts.items.length;
     pop = document.createElement('div'); pop.className = 'lrpop';
-    pop.style.left = (r.left - w * 1.05) + 'px'; pop.style.top = r.top + 'px'; pop.style.width = (w * 3.1) + 'px'; pop.style.height = r.height + 'px';
-    pop.innerHTML = '<div class="lrz" data-z="L">‹ 左</div><div class="lrc">母乳<small>離すとやめる</small></div><div class="lrz" data-z="R">右 ›</div>';
+    pop.style.gridTemplateColumns = Array(half + 1).join(cw + 'px ') + cc + 'px ' + Array(half + 1).join(cw + 'px ');
+    var left = sx - (cw + 6) * half - cc / 2;
+    left = Math.max(8, Math.min(window.innerWidth - W - 8, left));
+    pop.style.left = left + 'px'; pop.style.top = r.top + 'px'; pop.style.height = r.height + 'px'; pop.style.setProperty('--lc', opts.color);
+    var cells = opts.items.map(function (it, i) { return '<div class="lrz" data-i="' + i + '">' + it[1] + '</div>'; });
+    cells.splice(half, 0, '<div class="lrc">' + opts.title + '<small>離すとやめる</small></div>');
+    pop.innerHTML = cells.join('');
     document.body.appendChild(pop); b.classList.add('lp');
   };
   var mark = function (x) {
-    if (!pop) return; var d = x - sx; sel = d < -DZ ? 'L' : d > DZ ? 'R' : '';
-    Array.prototype.forEach.call(pop.querySelectorAll('.lrz'), function (z) { z.classList.toggle('on', z.dataset.z === sel); });
+    if (!pop) return; sel = null;
+    Array.prototype.forEach.call(pop.querySelectorAll('.lrz'), function (z) {
+      var zr = z.getBoundingClientRect(), on = x >= zr.left - 3 && x <= zr.right + 3;
+      z.classList.toggle('on', on); if (on) sel = opts.items[Number(z.dataset.i)][0];
+    });
   };
   b.addEventListener('pointerdown', function (e) {
-    sx = e.clientX; sy = e.clientY; sel = '';
+    sx = e.clientX; sy = e.clientY; sel = null;
     try { b.setPointerCapture(e.pointerId); } catch (er) {}
     timer = setTimeout(function () { timer = null; open(); }, 380);
   });
@@ -923,12 +933,17 @@ var FLICK_AT = 0;
   });
   b.addEventListener('pointerup', function () {
     if (sx === null) return;
-    if (pop) { FLICK_AT = Date.now(); var s2 = sel; close(); if (s2) act({ a: 'add', t: 'breast', side: s2 }); return; }
+    if (pop) { FLICK_AT = Date.now(); var v = sel; close(); if (v) opts.pick(v); return; }
     close();
   });
   b.addEventListener('pointercancel', close);
   b.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-})();
+}
+longPick(document.querySelector('.btns [data-open="breast"]'), { title: '母乳', color: 'var(--breast)', items: [['L', '‹ 左'], ['R', '右 ›']], pick: function (v) { act({ a: 'add', t: 'breast', side: v }); } });
+['poop', 'both'].forEach(function (t) {
+  longPick(document.querySelector('.btns [data-open="' + t + '"]'), { title: t === 'both' ? '両方' : 'うんち', color: 'var(--poop)', cell: 82, center: 86,
+    items: [['てん', 'てん'], ['ちょっと', 'ちょっと'], ['ふつう', 'ふつう'], ['たっぷり', 'たっぷり']], pick: function (v) { act({ a: 'add', t: t, note: v }); } });
+});
 function act(params, openAfter) {
   if (agoAt) params.time = iso(agoAt); else if (ago > 0) params.ago = ago;
   params.withState = 1;
@@ -1555,7 +1570,7 @@ document.addEventListener('click', function (ev) {
   if (b.dataset.open === 'other') { openOther(); return; }
   if (b.dataset.open === 'spit') { openSpit(); return; }
   if (b.dataset.spadd) { closeSheet(); act({ a: 'add', t: 'spit', note: b.dataset.spadd }); return; }
-  if (b.dataset.open === 'poop' || b.dataset.open === 'both') { openPoop(b.dataset.open); return; }
+  if (b.dataset.open === 'poop' || b.dataset.open === 'both') { if (Date.now() - FLICK_AT < 600) return; openPoop(b.dataset.open); return; }
   if (b.dataset.ppadd) { closeSheet(); act({ a: 'add', t: b.dataset.ppt, note: b.dataset.ppadd }); return; }
   if (b.id === 'memoBtn') { openMemo(); return; }
   if (b.dataset.edit) { openEdit(b.dataset.edit, b.dataset.focus); return; }
