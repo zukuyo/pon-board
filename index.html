@@ -275,6 +275,27 @@
   .alrow .aln { font-size: 12.5px; color: var(--sub); font-weight: 600; }
   .alrow .alt { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .alrow .alsp { width: 100px; }
+  /* 上のボタンはアイコンだけで大きく（2026-11-14）。高さが増えた分は上下の余白で吸収して、時計の位置は動かさない */
+  .tools { gap: 10px; margin: -8px 0 -8px; }
+  .tool { width: 48px; height: 48px; padding: 0; justify-content: center; border-radius: 24px; }
+  .tool svg { width: 25px; height: 25px; }
+  .tool .vx, .tool .vl { display: none; }
+  .tool.off .vw { display: none; } .tool.off .vx { display: inline; }
+  .tool.lock .vw { display: none; } .tool.lock .vl { display: inline; }
+  .tool.lock { animation: lockp 1.6s ease-in-out infinite; }
+  @keyframes lockp { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--warn) 30%, transparent); } }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* 記録ボタンの背景に、うすい透かしのアイコン（2026-11-14） */
+  .btns .b:not(.low) { position: relative; overflow: hidden; }
+  .btns .b:not(.low)::after { content: ''; position: absolute; right: -8px; bottom: -10px; width: 62px; height: 62px; background: currentColor; opacity: .09; pointer-events: none; -webkit-mask: var(--wm) center/contain no-repeat; mask: var(--wm) center/contain no-repeat; }
+  .btns .b[data-open="breast"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z'/></svg>"); }
+  .btns .b[data-open="milk"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3.5c3.2 4.2 5.5 7 5.5 10a5.5 5.5 0 0 1-11 0c0-3 2.3-5.8 5.5-10z'/></svg>"); }
+  .btns .b[data-open="pump"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M8 5c1.8 2.4 3 4 3 5.6a3 3 0 0 1-6 0C5 9 6.2 7.4 8 5z'/><path d='M16 11c1.8 2.4 3 4 3 5.6a3 3 0 0 1-6 0c0-1.6 1.2-3.2 3-5.6z'/></svg>"); }
+  .btns .b[data-a="end"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8'/><path d='M8.5 12.3l2.4 2.4 4.6-5'/></svg>"); }
+  .btns .b[data-t="pee"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 4c2.6 3.4 4.4 5.7 4.4 8a4.4 4.4 0 0 1-8.8 0c0-2.3 1.8-4.6 4.4-8z'/><path d='M5 20.5h14'/></svg>"); }
+  .btns .b[data-open="poop"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M7 19h10a3 3 0 0 0 .6-5.9A3.5 3.5 0 0 0 14 9a3 3 0 0 0-5.6 1.4A3.5 3.5 0 0 0 7 19z'/></svg>"); }
+  .btns .b[data-open="both"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='9' cy='12' r='5'/><circle cx='15' cy='12' r='5'/></svg>"); }
+  .btns .b[data-open="spit"] { --wm: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M3 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0'/><path d='M3 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0'/></svg>"); }
   /* ミルクは白。昼はうすい縁どりで見えるように（2026-11-14） */
   [style*="background:var(--milk)"] { box-shadow: 0 0 0 1px var(--milkEdge); }
   .dials svg [style*="fill:var(--milk)"]:not([style*="stroke"]) { stroke: var(--milkEdge); stroke-width: 1; }
@@ -442,10 +463,10 @@
       <div class="clock" id="clock" title="タップで夜モード切り替え">--:--</div>
       <div class="top-r">
         <div class="tools">
-          <button class="tool" id="albumBtn" aria-label="アルバム"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 3.5 3L16 12l4 4"/></svg>アルバム</button>
-          <button class="tool" id="growthBtn" aria-label="体重・身長"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8.5 9.5a4.5 4.5 0 0 1 7 0"/><path d="M12 14l1.8-3.2"/></svg>成長</button>
-          <button class="tool" id="setBtn" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="18" cy="18" r="2.2"/></svg>設定</button>
-          <button class="tool off" id="voiceBtn" aria-label="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg><span id="voiceTxt">音声案内 オフ</span></button>
+          <button class="tool" id="albumBtn" aria-label="アルバム" title="アルバム"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 3.5 3L16 12l4 4"/></svg></button>
+          <button class="tool" id="growthBtn" aria-label="体重・身長" title="成長"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V13M10 20V8M15 20v-5M20 20V5"/></svg></button>
+          <button class="tool" id="setBtn" aria-label="設定" title="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="18" cy="18" r="2.2"/></svg></button>
+          <button class="tool off" id="voiceBtn" aria-label="音声案内" title="音声案内"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path class="vw" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="vw" d="M18.5 5.5a9 9 0 0 1 0 13"/><path class="vx" d="M16 9l5 6M21 9l-5 6"/><path class="vl" d="M18.5 7v6M18.5 16.6v.4"/></svg><span id="voiceTxt" class="sr-only">音声案内 オフ</span></button>
         </div>
         <div class="date"><div class="dd" id="date"></div><div class="da"><span id="age"></span><span class="wx" id="wx"></span></div></div>
       </div>
@@ -1202,7 +1223,7 @@ function checkAnnounce() {
   playAlert(last);
 }
 /* ───────── お知らせの音・設定 ───────── */
-var SND = { kind: ls('pon.snd.kind') || 'voice', vol: Number(ls('pon.snd.vol') || 80), off: Number(ls('pon.snd.off') || -5) };
+var SND = { kind: ls('pon.snd.kind') || 'voice', vol: Number(ls('pon.snd.vol') || 80), off: Number(ls('pon.snd.off') || -5), pre: ls('pon.snd.pre') || 'ping', boost: Number(ls('pon.snd.boost') || 2) };
 var AC = null;
 function audioCtx() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} return AC; }
 // 大きい音のときは、音を2倍に持ち上げてから圧縮して、割れずにいちばん大きく聞こえるようにする（2026-11-14）
@@ -1211,7 +1232,7 @@ function outTo(ac) {
   if (!LOUD) return ac.destination;
   if (!BOOST) {
     var g = ac.createGain(), c = ac.createDynamicsCompressor();
-    g.gain.value = 2; c.threshold.value = -6; c.knee.value = 0; c.ratio.value = 20; c.attack.value = 0; c.release.value = 0.05;  // 試算でふつうより約7dB大きい（割れない範囲）
+    g.gain.value = SND.boost; c.threshold.value = -6; c.knee.value = 0; c.ratio.value = 20; c.attack.value = 0; c.release.value = 0.05;  // 試算でふつうより約7dB大きい（割れない範囲）
     g.connect(c); c.connect(ac.destination); BOOST = g;
   }
   return BOOST;
@@ -1245,18 +1266,21 @@ function alertPing(vol) {
   var ac = audioCtx(); if (!ac) return; var pk = 0.25 * Math.max(0.03, Math.min(1, vol));
   [880, 1320].forEach(function (f, i) { var o = ac.createOscillator(), g = ac.createGain(), t0 = ac.currentTime + 0.03 + i * 0.12; o.frequency.value = f; o.connect(g); g.connect(outTo(ac)); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(pk, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.25); o.start(t0); o.stop(t0 + 0.3); });
 }
+// 声の前に鳴らす音（ピコン／チャイム／ベル／ピピッ／なし）と、その長さ（この後に声）
+var PRE_DUR = { ping: 500, chime: 2100, bell: 2400, pip: 1500, none: 0 };
+function playPre(v) { var k = SND.pre; if (k === 'none') return; if (k === 'ping') alertPing(v); else playTone(k, v * 100); }
 function playAlert(al) {
   al = al || alarms()[0];
-  var v = al.loud ? 1 : SND.vol / 100, txt = alarmText(al);
+  var v = al.loud ? 1 : SND.vol / 100, txt = alarmText(al), pd = PRE_DUR[SND.pre] || 0;
   var once = function () {
-    if (SND.kind === 'voice') { alertPing(v); setTimeout(function () { playClip(txt, v); }, 500); }
+    if (SND.kind === 'voice') { playPre(v); setTimeout(function () { playClip(txt, v); }, pd); }
     else playTone(SND.kind, al.loud ? 100 : SND.vol);
   };
   if (!al.loud) { once(); return; }
-  LOUD = true; clearTimeout(playAlert.t); playAlert.t = setTimeout(function () { LOUD = false; }, 17000);
-  // 大きい音：いちばん大きい音で、ピピッのあとに声（または音）を3回くり返す
-  var rep = function (k) { if (k >= 3) return; playTone('pip', 100); setTimeout(once, 1700); setTimeout(function () { rep(k + 1); }, 5200); };
-  rep(0);
+  // 大きい音：持ち上げた音で3回くり返す
+  var gap = (SND.kind === 'voice' ? pd + 2800 : 3000);
+  LOUD = true; clearTimeout(playAlert.t); playAlert.t = setTimeout(function () { LOUD = false; }, gap * 3 + 1500);
+  once(); setTimeout(once, gap); setTimeout(once, gap * 2);
 }
 function offTxt(m) { return m < 0 ? (-m) + '分前' : m > 0 ? m + '分後' : 'ちょうど'; }
 function drawAlarms() {
@@ -1281,14 +1305,35 @@ function drawAlarms() {
     saveAlarms(A); drawAlarms();
   };
 }
+function openAlarmSettings() {
+  var kinds = [['voice', '声'], ['chime', 'チャイム'], ['bell', 'ベル'], ['pip', 'ピピッ']];
+  var pres = [['ping', 'ピコン'], ['chime', 'チャイム'], ['bell', 'ベル'], ['pip', 'ピピッ'], ['none', 'なし']];
+  var seg = function (id, list, cur, attr) { return '<div class="segc" id="' + id + '">' + list.map(function (k) { return '<button ' + attr + '="' + k[0] + '" class="' + (cur === k[0] ? 'on' : '') + '">' + k[1] + '</button>'; }).join('') + '</div>'; };
+  openSheet('<div class="ph"><h3>アラーム</h3><button class="x" id="alBack">戻る</button></div>' +
+    '<div class="label">上の「音声案内」がオンのときに鳴ります。この端末だけの設定です</div>' +
+    '<div class="label" style="margin-top:10px">鳴らすもの</div>' + seg('sKind', kinds, SND.kind, 'data-k') +
+    '<div id="preWrap"><div class="label" style="margin-top:8px">声の前に鳴らす音</div>' + seg('sPre', pres, SND.pre, 'data-pre') + '</div>' +
+    '<div class="rowl"><span class="k">ふつうの音量</span><input type="range" id="sVol" min="10" max="100" step="10" value="' + SND.vol + '" style="flex:1;margin-left:16px"></div>' +
+    '<div class="rowl"><span class="k">「大きい音」の強さ</span><input type="range" id="sBoost" min="1" max="4" step="0.5" value="' + SND.boost + '" style="flex:1;margin-left:16px"><span id="sBoostV" style="width:48px;text-align:right;font-weight:700">' + SND.boost + '</span></div>' +
+    '<div class="label" style="margin-top:8px">いつ鳴らすか（次回授乳の時刻を基準に。授乳を記録すると、その先は鳴りません）</div><div id="alList"></div>' +
+    '<div class="acts"><button class="btn pri" id="alDone">閉じる</button></div>');
+  var showPre = function () { $('preWrap').style.display = SND.kind === 'voice' ? '' : 'none'; };
+  showPre();
+  $('alBack').onclick = openSettings;
+  $('alDone').onclick = closeSheet;
+  $('sKind').onclick = function (ev) { var x = ev.target.closest('[data-k]'); if (!x) return; SND.kind = x.dataset.k; ls('pon.snd.kind', SND.kind); Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); showPre(); audioCtx(); if (SND.kind !== 'voice') playTone(SND.kind, SND.vol); };
+  $('sPre').onclick = function (ev) { var x = ev.target.closest('[data-pre]'); if (!x) return; SND.pre = x.dataset.pre; ls('pon.snd.pre', SND.pre); Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); audioCtx(); playPre(SND.vol / 100); };
+  $('sVol').oninput = function () { SND.vol = Number(this.value); ls('pon.snd.vol', String(SND.vol)); };
+  $('sVol').onchange = function () { audioCtx(); if (SND.kind === 'voice') playClip('ミルクの時間です', SND.vol / 100); else playTone(SND.kind, SND.vol); };
+  $('sBoost').oninput = function () { SND.boost = Number(this.value); ls('pon.snd.boost', String(SND.boost)); $('sBoostV').textContent = SND.boost; BOOST = null; };
+  $('sBoost').onchange = function () { audioCtx(); LOUD = true; BOOST = null; if (SND.kind === 'voice') playClip('ミルクの時間を1時間過ぎています', 1); else playTone(SND.kind, 100); setTimeout(function () { LOUD = false; }, 3500); };
+  drawAlarms();
+}
 function openSettings() {
   var kinds = [['voice', '声'], ['chime', 'チャイム'], ['bell', 'ベル'], ['pip', 'ピピッ']], dial = ls('pon.dial') === 'classic' ? 'classic' : 'now';
   openSheet('<div class="ph"><h3>設定</h3><button class="x" data-close>閉じる</button></div>' +
     '<div class="rowl"><span class="k">授乳間隔</span><button class="v" id="sIv">' + (S ? ivTxt(S.notifyMin) : '') + '　›</button></div>' +
-    '<div class="label" style="margin-top:12px">授乳時間のお知らせ（上の「音声案内」がオンのときに鳴ります）</div>' +
-    '<div class="segc" id="sKind">' + kinds.map(function (k) { return '<button data-k="' + k[0] + '" class="' + (SND.kind === k[0] ? 'on' : '') + '">' + k[1] + '</button>'; }).join('') + '</div>' +
-    '<div class="rowl"><span class="k">音量</span><input type="range" id="sVol" min="10" max="100" step="10" value="' + SND.vol + '" style="flex:1;margin-left:16px"></div>' +
-    '<div class="label" style="margin-top:8px">いつ鳴らすか（次回授乳の時刻を基準に。授乳を記録すると、その先のお知らせは鳴りません）</div><div id="alList"></div>' +
+    '<div class="rowl"><span class="k">アラーム（お知らせの音）</span><button class="v" id="sAlarm">' + alarms().filter(function (a) { return a.on; }).length + 'つ オン　›</button></div>' +
     '<div class="label" style="margin-top:14px">時計のデザイン</div>' +
     '<div class="segc" id="sDial"><button data-d="now" class="' + (dial === 'now' ? 'on' : '') + '">いまの（扇）</button><button data-d="classic" class="' + (dial === 'classic' ? 'on' : '') + '">最初の（丸）</button></div>' +
     '<div class="rowl" style="margin-top:12px"><span class="k">Siriに言う言葉</span><button class="v" id="sVoice">声の例　›</button></div>' +
@@ -1300,10 +1345,7 @@ function openSettings() {
   $('sReload').onclick = function () { this.textContent = '更新しています…'; location.reload(); };
   $('sIv').onclick = openInterval;
   $('sVoice').onclick = openVoiceHelp;
-  $('sKind').onclick = function (ev) { var x = ev.target.closest('[data-k]'); if (!x) return; SND.kind = x.dataset.k; ls('pon.snd.kind', SND.kind); Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); };
-  $('sVol').oninput = function () { SND.vol = Number(this.value); ls('pon.snd.vol', String(SND.vol)); };
-  $('sVol').onchange = function () { audioCtx(); if (SND.kind === 'voice') playClip('ミルクの時間です', SND.vol / 100); else playTone(SND.kind, SND.vol); };
-  drawAlarms();
+  $('sAlarm').onclick = openAlarmSettings;
   $('sDial').onclick = function (ev) { var x = ev.target.closest('[data-d]'); if (!x) return; ls('pon.dial', x.dataset.d); Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); if ($('tlcard').classList.contains('vclock')) renderDials(); };
 }
 /* 次回授乳を、この1回だけ手で決める */
