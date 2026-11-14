@@ -316,12 +316,16 @@
   .btns .b[data-open="both"] { border: 2.5px solid; border-color: var(--pee) var(--poop) var(--poop) var(--pee); }
   .btns .b[data-open="spit"] { border: 2.5px solid var(--spit); }
   .btns .b.bath { border: 2.5px solid var(--bath); }
-  /* 母乳ボタンのフリック：両はしにうすく ‹左 右› を出し、はらった方を強調 */
-  .btns .b[data-open="breast"] { touch-action: none; transition: transform .12s, opacity .2s; }
-  .btns .b[data-open="breast"]::before { content: '‹ 左'; position: absolute; left: 8px; bottom: 6px; font-size: 11px; font-weight: 700; opacity: .35; pointer-events: none; }
-  .btns .b[data-open="breast"] .flr { position: absolute; right: 8px; bottom: 6px; font-size: 11px; font-weight: 700; opacity: .35; pointer-events: none; }
-  .btns .b[data-open="breast"].flL::before, .btns .b[data-open="breast"].flR .flr { opacity: 1; color: var(--breast); font-size: 14px; }
-  .btns .b[data-open="breast"].flL, .btns .b[data-open="breast"].flR { background: color-mix(in srgb, var(--breast) 16%, var(--btn)); }
+  /* 母乳ボタンの長押し：左右の選択 */
+  .btns .b[data-open="breast"] { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .btns .b[data-open="breast"] .flr { position: absolute; left: 0; right: 0; bottom: 5px; font-size: 10.5px; font-weight: 600; opacity: .45; pointer-events: none; }
+  .btns .b.lp { transform: scale(.97); }
+  .lrpop { position: fixed; z-index: 80; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; pointer-events: none; animation: lrin .12s ease-out; }
+  @keyframes lrin { from { opacity: 0; transform: scale(.94); } }
+  .lrpop > div { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 18px; font-weight: 750; font-size: 22px; background: var(--btn); color: var(--btnInk); border: 2.5px solid var(--breast); box-shadow: var(--shadow); }
+  .lrpop .lrc { font-size: 17px; opacity: .9; border-style: dashed; }
+  .lrpop .lrc small { font-size: 11px; font-weight: 600; color: var(--sub); margin-top: 2px; }
+  .lrpop .lrz.on { background: var(--breast); color: #fff; transform: scale(1.04); }
   /* ミルクは白。昼はうすい縁どりで見えるように（2026-11-14） */
   [style*="background:var(--milk)"] { box-shadow: 0 0 0 1px var(--milkEdge); }
   .dials svg [style*="fill:var(--milk)"]:not([style*="stroke"]) { stroke: var(--milkEdge); stroke-width: 1; }
@@ -525,7 +529,7 @@
         <button class="memo empty" id="memoBtn" aria-label="引き継ぎメモ"><span>引き継ぎメモ（タップで書く）</span></button>
       </div>
       <div class="btns">
-        <button class="b" data-open="breast"><span class="sw" style="background:var(--breast)"></span>母乳<span class="flr">右 ›</span></button>
+        <button class="b" data-open="breast"><span class="sw" style="background:var(--breast)"></span>母乳<span class="flr">長押しで左右</span></button>
         <button class="b" data-open="milk"><span class="sw" style="background:var(--milk)"></span>ミルク</button>
         <button class="b" data-open="pump"><span class="sw" style="background:var(--pump)"></span>搾乳</button>
         <button class="b" data-a="end" data-t="breast">おっぱい<br>終わり</button>
@@ -889,23 +893,41 @@ function toastAct(msg, label, fn) {
   el.classList.add('show', 'act'); clearTimeout(toastTimer);
   toastTimer = setTimeout(function () { el.classList.remove('show', 'act'); }, 8000);
 }
-/* 母乳ボタン：押したまま右へはらうと「母乳 右」、左へはらうと「母乳 左」。そのまま押すと今までどおり（2026-11-14） */
+/* 母乳ボタン：長押しすると左右に「左」「右」が出る。押したまま左か右へ動かして離すと、その側で記録。
+   真ん中（左右40pxずつ）は遊びで、そこで離すとやめる。ふつうに押すと今までどおり（2026-11-14） */
 var FLICK_AT = 0;
 (function () {
   var b = document.querySelector('.btns [data-open="breast"]'); if (!b) return;
-  var sx = null, dx = 0, TH = 36;
-  var reset = function () { b.style.transform = ''; b.classList.remove('flL', 'flR'); sx = null; dx = 0; };
-  b.addEventListener('pointerdown', function (e) { sx = e.clientX; dx = 0; try { b.setPointerCapture(e.pointerId); } catch (er) {} });
+  var sx = null, sy = 0, timer = null, pop = null, sel = '', DZ = 40;
+  var close = function () { clearTimeout(timer); timer = null; if (pop) { pop.remove(); pop = null; } b.classList.remove('lp'); sx = null; sel = ''; };
+  var open = function () {
+    var r = b.getBoundingClientRect(), w = r.width;
+    pop = document.createElement('div'); pop.className = 'lrpop';
+    pop.style.left = (r.left - w * 1.05) + 'px'; pop.style.top = r.top + 'px'; pop.style.width = (w * 3.1) + 'px'; pop.style.height = r.height + 'px';
+    pop.innerHTML = '<div class="lrz" data-z="L">‹ 左</div><div class="lrc">母乳<small>離すとやめる</small></div><div class="lrz" data-z="R">右 ›</div>';
+    document.body.appendChild(pop); b.classList.add('lp');
+  };
+  var mark = function (x) {
+    if (!pop) return; var d = x - sx; sel = d < -DZ ? 'L' : d > DZ ? 'R' : '';
+    Array.prototype.forEach.call(pop.querySelectorAll('.lrz'), function (z) { z.classList.toggle('on', z.dataset.z === sel); });
+  };
+  b.addEventListener('pointerdown', function (e) {
+    sx = e.clientX; sy = e.clientY; sel = '';
+    try { b.setPointerCapture(e.pointerId); } catch (er) {}
+    timer = setTimeout(function () { timer = null; open(); }, 380);
+  });
   b.addEventListener('pointermove', function (e) {
-    if (sx === null) return; dx = e.clientX - sx;
-    b.style.transform = 'translateX(' + Math.max(-26, Math.min(26, dx * 0.45)) + 'px)';
-    b.classList.toggle('flR', dx > TH); b.classList.toggle('flL', dx < -TH);
+    if (sx === null) return;
+    if (timer && (Math.abs(e.clientX - sx) > 14 || Math.abs(e.clientY - sy) > 14)) { clearTimeout(timer); timer = null; }
+    mark(e.clientX);
   });
   b.addEventListener('pointerup', function () {
-    if (sx === null) return; var d = dx; reset();
-    if (Math.abs(d) > TH) { FLICK_AT = Date.now(); act({ a: 'add', t: 'breast', side: d > 0 ? 'R' : 'L' }); }
+    if (sx === null) return;
+    if (pop) { FLICK_AT = Date.now(); var s2 = sel; close(); if (s2) act({ a: 'add', t: 'breast', side: s2 }); return; }
+    close();
   });
-  b.addEventListener('pointercancel', reset);
+  b.addEventListener('pointercancel', close);
+  b.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 })();
 function act(params, openAfter) {
   if (agoAt) params.time = iso(agoAt); else if (ago > 0) params.ago = ago;
