@@ -566,7 +566,7 @@ function renderHero() {
   var next = nextFeedMs(), rem = next - now;
   $('nextT').textContent = hm(next);
   $('nextSub').textContent = (rem > 0 ? 'あと ' + durJa(rem) : durJa(-rem) + ' 過ぎています');
-  $('nextLbl').classList.toggle('once', !!S.nextOnce); $('nextLblTxt').textContent = S.nextOnce ? '次回授乳（今回だけ）' : '次回授乳';
+  $('nextLbl').classList.toggle('once', !!S.nextOnce); $('nextLblTxt').textContent = S.nextOnce ? '次回授乳（今回だけ）' : S.bathShortActive ? '次回授乳（お風呂 −' + S.bathShortActive + '分）' : '次回授乳';
   if (rem <= -15 * 60000) hero.classList.add('alert'); else if (rem <= 10 * 60000) hero.classList.add('warn');
   var lf = S.lastFeed;
   var what = lf.type === 'milk' ? 'ミルク ' + lf.amt + 'ml' : lf.type === 'pump' ? '搾乳 ' + lf.amt + 'ml' : '母乳' + (S.lastSides.length ? ' ' + S.lastSides.join('→') : '');
@@ -576,13 +576,15 @@ function renderHero() {
 /* ───────── 今日の流れ ───────── */
 function xPct(t) { return Math.max(0, Math.min(100, (t - S.dayStart) / 86400000 * 100)); }
 function placeNow() { if (S) { $('nowline').style.left = xPct(Date.now()) + '%'; updateHands(); } }
-function nextFeedMs() { if (!S || !S.lastFeed) return null; if (S.nextOnce && S.nextFeedAt) return S.nextFeedAt; return (S.feedSessionStart || S.lastFeed.t) + S.notifyMin * 60000; }
+function nextFeedMs() { if (!S || !S.lastFeed) return null; if (S.nextOnce && S.nextFeedAt) return S.nextFeedAt; return (S.feedSessionStart || S.lastFeed.t) + (S.notifyMin - (S.bathShortActive || 0)) * 60000; }
+// 次回授乳の帯の長さ（分）。お風呂で早めたときは、もとの帯の終わりは動かさず、早めた分だけ帯をのばす（2026-11-14）
+function winMin() { return 30 + (S && !S.nextOnce ? (S.bathShortActive || 0) : 0); }
 function renderWindow() {
   var nw = document.getElementById('nextwin'), n = nextFeedMs();
   if (!nw) { nw = document.createElement('div'); nw.id = 'nextwin'; nw.className = 'nextwin'; document.querySelector('.nowwrap').insertBefore(nw, $('nowline')); }
   if (n !== null && n >= S.dayStart + 86400000) n -= 86400000;  // 日をまたぐときは、翌日の時刻として左端（0時台）に出す
-  if (n === null || n + 1800000 <= S.dayStart) { nw.style.display = 'none'; return; }
-  var a = xPct(n), b = xPct(n + 1800000);
+  if (n === null || n + winMin() * 60000 <= S.dayStart) { nw.style.display = 'none'; return; }
+  var a = xPct(n), b = xPct(n + winMin() * 60000);
   nw.style.display = ''; nw.style.left = a + '%'; nw.style.width = Math.max(0.4, b - a) + '%';
 }
 function renderTimeline() {
@@ -627,7 +629,7 @@ function dialSvg(half) {
   // 次回授乳の扇は、午前・午後や日付をまたいでも右（今の時計）に、文字盤の位置で出す（2026-11-13）
   if (nf !== null && half === nowHalf()) {
     var nd = (((nf - S.dayStart) / 3600000) % 12 + 12) % 12 * 30 - 90;
-    o += cap(nd, nd + 15, 'var(--winS)');
+    o += cap(nd, nd + winMin() * 0.5, 'var(--winS)');
   }
   S.timeline.forEach(function (e) {
     if (e.type !== 'breast' && e.type !== 'milk' && e.type !== 'pump') return;
@@ -668,7 +670,7 @@ function dialSvgClassic(half) {
   if (nf !== null && half === nowHalf()) {
     var nd = (((nf - S.dayStart) / 3600000) % 12 + 12) % 12 * 30 - 90;
     {
-      var d0 = nd, d1 = nd + 15, p1 = pt(96, d0), p2 = pt(96, d1), p3 = pt(38, d1), p4 = pt(38, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+      var d0 = nd, d1 = nd + winMin() * 0.5, p1 = pt(96, d0), p2 = pt(96, d1), p3 = pt(38, d1), p4 = pt(38, d0), f = function (q) { return q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
       o += '<path d="M' + f(p1) + ' A96 96 0 0 1 ' + f(p2) + ' L' + f(p3) + ' A38 38 0 0 0 ' + f(p4) + ' Z" style="fill:var(--win)"/>';
     }
   }
@@ -881,6 +883,18 @@ function openInterval() {
   var cur = S ? S.notifyMin : 180, val = cur;
   openSheet('<div class="ph"><h3>授乳間隔</h3><button class="x" data-close>閉じる</button></div><div class="label">前の授乳の開始から、次の授乳までの間隔（10分きざみ）</div><div class="wheels" style="margin-top:6px"><div class="band"></div><div class="wheel" id="wIv" style="width:160px"></div></div>' + (S && S.lastFeed ? '<div class="rowl"><span class="k">次回授乳だけ間隔を変える</span><button class="v" id="ivOnce">' + ivTxt(Math.round((nextFeedMs() - (S.feedSessionStart || S.lastFeed.t)) / 60000)) + '（' + hm(nextFeedMs()) + '）' + (S.nextOnce ? '今回だけ' : '') + '　›</button></div>' : '') + '<div class="acts"><button class="btn" data-close>キャンセル</button><button class="btn pri" id="ivSave">決定</button></div>');
   if ($('ivOnce')) $('ivOnce').onclick = openNextOnce;
+  // お風呂のあとは次の授乳を早める（家族で共通・すぐ保存）
+  var bs = (S && S.bathShort) || { on: false, min: 30 };
+  $('ivSave').closest('.acts').insertAdjacentHTML('beforebegin', '<div class="label" style="margin-top:14px">お風呂を記録したら、次の授乳だけ早める</div><div class="segc" id="bsOn"><button data-bs="0" class="' + (bs.on ? '' : 'on') + '">しない</button><button data-bs="1" class="' + (bs.on ? 'on' : '') + '">早める</button></div><div class="stepper" id="bsStep" style="' + (bs.on ? '' : 'opacity:.4') + '"><button id="bsM">−</button><div class="val" style="font-size:28px"><span id="bsV">' + bs.min + '</span><small>分 早める</small></div><button id="bsP">＋</button></div><div class="note2">お風呂のあとの授乳を記録すると、いつもの間隔に戻ります。帯の終わりはそのままで、早めた分だけ帯がのびます。</div>');
+  var bsSave = function () {
+    if (S) { S.bathShort = { on: bs.on, min: bs.min }; }
+    $('bsStep').style.opacity = bs.on ? '' : '.4';
+    call({ a: 'set', k: 'bathshort', on: bs.on ? 1 : 0, min: bs.min, withState: 1 }, function (r) { if (r && r.state) { S = r.state; render(); } else if (!(r && r.ok)) toast('保存できませんでした'); });
+  };
+  $('bsOn').onclick = function (ev) { var x = ev.target.closest('[data-bs]'); if (!x) return; bs.on = x.dataset.bs === '1'; Array.prototype.forEach.call(this.children, function (c) { c.classList.toggle('on', c === x); }); bsSave(); };
+  var bsStep = function (d) { bs.min = Math.max(10, Math.min(120, bs.min + d)); $('bsV').textContent = bs.min; bsSave(); };
+  $('bsM').onclick = function () { bsStep(-10); };
+  $('bsP').onclick = function () { bsStep(10); };
   var items = range(30, 360, 10, ivTxt);
   makeWheel($('wIv'), items, Math.max(0, items.findIndex(function (i) { return i.v === cur; })), function (v) { val = v; });
   $('ivSave').onclick = function () {
@@ -1074,6 +1088,7 @@ function drawContent() {
     if (d.type === 'breast') {
       h += '<div class="label">授乳した時間（スクロールで選びます）</div><div class="wheels"><div class="wc"><div class="wl">左</div><div class="bandc"></div><div class="wheel big" id="wL"></div></div><div class="wc"><div class="wl">右</div><div class="bandc"></div><div class="wheel big" id="wR"></div></div></div>';
       h += '<div class="label" style="margin-top:6px">先に飲んだ側</div><div class="segc" id="firstSeg"><button data-fs="L" class="' + (d.first === 'L' ? 'on' : '') + '">左が先</button><button data-fs="R" class="' + (d.first === 'R' ? 'on' : '') + '">右が先</button></div>';
+      h += '<div class="label" style="margin-top:10px">時間を入れずに記録</div><div class="quick" id="onlySeg"><button data-only="L" style="min-height:56px;font-size:19px">左だけ</button><button data-only="R" style="min-height:56px;font-size:19px">右だけ</button></div>';
     }
     if (d.type === 'spit') h += '<div class="label">量</div>' + spitSeg(d.note, 'spSeg');
     if (d.type === 'poop' || d.type === 'both') h += '<div class="label">うんちの量</div>' + poopSeg(d.note, 'ppSeg');
@@ -1364,6 +1379,7 @@ document.addEventListener('click', function (ev) {
   if (ED) {
     if (b.dataset.sp) { ED.note = b.dataset.sp; Array.prototype.forEach.call(document.querySelectorAll('[data-sp]'), function (x) { x.classList.toggle('on', x === b); }); return; }
     if (b.dataset.ty) { ED.type = b.dataset.ty; if ((ED.type === 'milk' || ED.type === 'pump') && !ED.amt) ED.amt = 60; drawContent(); return; }
+    if (b.dataset.only) { var od = ED; closeSheet(); toast('記録しています…'); call({ a: 'breastset', id: od.id, l: 0, r: 0, first: b.dataset.only, only: b.dataset.only, withState: 1 }, function (r) { toast(r && r.ok ? '母乳（' + (b.dataset.only === 'L' ? '左' : '右') + '）を記録しました' : '記録できませんでした'); if (r && r.state) { S = r.state; render(); } else refresh(); }); return; }
     if (b.dataset.fs) { ED.first = b.dataset.fs; Array.prototype.forEach.call(document.querySelectorAll('[data-fs]'), function (x) { x.classList.toggle('on', x.dataset.fs === ED.first); }); return; }
     if (b.dataset.sd !== undefined) { ED.side = b.dataset.sd; drawContent(); return; }
     if (b.dataset.st) { var k = b.dataset.st, dl = Number(b.dataset.d); ED[k] = Math.max(0, Math.round((ED[k] + dl) * 10) / 10); $(k === 'min' ? 'vMin' : 'vAmt').textContent = ED[k]; return; }
