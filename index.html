@@ -1191,17 +1191,15 @@ function alarmText(al) { return al.min < 0 ? ((S && S.announceText) || 'もう�
 function checkAnnounce() {
   if (!VOICE.pref || !VOICE.unlocked || !S || !S.nextFeedAt) return;
   var done = []; try { done = JSON.parse(ls('pon.announcedList') || '[]'); } catch (e) { done = []; }
-  var fired = false;
-  alarms().forEach(function (al) {
-    if (!al.on || fired) return;
-    var d = Date.now() - (S.nextFeedAt + al.min * 60000);
-    if (d < 0 || d > 10 * 60000) return;
-    var key = S.nextFeedAt + '|' + al.id + '|' + al.min;
-    if (done.indexOf(key) >= 0) return;
-    done.push(key); fired = true;
-    ls('pon.announcedList', JSON.stringify(done.slice(-30)));
-    playAlert(al);
-  });
+  // 時刻を過ぎたお知らせのうち、いちばん新しいものだけ鳴らす（画面を開き直したときに古いものまで続けて鳴らさない）
+  var now = Date.now(), last = null;
+  alarms().forEach(function (al) { if (al.on && now >= S.nextFeedAt + al.min * 60000 && (!last || al.min > last.min)) last = al; });
+  if (!last || now - (S.nextFeedAt + last.min * 60000) > 10 * 60000) return;
+  var key = S.nextFeedAt + '|' + last.id + '|' + last.min;
+  if (done.indexOf(key) >= 0) return;
+  done.push(key);
+  ls('pon.announcedList', JSON.stringify(done.slice(-30)));
+  playAlert(last);
 }
 /* ───────── お知らせの音・設定 ───────── */
 var SND = { kind: ls('pon.snd.kind') || 'voice', vol: Number(ls('pon.snd.vol') || 80), off: Number(ls('pon.snd.off') || -5) };
