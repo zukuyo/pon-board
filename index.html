@@ -316,6 +316,12 @@
   .btns .b[data-open="both"] { border: 2.5px solid; border-color: var(--pee) var(--poop) var(--poop) var(--pee); }
   .btns .b[data-open="spit"] { border: 2.5px solid var(--spit); }
   .btns .b.bath { border: 2.5px solid var(--bath); }
+  /* 母乳ボタンのフリック：両はしにうすく ‹左 右› を出し、はらった方を強調 */
+  .btns .b[data-open="breast"] { touch-action: none; transition: transform .12s, opacity .2s; }
+  .btns .b[data-open="breast"]::before { content: '‹ 左'; position: absolute; left: 8px; bottom: 6px; font-size: 11px; font-weight: 700; opacity: .35; pointer-events: none; }
+  .btns .b[data-open="breast"] .flr { position: absolute; right: 8px; bottom: 6px; font-size: 11px; font-weight: 700; opacity: .35; pointer-events: none; }
+  .btns .b[data-open="breast"].flL::before, .btns .b[data-open="breast"].flR .flr { opacity: 1; color: var(--breast); font-size: 14px; }
+  .btns .b[data-open="breast"].flL, .btns .b[data-open="breast"].flR { background: color-mix(in srgb, var(--breast) 16%, var(--btn)); }
   /* ミルクは白。昼はうすい縁どりで見えるように（2026-11-14） */
   [style*="background:var(--milk)"] { box-shadow: 0 0 0 1px var(--milkEdge); }
   .dials svg [style*="fill:var(--milk)"]:not([style*="stroke"]) { stroke: var(--milkEdge); stroke-width: 1; }
@@ -519,7 +525,7 @@
         <button class="memo empty" id="memoBtn" aria-label="引き継ぎメモ"><span>引き継ぎメモ（タップで書く）</span></button>
       </div>
       <div class="btns">
-        <button class="b" data-open="breast"><span class="sw" style="background:var(--breast)"></span>母乳</button>
+        <button class="b" data-open="breast"><span class="sw" style="background:var(--breast)"></span>母乳<span class="flr">右 ›</span></button>
         <button class="b" data-open="milk"><span class="sw" style="background:var(--milk)"></span>ミルク</button>
         <button class="b" data-open="pump"><span class="sw" style="background:var(--pump)"></span>搾乳</button>
         <button class="b" data-a="end" data-t="breast">おっぱい<br>終わり</button>
@@ -883,6 +889,24 @@ function toastAct(msg, label, fn) {
   el.classList.add('show', 'act'); clearTimeout(toastTimer);
   toastTimer = setTimeout(function () { el.classList.remove('show', 'act'); }, 8000);
 }
+/* 母乳ボタン：押したまま右へはらうと「母乳 右」、左へはらうと「母乳 左」。そのまま押すと今までどおり（2026-11-14） */
+var FLICK_AT = 0;
+(function () {
+  var b = document.querySelector('.btns [data-open="breast"]'); if (!b) return;
+  var sx = null, dx = 0, TH = 36;
+  var reset = function () { b.style.transform = ''; b.classList.remove('flL', 'flR'); sx = null; dx = 0; };
+  b.addEventListener('pointerdown', function (e) { sx = e.clientX; dx = 0; try { b.setPointerCapture(e.pointerId); } catch (er) {} });
+  b.addEventListener('pointermove', function (e) {
+    if (sx === null) return; dx = e.clientX - sx;
+    b.style.transform = 'translateX(' + Math.max(-26, Math.min(26, dx * 0.45)) + 'px)';
+    b.classList.toggle('flR', dx > TH); b.classList.toggle('flL', dx < -TH);
+  });
+  b.addEventListener('pointerup', function () {
+    if (sx === null) return; var d = dx; reset();
+    if (Math.abs(d) > TH) { FLICK_AT = Date.now(); act({ a: 'add', t: 'breast', side: d > 0 ? 'R' : 'L' }); }
+  });
+  b.addEventListener('pointercancel', reset);
+})();
 function act(params, openAfter) {
   if (agoAt) params.time = iso(agoAt); else if (ago > 0) params.ago = ago;
   params.withState = 1;
@@ -1505,7 +1529,7 @@ document.addEventListener('click', function (ev) {
   if (b.id === 'agoBtn') { openAgoMenu(); return; }
   if (b.dataset.open === 'milk') { openMilk('milk'); return; }
   if (b.dataset.open === 'pump') { openMilk('pump'); return; }
-  if (b.dataset.open === 'breast') { act({ a: 'add', t: 'breast' }, true); return; }
+  if (b.dataset.open === 'breast') { if (Date.now() - FLICK_AT < 600) return; act({ a: 'add', t: 'breast' }, true); return; }
   if (b.dataset.open === 'other') { openOther(); return; }
   if (b.dataset.open === 'spit') { openSpit(); return; }
   if (b.dataset.spadd) { closeSheet(); act({ a: 'add', t: 'spit', note: b.dataset.spadd }); return; }
