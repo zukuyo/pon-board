@@ -281,7 +281,10 @@
   .top { padding-top: calc(var(--clk) * 0.18); }
   /* 幅が足りるときは、上のボタンを時計と日付の間に置く（足りないときは右の列のいちばん上）。2026-11-14 */
   .top-r { flex-direction: row; align-items: center; gap: 16px; }
-  .top-r .tools { display: grid; grid-template-columns: repeat(4, 64px); gap: 8px; }  /* ボタンを右の列へ移した分、時計の高さを前と同じに保つ */
+  .tools.intop { display: grid; grid-template-columns: repeat(4, var(--ts)); gap: 8px; }
+  .tools.intop.two { grid-template-columns: repeat(2, var(--ts)); }
+  .tools.intop .tool { width: var(--ts); height: var(--ts); border-radius: calc(var(--ts) * .28); }
+  .tools.intop .tool svg { width: calc(var(--ts) * .5); height: calc(var(--ts) * .5); }  /* ボタンを右の列へ移した分、時計の高さを前と同じに保つ */
   .memorow .memo { flex: 1; min-width: 0; margin-bottom: 0; }
   .memorow .tools { display: grid; grid-template-columns: repeat(4, 64px); gap: 6px; align-items: center; }
   .tool { width: 64px; height: 64px; padding: 0; justify-content: center; border-radius: 18px; }
@@ -598,11 +601,18 @@ function typeOf(e) { return e.type; }
 
 /* ───────── 上段・ヒーロー ───────── */
 function placeTools() {
-  var t = $('tools'), tr = document.querySelector('.top-r'), mr = document.querySelector('.memorow'), ck = $('clock');
-  if (!t || !tr || !mr || !ck) return;
-  if (t.parentNode !== tr) tr.insertBefore(t, tr.firstChild);
-  var fits = t.getBoundingClientRect().left >= ck.getBoundingClientRect().right + 16 && window.matchMedia('(min-width: 701px)').matches;
-  if (!fits) mr.insertBefore(t, mr.firstChild);
+  // 時計と日付の間の空きを測り、横一列（44〜64px）→2段（40〜64px）→入らなければ右の列のいちばん上、の順で決める
+  var t = $('tools'), tr = document.querySelector('.top-r'), mr = document.querySelector('.memorow'), ck = $('clock'), dt = document.querySelector('.top-r .date');
+  if (!t || !tr || !mr || !ck || !dt) return;
+  if (t.parentNode !== mr) mr.insertBefore(t, mr.firstChild);
+  t.classList.remove('intop', 'two'); t.style.removeProperty('--ts');
+  if (!window.matchMedia('(min-width: 701px)').matches) return;
+  var cr = ck.getBoundingClientRect(), gap = dt.getBoundingClientRect().left - cr.right - 16 - 16, hi = cr.height;
+  var s1 = Math.min(64, Math.floor((gap - 24) / 4)), s2 = Math.min(64, Math.floor((gap - 8) / 2), Math.floor((hi - 8) / 2));
+  if (s1 >= 44) { t.style.setProperty('--ts', s1 + 'px'); t.classList.add('intop'); }
+  else if (s2 >= 40) { t.style.setProperty('--ts', s2 + 'px'); t.classList.add('intop', 'two'); }
+  else return;
+  tr.insertBefore(t, tr.firstChild);
 }
 window.addEventListener('resize', placeTools);
 function tick() {
