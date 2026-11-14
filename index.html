@@ -320,9 +320,9 @@
   .btns .b[data-open="breast"], .btns .b[data-open="poop"], .btns .b[data-open="both"] { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .btns .b .flr { position: absolute; left: 0; right: 0; bottom: 5px; font-size: 11px; font-weight: 600; opacity: .45; pointer-events: none; }
   .btns .b.lp { transform: scale(.97); }
-  .lrpop { position: fixed; z-index: 80; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; pointer-events: none; animation: lrin .12s ease-out; }
+  .lrpop { font-size: 20px; position: fixed; z-index: 80; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; pointer-events: none; animation: lrin .12s ease-out; }
   @keyframes lrin { from { opacity: 0; transform: scale(.94); } }
-  .lrpop > div { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 18px; font-weight: 750; font-size: 20px; white-space: nowrap; background: var(--btn); color: var(--btnInk); border: 2.5px solid var(--lc, var(--breast)); box-shadow: var(--shadow); }
+  .lrpop > div { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 18px; font-weight: 750; font-size: inherit; white-space: nowrap; background: var(--btn); color: var(--btnInk); border: 2.5px solid var(--lc, var(--breast)); box-shadow: var(--shadow); }
   .lrpop .lrc { font-size: 17px; opacity: .9; border-style: dashed; }
   .lrpop .lrc small { font-size: 11px; font-weight: 600; color: var(--sub); margin-top: 2px; }
   .lrpop .lrz.on { background: var(--lc, var(--breast)); color: #fff; transform: scale(1.04); }
@@ -908,7 +908,8 @@ function longPick(b, opts) {
     pop.style.gridTemplateColumns = Array(half + 1).join(cw + 'px ') + cc + 'px ' + Array(half + 1).join(cw + 'px ');
     var left = sx - (cw + 6) * half - cc / 2;
     left = Math.max(8, Math.min(window.innerWidth - W - 8, left));
-    pop.style.left = left + 'px'; pop.style.top = r.top + 'px'; pop.style.height = r.height + 'px'; pop.style.setProperty('--lc', opts.color);
+    var h = r.height * (opts.tall || 1);
+    pop.style.left = left + 'px'; pop.style.top = Math.max(8, r.top - (h - r.height) / 2) + 'px'; pop.style.height = h + 'px'; pop.style.setProperty('--lc', opts.color); if (opts.fs) pop.style.fontSize = opts.fs + 'px';
     var cells = opts.items.map(function (it, i) { return '<div class="lrz" data-i="' + i + '">' + it[1] + '</div>'; });
     cells.splice(half, 0, '<div class="lrc">' + opts.title + '<small>離すとやめる</small></div>');
     pop.innerHTML = cells.join('');
@@ -941,7 +942,7 @@ function longPick(b, opts) {
 }
 longPick(document.querySelector('.btns [data-open="breast"]'), { title: '母乳', color: 'var(--breast)', items: [['L', '‹ 左'], ['R', '右 ›']], pick: function (v) { act({ a: 'add', t: 'breast', side: v }); } });
 ['poop', 'both'].forEach(function (t) {
-  longPick(document.querySelector('.btns [data-open="' + t + '"]'), { title: t === 'both' ? '両方' : 'うんち', color: 'var(--poop)', cell: 82, center: 86,
+  longPick(document.querySelector('.btns [data-open="' + t + '"]'), { title: t === 'both' ? '両方' : 'うんち', color: 'var(--poop)', cell: 112, center: 92, tall: 1.35, fs: 26,
     items: [['てん', 'てん'], ['ちょっと', 'ちょっと'], ['ふつう', 'ふつう'], ['たっぷり', 'たっぷり']], pick: function (v) { act({ a: 'add', t: t, note: v }); } });
 });
 function act(params, openAfter) {
