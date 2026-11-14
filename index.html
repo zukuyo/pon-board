@@ -278,7 +278,10 @@
   /* 上のボタンはアイコンだけで大きく（2026-11-14）。高さが増えた分は上下の余白で吸収して、時計の位置は動かさない */
   /* 上のボタンは、日付のすぐ横（右の列のいちばん上、引き継ぎメモの左）に大きく並べる（2026-11-14） */
   .memorow { display: flex; align-items: stretch; gap: 8px; margin-bottom: 8px; }
-  .top { padding-top: calc(var(--clk) * 0.18); }  /* ボタンを右の列へ移した分、時計の高さを前と同じに保つ */
+  .top { padding-top: calc(var(--clk) * 0.18); }
+  /* 幅が足りるときは、上のボタンを時計と日付の間に置く（足りないときは右の列のいちばん上）。2026-11-14 */
+  .top-r { flex-direction: row; align-items: center; gap: 16px; }
+  .top-r .tools { display: grid; grid-template-columns: repeat(4, 64px); gap: 8px; }  /* ボタンを右の列へ移した分、時計の高さを前と同じに保つ */
   .memorow .memo { flex: 1; min-width: 0; margin-bottom: 0; }
   .memorow .tools { display: grid; grid-template-columns: repeat(4, 64px); gap: 6px; align-items: center; }
   .tool { width: 64px; height: 64px; padding: 0; justify-content: center; border-radius: 18px; }
@@ -504,7 +507,7 @@
   <div class="colR">
     <div class="card controls">
       <div class="memorow">
-          <div class="tools">
+          <div class="tools" id="tools">
             <button class="tool" id="albumBtn" aria-label="アルバム" title="アルバム"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 3.5 3L16 12l4 4"/></svg></button>
             <button class="tool" id="growthBtn" aria-label="体重・身長" title="成長"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V13M10 20V8M15 20v-5M20 20V5"/></svg></button>
             <button class="tool" id="setBtn" aria-label="設定" title="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.2"/><circle cx="10" cy="12" r="2.2"/><circle cx="18" cy="18" r="2.2"/></svg></button>
@@ -594,9 +597,18 @@ function evText(e) {
 function typeOf(e) { return e.type; }
 
 /* ───────── 上段・ヒーロー ───────── */
+function placeTools() {
+  var t = $('tools'), tr = document.querySelector('.top-r'), mr = document.querySelector('.memorow'), ck = $('clock');
+  if (!t || !tr || !mr || !ck) return;
+  if (t.parentNode !== tr) tr.insertBefore(t, tr.firstChild);
+  var fits = t.getBoundingClientRect().left >= ck.getBoundingClientRect().right + 16 && window.matchMedia('(min-width: 701px)').matches;
+  if (!fits) mr.insertBefore(t, mr.firstChild);
+}
+window.addEventListener('resize', placeTools);
 function tick() {
   var now = new Date();
   $('clock').textContent = now.getHours() + ':' + pad(now.getMinutes());
+  placeTools();
   $('date').textContent = (now.getMonth() + 1) + '/' + now.getDate() + '（' + '日月火水木金土'.charAt(now.getDay()) + '）';
   if (S && S.child) $('age').textContent = S.child.name + ' 生後' + Math.floor((startOfDay(now) - startOfDay(new Date(S.child.birth))) / 86400000) + '日';
   document.body.classList.toggle('night', isNight());
