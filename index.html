@@ -96,14 +96,16 @@
   .subRow .sinceSub { margin-top: 0; min-width: 0; }
   .lr { display: flex; gap: 8px; flex: none; }
   .lr[hidden] { display: none; }
-  .lrc { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .lrd { width: clamp(46px, 8.4vh, 64px); height: clamp(46px, 8.4vh, 64px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(23px, 4vh, 31px); font-weight: 800; border: 3px solid var(--breast); color: var(--breast); transition: background .3s, color .3s; }
+  .lrc { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .lrd { width: clamp(46px, 8vh, 60px); height: clamp(46px, 8vh, 60px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(23px, 4vh, 31px); font-weight: 800; border: 3px solid var(--breast); color: var(--breast); transition: background .3s, color .3s; }
   .lrc.last .lrd { background: var(--breast); color: var(--card); }
   body.night .lrc.last .lrd { color: #1e100d; }
   .lrt { font-size: clamp(14px, 2.5vh, 19px); font-weight: 800; color: var(--sub); line-height: 1; height: clamp(14px, 2.5vh, 19px); }
   .lr.down .lrd { width: 34px; height: 34px; font-size: 17px; border-width: 2px; }
   .lr.down .lrt { display: none; }
   .hero .nextSub { margin-top: 8px; }
+  /* 丸の下の「前回」「次」の分だけ、下の段（18:57 母乳 左／あと◯分）を下げる */
+  .hero.hasLR .subRow, .hero.hasLR .nextSub { margin-top: clamp(10px, 2vh, 16px); }
   .pill { position: absolute; top: 10px; right: 12px; height: 30px; padding: 0 14px; border-radius: 15px; background: var(--chip); font-size: 12.5px; font-weight: 600; color: var(--sub); }
   .pill b { color: var(--ink); font-weight: 700; margin-left: 4px; font-variant-numeric: tabular-nums; }
 
@@ -442,6 +444,7 @@
     .lrd { width: 32px; height: 32px; font-size: 16px; border-width: 2px; }
     .lrt { display: none; }
     .hero.hasLR { grid-template-columns: 1fr 1fr; }
+    .hero.hasLR .subRow, .hero.hasLR .nextSub { margin-top: 6px; }
     .pill { top: 8px; right: 10px; height: 26px; font-size: 11.5px; padding: 0 11px; }
     .meta { text-align: left; font-size: 13px; }
     .tlhead { flex-wrap: wrap; gap: 6px; }
@@ -747,13 +750,24 @@ function fitNext() {
 }
 function fitLR() {
   var lr = $('lr'), row = $('sinceRow'), sub = $('subRow'), since = $('since');
-  since.style.fontSize = ''; lr.classList.remove('down'); if (lr.parentNode !== row) row.appendChild(lr);
+  since.style.fontSize = ''; lr.style.marginBottom = ''; lr.classList.remove('down'); if (lr.parentNode !== row) row.appendChild(lr);
   if (lr.hidden) return;
-  var avail = row.parentNode.clientWidth, need = row.scrollWidth; if (need <= avail) return;
+  var avail = row.parentNode.clientWidth, need = row.scrollWidth; if (need <= avail) { alignLR(); return; }
   var sp = since.firstElementChild ? since.firstElementChild.getBoundingClientRect().width : 0; if (!sp) return;
   var cur = parseFloat(getComputedStyle(since).fontSize), nf = cur * (avail - (need - sp)) / sp * 0.98;
-  if (nf >= cur * 0.65) { since.style.fontSize = nf + 'px'; return; }
+  if (nf >= cur * 0.65) { since.style.fontSize = nf + 'px'; alignLR(); return; }
   lr.classList.add('down'); sub.insertBefore(lr, sub.firstChild);
+}
+// 丸の真ん中を、数字（0〜9の字の高さ）の真ん中にそろえる。「前回」「次」は丸の下にはみ出してよい（2026-11-15）
+function alignLR() {
+  var lr = $('lr'), since = $('since'), sp = since.firstElementChild; if (!sp || lr.hidden) return;
+  var probe = document.createElement('span'); probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
+  sp.appendChild(probe); var base = probe.getBoundingClientRect().top; probe.remove();
+  var cs = getComputedStyle(since), cv = alignLR.cv || (alignLR.cv = document.createElement('canvas').getContext('2d'));
+  cv.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+  var asc = cv.measureText('0').actualBoundingBoxAscent || parseFloat(cs.fontSize) * 0.7;
+  var mid = base - asc / 2, d = lr.querySelector('.lrd').getBoundingClientRect(), dMid = (d.top + d.bottom) / 2;
+  lr.style.marginBottom = (-(mid - dMid)).toFixed(1) + 'px';
 }
 window.addEventListener('resize', function () { _fitKey = ''; if (S) fitAll(); });
 
