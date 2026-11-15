@@ -1077,9 +1077,10 @@ longPick(document.querySelector('.btns [data-open="breast"]'), { title: '母乳'
 function act(params, openAfter) {
   if (agoAt) params.time = iso(agoAt); else if (ago > 0) params.ago = ago;
   params.withState = 1;
+  unlockVoice();  // ボタンを押した瞬間に読み上げを使えるようにしておく（iPadは押した操作の中でないと声が出ない）
   toast('記録中…');
   call(params, function (r) {
-    if (r && r.ok) beep();
+    if (r && r.ok) { beep(); if (r.speech) setTimeout(function () { speak(r.speech); }, 300); }  // ボタンで記録したときも声で復唱（2026-11-15）
     if (r && r.state) { S = r.state; render(); } else refresh();
     if (r && r.ok && openAfter && r.id) { toast(r.speech); openEdit(r.id); }
     else if (r && r.ok && params.a === 'add' && params.t === 'breast' && r.id) toastAct(r.speech, '分数を入れる', function () { openEdit(r.id); });
