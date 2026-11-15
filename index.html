@@ -88,6 +88,16 @@
   .hero.alert .nextT { animation: statblink 1.2s ease-in-out infinite; }
   .meta { grid-column: 1 / -1; font-size: 14.5px; color: var(--sub); display: flex; gap: 14px; flex-wrap: wrap; }
   .meta b { color: var(--ink); font-weight: 600; }
+  /* 前回の左右（2026-11-15）：数字の下の段。前回の側は塗り、反対側（次）はふちだけ */
+  .subRow { display: flex; align-items: center; gap: 12px; margin-top: 8px; min-width: 0; }
+  .subRow .sinceSub { margin-top: 0; min-width: 0; }
+  /* 右の「あと◯分」も同じ高さの段で、文字の高さをそろえる */
+  .hero .nextSub { height: clamp(36px, 6vh, 46px); display: flex; align-items: center; }
+  .lr { display: flex; gap: 8px; flex: none; }
+  .lr[hidden] { display: none; }
+  .lrd { width: clamp(36px, 6vh, 46px); height: clamp(36px, 6vh, 46px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(18px, 3vh, 24px); font-weight: 800; border: 3px solid var(--breast); color: var(--breast); transition: background .3s, color .3s; }
+  .lrc.last .lrd { background: var(--breast); color: var(--card); }
+  body.night .lrc.last .lrd { color: #1e100d; }
   .pill { position: absolute; top: 10px; right: 12px; height: 30px; padding: 0 14px; border-radius: 15px; background: var(--chip); font-size: 12.5px; font-weight: 600; color: var(--sub); }
   .pill b { color: var(--ink); font-weight: 700; margin-left: 4px; font-variant-numeric: tabular-nums; }
 
@@ -420,6 +430,10 @@
     .nextT { font-size: 40px; }
     .since, .nextT { height: 44px; }
     .nextSub, .sinceSub { font-size: 13px; }
+    .lr { gap: 5px; }
+    .subRow { gap: 8px; margin-top: 6px; }
+    .lrd { width: 30px; height: 30px; font-size: 15px; border-width: 2px; }
+    .hero .nextSub { height: 30px; margin-top: 6px; }
     .pill { top: 8px; right: 10px; height: 26px; font-size: 11.5px; padding: 0 11px; }
     .meta { text-align: left; font-size: 13px; }
     .tlhead { flex-wrap: wrap; gap: 6px; }
@@ -511,7 +525,7 @@
 
     <div class="card hero" id="hero">
       <button class="pill" id="ivBtn">授乳間隔<b id="ivVal">3:00</b></button>
-      <div class="blk"><div class="label">前の授乳から</div><div class="since" id="since">--</div><div class="sinceSub" id="meta"></div></div>
+      <div class="blk"><div class="label">前の授乳から</div><div class="since" id="since">--</div><div class="subRow"><div class="lr" id="lr" hidden><div class="lrc" data-s="左"><div class="lrd">左</div></div><div class="lrc" data-s="右"><div class="lrd">右</div></div></div><div class="sinceSub" id="meta"></div></div></div>
       <div class="blk"><button class="nextLbl" id="nextLbl" aria-label="次回授乳の時刻を変える"><span id="nextLblTxt">次回授乳</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></button><div class="nextT" id="nextT">--:--</div><div class="nextSub" id="nextSub"></div></div>
     </div>
 
@@ -674,7 +688,7 @@ function renderHero() {
   var now = Date.now(), hero = $('hero');
   if (!S) { hero.classList.remove('warn', 'alert'); return; }
   $('ivVal').textContent = ivTxt(S.notifyMin);
-  if (!S.lastFeed) { hero.classList.remove('warn', 'alert'); $('since').innerHTML = '--'; $('nextT').textContent = '--:--'; $('nextSub').textContent = ''; $('meta').textContent = 'まだ記録がありません'; return; }
+  if (!S.lastFeed) { hero.classList.remove('warn', 'alert'); $('since').innerHTML = '--'; $('nextT').textContent = '--:--'; $('nextSub').textContent = ''; $('meta').textContent = 'まだ記録がありません'; $('lr').hidden = true; return; }
   var base = S.feedSessionStart || S.lastFeed.t, mAll = Math.max(0, Math.floor((now - base) / 60000));
   $('since').classList.toggle('long', mAll >= 60);
   $('since').innerHTML = '<span>' + (mAll >= 60 ? Math.floor(mAll / 60) + '<small>時間</small>' + pad(mAll % 60) + '<small>分</small>' : mAll + '<small>分</small>') + '</span>';
@@ -687,7 +701,15 @@ function renderHero() {
   hero.classList.toggle('alert', late); hero.classList.toggle('warn', !late && rem <= 10 * 60000);
   var lf = S.lastFeed;
   var what = lf.type === 'milk' ? 'ミルク ' + lf.amt + 'ml' : lf.type === 'pump' ? '搾乳 ' + lf.amt + 'ml' : '母乳' + (S.lastSides.length ? ' ' + S.lastSides.join('→') : '');
-  $('meta').innerHTML = '<b>' + hm(base) + '</b> ' + what + (S.lastSides.length ? '　最後 <b>' + S.lastSides[S.lastSides.length - 1] + '</b>' : '');
+  $('meta').innerHTML = '<b>' + hm(base) + '</b> ' + what;
+  renderLR();
+}
+
+// 前回の左右の丸。前回の側を塗り、反対側に「次」。側の記録がなければ出さない（2026-11-15）
+function renderLR() {
+  var last = S && (S.lastBreastSide || (S.lastSides && S.lastSides.length ? S.lastSides[S.lastSides.length - 1] : ''));
+  var lr = $('lr'); lr.hidden = !last; if (!last) return;
+  Array.prototype.forEach.call(lr.children, function (c) { var on = c.getAttribute('data-s') === last; c.classList.toggle('last', on); });
 }
 
 /* ───────── 今日の流れ ───────── */
