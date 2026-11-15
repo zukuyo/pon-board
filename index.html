@@ -89,7 +89,7 @@
   .meta { grid-column: 1 / -1; font-size: 14.5px; color: var(--sub); display: flex; gap: 14px; flex-wrap: wrap; }
   .meta b { color: var(--ink); font-weight: 600; }
   /* 前回の左右（2026-11-15）：数字の横に「左」「右」の丸。前回の側は塗り、反対側（次）はふちだけ。
-     入りきらないときは数字を少し小さくし（元の75%まで）、それでも無理なら数字の下の段へ移す（fitLR） */
+     入りきらないときは数字を少し小さくし（元の65%まで）、それでも無理なら数字の下の段へ移す（fitLR） */
   .hero.hasLR { grid-template-columns: 1.3fr 1fr; }
   .sinceRow { display: flex; align-items: flex-end; gap: 12px; min-width: 0; }
   .subRow { display: flex; align-items: center; gap: 12px; margin-top: 8px; min-width: 0; }
@@ -696,7 +696,7 @@ function renderHero() {
   var now = Date.now(), hero = $('hero');
   if (!S) { hero.classList.remove('warn', 'alert'); return; }
   $('ivVal').textContent = ivTxt(S.notifyMin);
-  if (!S.lastFeed) { hero.classList.remove('warn', 'alert'); $('since').innerHTML = '--'; $('nextT').textContent = '--:--'; $('nextSub').textContent = ''; $('meta').textContent = 'まだ記録がありません'; $('lr').hidden = true; $('hero').classList.remove('hasLR'); return; }
+  if (!S.lastFeed) { hero.classList.remove('warn', 'alert'); $('since').innerHTML = '--'; $('nextT').textContent = '--:--'; $('nextSub').textContent = ''; $('meta').textContent = 'まだ記録がありません'; $('lr').hidden = true; $('hero').classList.remove('hasLR'); fitAll(); return; }
   var base = S.feedSessionStart || S.lastFeed.t, mAll = Math.max(0, Math.floor((now - base) / 60000));
   $('since').classList.toggle('long', mAll >= 60);
   $('since').innerHTML = '<span>' + (mAll >= 60 ? Math.floor(mAll / 60) + '<small>時間</small>' + pad(mAll % 60) + '<small>分</small>' : mAll + '<small>分</small>') + '</span>';
@@ -718,23 +718,44 @@ function renderLR() {
   var last = S && (S.lastBreastSide || (S.lastSides && S.lastSides.length ? S.lastSides[S.lastSides.length - 1] : ''));
   var lr = $('lr'); lr.hidden = !last; $('hero').classList.toggle('hasLR', !!last);
   if (last) Array.prototype.forEach.call(lr.children, function (c) { var on = c.getAttribute('data-s') === last; c.classList.toggle('last', on); c.querySelector('.lrt').textContent = on ? '前回' : '次'; });
-  fitLR();
+  fitAll();
 }
-// 数字の横に入るか確かめる。表示が変わったときと画面の幅が変わったときだけ測る
-var _lrKey = '';
+// 欄に入りきらないときだけ文字を小さくする（2026-11-15）。表示が変わったときと画面の大きさが変わったときだけ測る
+//  1) 時計＋日付・気温が左の列に入るように、時計の大きさ（--clk）を下げる（元の60%まで）
+//  2) 前回の左右の丸（fitLR）
+//  3) 次回授乳の時刻が右の欄に入るように小さくする
+var _fitKey = '';
+function fitAll() {
+  var lr = $('lr'), since = $('since');
+  var key = [lr.hidden, since.textContent, (lr.querySelector('.last') || {}).textContent, $('clock').textContent, $('date').textContent, $('age').textContent, $('wx').textContent, $('nextT').textContent, innerWidth, innerHeight, document.body.classList.contains('night')].join('|');
+  if (key === _fitKey) return; _fitKey = key;
+  fitTop(); fitLR(); fitNext();
+}
+function fitTop() {
+  var colL = document.querySelector('.colL'), top = document.querySelector('.top'), clock = $('clock'), tr = document.querySelector('.top-r');
+  colL.style.removeProperty('--clk');
+  var cs = getComputedStyle(top), avail = top.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - parseFloat(cs.columnGap || 12);
+  var cw = clock.getBoundingClientRect().width, tw = tr.scrollWidth;
+  if (cw + tw <= avail) return;
+  var clk = parseFloat(getComputedStyle(clock).fontSize), nc = clk * (avail - tw) / cw * 0.98;
+  colL.style.setProperty('--clk', Math.max(clk * 0.6, nc) + 'px');
+}
+function fitNext() {
+  var n = $('nextT'); n.style.fontSize = '';
+  var w = n.parentNode.clientWidth, need = n.scrollWidth; if (need <= w) return;
+  n.style.fontSize = parseFloat(getComputedStyle(n).fontSize) * w / need * 0.98 + 'px';
+}
 function fitLR() {
   var lr = $('lr'), row = $('sinceRow'), sub = $('subRow'), since = $('since');
-  var key = lr.hidden + '|' + since.textContent + '|' + (lr.querySelector('.last') || {}).textContent + '|' + innerWidth + 'x' + innerHeight;
-  if (key === _lrKey) return; _lrKey = key;
   since.style.fontSize = ''; lr.classList.remove('down'); if (lr.parentNode !== row) row.appendChild(lr);
   if (lr.hidden) return;
   var avail = row.parentNode.clientWidth, need = row.scrollWidth; if (need <= avail) return;
   var sp = since.firstElementChild ? since.firstElementChild.getBoundingClientRect().width : 0; if (!sp) return;
   var cur = parseFloat(getComputedStyle(since).fontSize), nf = cur * (avail - (need - sp)) / sp * 0.98;
-  if (nf >= cur * 0.75) { since.style.fontSize = nf + 'px'; return; }
+  if (nf >= cur * 0.65) { since.style.fontSize = nf + 'px'; return; }
   lr.classList.add('down'); sub.insertBefore(lr, sub.firstChild);
 }
-window.addEventListener('resize', function () { _lrKey = ''; if (S) fitLR(); });
+window.addEventListener('resize', function () { _fitKey = ''; if (S) fitAll(); });
 
 /* ───────── 今日の流れ ───────── */
 function xPct(t) { return Math.max(0, Math.min(100, (t - S.dayStart) / 86400000 * 100)); }
