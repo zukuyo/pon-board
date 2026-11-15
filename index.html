@@ -1053,11 +1053,12 @@ function longPick(b, opts) {
   b.addEventListener('pointerdown', function (e) {
     sx = e.clientX; sy = e.clientY; sel = null;
     try { b.setPointerCapture(e.pointerId); } catch (er) {}
-    timer = setTimeout(function () { timer = null; open(); }, 380);
+    timer = setTimeout(function () { timer = null; open(); }, opts.delay || 380);
   });
   b.addEventListener('pointermove', function (e) {
     if (sx === null) return;
-    if (timer && (Math.abs(e.clientX - sx) > 14 || Math.abs(e.clientY - sy) > 14)) { clearTimeout(timer); timer = null; }
+    if (timer && opts.slide && Math.abs(e.clientX - sx) > 14 && Math.abs(e.clientX - sx) > Math.abs(e.clientY - sy)) { clearTimeout(timer); timer = null; open(); }
+    else if (timer && (Math.abs(e.clientX - sx) > 14 || Math.abs(e.clientY - sy) > 14)) { clearTimeout(timer); timer = null; }
     mark(e.clientX);
   });
   b.addEventListener('pointerup', function () {
@@ -1068,7 +1069,7 @@ function longPick(b, opts) {
   b.addEventListener('pointercancel', close);
   b.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 }
-longPick(document.querySelector('.btns [data-open="breast"]'), { title: '母乳', color: 'var(--breast)', items: [['L', '‹ 左'], ['R', '右 ›']], pick: function (v) { act({ a: 'add', t: 'breast', side: v }); } });
+longPick(document.querySelector('.btns [data-open="breast"]'), { title: '母乳', color: 'var(--breast)', delay: 220, slide: true, items: [['L', '‹ 左'], ['R', '右 ›']], pick: function (v) { act({ a: 'add', t: 'breast', side: v }); } });
 ['poop', 'both'].forEach(function (t) {
   longPick(document.querySelector('.btns [data-open="' + t + '"]'), { title: t === 'both' ? '両方' : 'うんち', color: 'var(--poop)', cell: 112, center: 92, tall: 1.35, fs: 26,
     items: [['てん', 'てん'], ['ちょっと', 'ちょっと'], ['ふつう', 'ふつう'], ['たっぷり', 'たっぷり']], pick: function (v) { act({ a: 'add', t: t, note: v }); } });
